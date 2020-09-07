@@ -1,0 +1,204 @@
+<odoo>
+    <data>
+        <template id="report_saleorder_document_inherit" inherit_id="sale.report_saleorder_document">
+            <xpath expr="//t/t" position="replace">
+                <t t-call="web.external_layout">
+                    <t t-set="o" t-value="doc.with_context(lang=doc.partner_id.lang)"/>
+                    <div class="page">
+                        <div class="row" style="font-size: 28px;">
+                            <div class="col-4">
+                            </div>
+                            <div class="col-4">
+                                <strong>Sale Order</strong>
+                            </div>
+                            <div class="col-4">
+                                <strong>
+                                    <span t-if="o.partner_id" t-field="o.partner_id.customer_code"/> &#160;&#160;<span
+                                        t-field="o.name"/>
+                                </strong>
+                            </div>
+                        </div>
+                        <br/>
+                        <br/>
+                        <table width="100%" height="100" style="font-size: 20px;">
+                            <tr>
+                                <th>
+                                    <u>Date :</u>
+                                </th>
+                                <td>
+                                    <span t-field="o.date_order" t-options='{"widget": "date"}'/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <u>Buyer :</u>
+                                </th>
+                                <td>
+                                    <t t-if="o.partner_id">
+                                        <span t-if="o.partner_id.title" t-field="o.partner_id.title"/>
+                                        <t t-if="o.partner_id.title">&#160;:&#160;</t>
+                                        <span t-field="o.partner_id"/>&#160;&#160;
+                                        <span t-if="o.partner_id.state_id" t-field="o.partner_id.state_id"/>
+                                        <t t-if="o.partner_id.state_id">&#160;-&#160;</t>
+                                        <span t-if="o.partner_id.country_id" t-field="o.partner_id.country_id">-</span>
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <u>Maker :</u>
+                                </th>
+                                <td>
+                                    <t t-if="o.vendor_id">
+                                        <span t-if="o.vendor_id.title" t-field="o.vendor_id.title"/>
+                                        <t t-if="o.vendor_id.title">&#160;:&#160;</t>
+                                        <span t-field="o.vendor_id"/>&#160;&#160;
+                                        <span t-if="o.vendor_id.state_id" t-field="o.vendor_id.state_id"/>
+                                        <t t-if="o.vendor_id.state_id">&#160;-&#160;</t>
+                                        <span t-if="o.vendor_id.country_id" t-field="o.vendor_id.country_id">-</span>
+                                    </t>
+                                </td>
+                            </tr>
+                        </table>
+                        <u/>
+                        <br/>
+                        <br/>
+                        <p>
+                            Almasri &amp; Alsaudi as agents, here by confirms having concluded the sales contract with
+                            your company as buyer to sell the following goods of above maker on the date and on the
+                            terms &amp; conditions as below
+                        </p>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th name="th_description" class="text-left">Quality</th>
+                                    <th name="th_priceunit" class="text-right">Quantity</th>
+                                    <th name="th_productuom" class="text-right">UoM</th>
+                                    <th name="th_quantity" class="text-right">Price</th>
+                                    <th name="th_priceunit" class="text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.order_line" t-as="line">
+                                    <tr>
+                                        <td name="td_name" class="text-left">
+                                            <span t-field="line.name"/>
+                                        </td>
+                                        <td name="td_quantity" class="text-right">
+                                            <span t-field="line.product_uom_qty"/>
+                                        </td>
+                                        <td name="td_uom" class="text-right">
+                                            <span t-field="line.product_uom"/>
+                                        </td>
+
+                                        <td name="td_unit_price" class="text-right">
+                                           <t t-esc="o.currency_id.symbol"/> &#160;<span t-field="line.price_unit" />
+                                        </td>
+                                        <td name="td_subtotal" class="text-right">
+                                            <span t-field="line.price_subtotal"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <br/>
+                        <br/>
+                        <table width="100%" height="100" style="font-size: 20px;">
+                            <tr>
+                                <th>
+                                    <u>Total Quantity :</u>
+                                    <br/>
+                                </th>
+                                <td>
+                                    <t t-set="qty" t-value="0"/>
+                                    <t t-foreach="o.order_line" t-as="line">
+                                        <t t-set="qty" t-value="qty+line.product_uom_qty"/>
+                                    </t>
+                                    <span t-esc="qty"/>&#160;&#160;
+                                    <span t-if="o.order_line"
+                                          t-field="o.order_line[0].product_uom"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <u>Total Amount :</u>
+                                    <br/>
+                                </th>
+                                <td>
+                                    <span t-field="o.amount_total"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <u>Shipment :</u>
+                                    <br/>
+                                </th>
+                                <td>
+                                    <span t-field="o.shipment_date"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <u>Destination :</u>
+                                    <br/>
+                                </th>
+                                <td>
+                                    <span t-field="o.destination_id"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <u>Payment :</u>
+                                    <br/>
+                                </th>
+                                <td>
+                                    <span t-field="o.payment_term_id"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <u>Insurance :</u>
+                                    <br/>
+                                </th>
+                                <td>
+                                    <span t-field="o.insurance_id"/>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>
+                                    <u>Packing :</u>
+                                    <br/>
+                                </th>
+                                <td>
+                                    <span t-field="o.packing"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <u>Marks :</u>
+                                    <br/>
+                                </th>
+                                <td>
+                                    <span t-field="o.marks"/>
+                                </td>
+                            </tr>
+                        </table>
+                        <br/>
+                        <div class="row">
+                            <div class="col-4">
+                                <span>Accepted By Buyer</span>
+                            </div>
+                            <div class="col-4">
+                            </div>
+                            <div class="col-4">
+                                <span>For Almsari &amp; Alsaudi Trading
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </xpath>
+        </template>
+    </data>
+</odoo>

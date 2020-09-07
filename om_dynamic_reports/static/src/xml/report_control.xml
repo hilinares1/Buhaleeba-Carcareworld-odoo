@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <!--reports template-->
+	<div t-name="om_dynamic_reports.DynamicReports"
+		 class="o_dynamic_report panel-container-vertical">
+		<div class="modal loading_modal">
+			<p>Loading...,</p>
+		</div>
+        <div class="dynamic_control_header panel-top">
+            <t t-call="ReportController"/>
+        </div>
+		<div class="splitter-horizontal"/>
+		<div class="dynamic_report_body panel-bottom"/>
+    </div>
+
+	<div class="ctrl_col" t-name="target_move">
+		<div class="col_label">
+			<span>Target Moves</span>
+		</div>
+
+		<div class="col_body">
+			<select class="target_move select_2"
+					name="target_move">
+				<option value="posted">All posted entries</option>
+				<option value="all">All entries</option>
+			</select>
+		</div>
+	</div>
+	<div t-name="display_account" class="ctrl_col">
+		<div class="col_label">
+			<span>Display accounts</span>
+		</div>
+
+		<div class="col_body">
+			<select class="display_account select_2"
+					name="display_account">
+				<option value="all">All</option>
+				<option value="movement"
+						selected="selected">With movements</option>
+				<option value="with_zero">With balance not equal to zero</option>
+			</select>
+		</div>
+	</div>
+
+	<div t-name="debit_credit" class="ctrl_col">
+		<div class="col_label">
+			<span>Show debit-credit columns</span>
+		</div>
+
+		<div class="col_body">
+			<input type="checkbox" name="debit_credit"
+				   class="debit_credit"/>
+		</div>
+	</div>
+	<div t-name="sortby" class="ctrl_col">
+		<div class="col_label">
+			<span>Sort by</span>
+		</div>
+
+		<div class="col_body">
+			<select class="sortby select_2" name="sortby">
+				<option value="sort_date">Date</option>
+				<option value="sort_journal_partner">Journal &amp; Partner</option>
+			</select>
+		</div>
+	</div>
+
+	<div t-name="initial_balance" class="ctrl_col">
+		<div class="col_label">
+			<span>Include Initial Balances</span>
+		</div>
+
+		<div class="col_body">
+			<input type="checkbox" name="initial_balance"
+				   class="initial_balance"/>
+		</div>
+	</div>
+	<div t-name="period_length" class="ctrl_col">
+		<div class="col_label">
+			<span>Period length</span>
+		</div>
+
+		<div class="col_body">
+			<input type="number" name="period_length"
+				   class="period_length"/>
+		</div>
+	</div>
+	<div t-name="sort_selection" class="ctrl_col">
+		<div class="col_label">
+			<span>Entries Sorted by</span>
+		</div>
+
+		<div class="col_body">
+			<select class="sort_selection select_2"
+					name="sort_selection">
+				<option value="move_name">Journal Entry Number</option>
+				<option value="date">Date</option>
+			</select>
+		</div>
+	</div>
+	<div t-name="result_selection" class="ctrl_col">
+		<div class="col_label">
+			<span>Partner's</span>
+		</div>
+
+		<div class="col_body">
+			<select class="result_selection select_2"
+					name="result_selection">
+				<option value="customer">Receivable accounts</option>
+				<option value="supplier">Payable accounts</option>
+				<option value="customer_supplier">Receivable and payable accounts</option>
+			</select>
+		</div>
+	</div>
+	<div t-name="reconciled" class="ctrl_col">
+		<div class="col_label">
+			<span>Reconciled entries</span>
+		</div>
+
+		<div class="col_body">
+			<input name="reconciled" type="checkbox"
+				   class="reconciled"/>
+		</div>
+	</div>
+
+	<div t-name="date_from" class="ctrl_col date_start_div">
+		<div class="col_label">
+			<span>Start date</span>
+		</div>
+
+		<div class="col_body">
+			<input type="date" name="date_from"
+				   class="date_from"/>
+		</div>
+	</div>
+
+	<div t-name="date_to" class="ctrl_col">
+		<div class="col_label">
+			<span>End date</span>
+		</div>
+
+		<div class="col_body">
+			<input type="date" name="date_to" class="date_to"/>
+		</div>
+	</div>
+	<div t-name="journal_ids" class="ctrl_col journals">
+		<div class="col_label">
+			<span>Journals</span>
+		</div>
+
+		<div class="col_body">
+			<select class="journal_ids select_2" name="journal_ids"
+					multiple="multiple">
+				<t t-foreach="widget.journal_ids" t-as="rec">
+					<option t-att-value="rec['id']" selected="selected">
+						<t t-esc="rec['name']"/>
+					</option>
+				</t>
+			</select>
+		</div>
+	</div>
+	<div t-name="account_report_id" class="ctrl_col">
+		<div class="col_label">
+			<span>Account Report</span>
+		</div>
+
+		<div class="col_body">
+			<select class="report_type account_report_id select_2 o_required"
+					name="account_report_id">
+				<option value=""/>
+				<t t-foreach="widget.report_type" t-as="r_type">
+					<option t-att-value="r_type['id']">
+						<t t-esc="r_type['name']"/>
+					</option>
+				</t>
+			</select>
+		</div>
+	</div>
+
+	<!--report controller-->
+	<div t-name="ReportController">
+		<div class="ctrl_body">
+			<div class="h_row">
+				<t t-call="account_report_id"/>
+			</div>
+		</div>
+
+		<div class="h_row footer">
+            <div class="fetch_report">
+                <span class="fetch_report_btn">Fetch Report</span>
+            </div>
+			<div class="report_buttons">
+				<div class="print_pdf" title="Print Pdf">
+					<i class="fa fa-print"/>
+				</div>
+				<div class="print_excel" title="Export Excel">
+					<i class="fa fa-table"/>
+				</div>
+			</div>
+        </div>
+		<!--
+				<div class="h_row ctrl">
+					<i class="fa fa-angle-up"/>
+				</div>
+		-->
+    </div>
+
+	<div class="ctrl_body" t-name="profit_loss">
+		<div class="h_row">
+			<t t-call="account_report_id"/>
+			<t t-call="date_from"/>
+			<t t-call="date_to"/>
+			<t t-call="target_move"/>
+			<t t-call="debit_credit"/>
+		</div>
+	</div>
+	<div class="ctrl_body" t-name="journals_audit">
+		<div class="h_row">
+			<t t-call="account_report_id"/>
+			<t t-call="date_from"/>
+			<t t-call="date_to"/>
+			<t t-call="target_move"/>
+			<t t-call="sort_selection"/>
+		</div>
+		<div class="h_row">
+			<t t-call="journal_ids"/>
+		</div>
+	</div>
+	<div class="ctrl_body" t-name="partner_ledger">
+		<div class="h_row">
+			<t t-call="account_report_id"/>
+			<t t-call="date_from"/>
+			<t t-call="date_to"/>
+			<t t-call="target_move"/>
+			<t t-call="reconciled"/>
+		</div>
+		<div class="h_row">
+			<t t-call="result_selection"/>
+			<t t-call="journal_ids"/>
+		</div>
+	</div>
+	<div class="ctrl_body" t-name="general_ledger">
+		<div class="h_row">
+			<t t-call="account_report_id"/>
+			<t t-call="date_from"/>
+			<t t-call="date_to"/>
+			<t t-call="target_move"/>
+			<t t-call="initial_balance"/>
+		</div>
+		<div class="h_row">
+			<t t-call="sortby"/>
+			<t t-call="display_account"/>
+			<t t-call="journal_ids"/>
+		</div>
+	</div>
+	<div class="ctrl_body" t-name="trial_balance">
+		<div class="h_row">
+			<t t-call="account_report_id"/>
+			<t t-call="target_move"/>
+			<t t-call="display_account"/>
+			<t t-call="date_from"/>
+			<t t-call="date_to"/>
+		</div>
+	</div>
+	<div class="ctrl_body" t-name="aged_partner">
+		<div class="h_row">
+			<t t-call="account_report_id"/>
+			<t t-call="target_move"/>
+			<t t-call="result_selection"/>
+			<t t-call="date_from"/>
+			<t t-call="period_length"/>
+		</div>
+	</div>
+	<div class="ctrl_body" t-name="tax_report">
+		<div class="h_row">
+			<t t-call="account_report_id"/>
+			<t t-call="date_from"/>
+			<t t-call="date_to"/>
+		</div>
+	</div>
+</templates>

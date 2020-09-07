@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+            id="instruction_sheet_purchase"
+            model="purchase.order"
+            string="Instruction"
+            report_type="qweb-pdf"
+            name="odx_sale_purchase_customization.purchase_instruction_template"
+            file="odx_sale_purchase_customization.purchase_instruction_template"
+            attachment_use="False"
+            menu="True"
+            print_report_name="'Instruction Sheet - %s' % (object.name)"
+        />
+
+    </data>
+</odoo>

@@ -1,0 +1,71 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="purchase_landing_cost_tree">
+            <field name="name">purchase.landing.cost.tree</field>
+            <field name="model">purchase.landing.cost</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom" edit="false">
+                    <field name="reference"/>
+                    <field name="landing_date_etd"/>
+                    <field name="landing_date_eta"/>
+                    <field name="shipping_company_id"/>
+                    <field name="name"/>
+                    <field name="no_of_packages"/>
+                    <field name="destination"/>
+                    <field name="marks"/>
+                    <field name="container_no"/>
+                    <field name="landing_attachment" filename="landing_attachment_name"/>
+                    <field name="landing_attachment_name" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="purchase_landing_cost_form">
+            <field name="name">purchase.landing.cost.form</field>
+            <field name="model">purchase.landing.cost</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="reference"/>
+                                <field name="landing_date_etd"/>
+                                <field name="landing_date_eta"/>
+                                <field name="shipping_company_id"/>
+                                <field name="name"/>
+                            </group>
+                            <group>
+                                <field name="no_of_packages"/>
+                                <field name="destination"/>
+                                <field name="marks"/>
+                                <field name="landing_attachment" filename="landing_attachment_name"/>
+                                <field name="landing_attachment_name" invisible="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record model="ir.actions.act_window" id="action_purchase_landing_cost">
+            <field name="name">Bill Of Ladings</field>
+            <field name="res_model">purchase.landing.cost</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Create the first item
+                </p>
+            </field>
+        </record>
+        <menuitem name="Documents" id="menu_purchase_document" parent="purchase.menu_purchase_root"/>
+        <menuitem name="Bill Of Ladings" id="menu_purchase_landing_cost" action="action_purchase_landing_cost"
+                  parent="menu_purchase_document"/>
+    </data>
+</odoo>
+
+
+
+
+
+
+
+
+
+
