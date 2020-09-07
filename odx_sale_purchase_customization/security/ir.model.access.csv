@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_purchase_landing_cost,access_purchase_landing_cost,model_purchase_landing_cost,base.group_user,1,1,1,1
+access_res_insurance,access_res_insurance,model_res_insurance,base.group_user,1,1,1,1
+access_res_marks,access_res_marks,model_res_marks,base.group_user,1,1,1,1
+access_res_destination,access_res_destination,model_res_destination,base.group_user,1,1,1,1
+access_shipment_destination,access_shipment_destination,model_shipment_destination,base.group_user,1,1,1,1
+access_purchase_shipment,access_purchase_shipment,model_purchase_shipment,base.group_user,1,1,1,1
+access_tocb_report,access_tocb_report,model_tocb_report,base.group_user,1,1,1,1
+access_shipment_company,access_shipment_company,model_shipment_company,base.group_user,1,1,1,1

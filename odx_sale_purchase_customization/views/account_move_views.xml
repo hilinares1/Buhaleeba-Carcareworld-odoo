@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_move_form" model="ir.ui.view">
+        <field name="name">account.move.form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header/button[@name='action_post']" position="attributes">
+                <attribute name="string">Confirm</attribute>
+            </xpath>
+            <xpath expr="//field[@name='ref']" position="replace">
+                <field name="ref" invisible="1"/>
+                <field name="reference" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='currency_id']" position="after">
+                <field name="customer_currency_id"
+                       attrs="{'invisible': [('type', 'not in', ('out_invoice', 'out_refund', 'out_receipt'))]}"/>
+            </xpath>
+            <xpath expr="//div[@class='d-flex']" position="after">
+                <field name="bank_charge"
+                       attrs="{'invisible': [('type', 'not in', ('out_invoice', 'out_refund', 'out_receipt'))]}"/>
+            </xpath>
+             <xpath expr="//field[@name='reference']" position="after">
+                <field name="sale_id"
+                       attrs="{'invisible': [('type', 'not in', ('out_invoice', 'out_refund', 'out_receipt'))]}"/>
+                <field name="purchase_order_id"
+                       attrs="{'invisible': [('type', 'not in', ('in_invoice', 'in_refund', 'in_receipt'))]}"
+                       readonly="True"/>
+                 <field name="is_order_to_invoice" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="replace">
+                <field name="name" readonly="True" attrs="{'invisible':[('reference', '!=', False)]}"/>
+                <field name="reference" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']" position="attributes">
+                <attribute name="attrs">{'readonly': [('is_order_to_invoice', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='amount_untaxed']" position="attributes">
+                <attribute name="string">Total</attribute>
+            </xpath>
+            <xpath expr="//field[@name='amount_total']" position="attributes">
+                <attribute name="string">Grand Total</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='price_unit']" position="after">
+                <field name="commission" readonly="0" force_save="1"
+                       attrs="{'column_invisible': [('parent.type', 'not in', ('in_invoice', 'in_refund'))]}"/>
+                <field name="com_amount" readonly="1" force_save="1"
+                       attrs="{'column_invisible': [('parent.state', 'not in', ('purchase', 'done'))]}"/>
+                <field name="is_commission_line" invisible="1"/>
+                <field name="is_discount_line" invisible="1"/>
+                <field name="is_bank_fee_line" invisible="1"/>
+                <field name="is_currency_charge_line" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='price_total']" position="after">
+                <field name="total" readonly="1" force_save="1" string="Net Amount"/>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/form/sheet/group[1]/field[@name='price_unit']" position="after">
+                <field name="commission" readonly="0" force_save="1"/>
+                <field name="com_amount" readonly="1" force_save="1"/>
+                <field name="is_commission_line" invisible="1"/>
+                <field name="is_discount_line" invisible="1"/>
+                <field name="is_bank_fee_line" invisible="1"/>
+                <field name="is_currency_charge_line" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/tree//field[@name='price_unit']" position="after">
+                <field name="commission" readonly="0" force_save="1" invisible="1"/>
+                <field name="com_amount" readonly="1" force_save="1" invisible="1"/>
+                <field name="is_commission_line" invisible="1"/>
+                <field name="is_discount_line" invisible="1"/>
+                <field name="is_bank_fee_line" invisible="1"/>
+                <field name="is_currency_charge_line" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/tree//field[@name='price_total']" position="after">
+                <field name="total" readonly="1" force_save="1" string="Net Amount" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='discount']" position="attributes">
+                <attribute name="digits">[16, 2]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='amount_untaxed']" position="after">
+                <field name="amount_commission"
+                       attrs="{'invisible': [('type', 'not in', ('in_invoice', 'in_refund'))]}"/>
+                <field name="currency_charge"
+                       attrs="{'invisible': [('type', 'not in', ('out_invoice', 'out_refund', 'out_receipt'))]}"/>
+                <field name="bank_charge_currency" readonly="1" force_save="1"
+                       attrs="{'invisible': [('type', 'not in', ('out_invoice', 'out_refund'))]}"/>
+                <field name="amount_discount"/>
+
+            </xpath>
+            <xpath expr="//field[@name='narration']" position="after">
+                <div>
+                    <label for="discount_type" string="Discount Type :"/>
+                    <field name="discount_type" class="oe_inline"/>
+                </div>
+                <div>
+                    <label for="discount_rate" string="Discount Rate :"/>
+                    <field name="discount_rate" class="oe_inline"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Partner Form View to Modify it -->
+    <record id="view_partner_form_extend" model="ir.ui.view">
+        <field name="name">res.partner.form.extend</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <div class="o_row" name="code">
+                    <span>-</span>
+                    <field name="customer_code" required="True"/>
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="after">
+                <field name="customer_rank" string="Customer"/>
+            </xpath>
+            <xpath expr="//page[@name='sales_purchases']//group[@name='purchase']" position="inside">
+                <field name="supplier_rank" string="Supplier"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit Partner Search View to Modify it -->
+    <record id="view_res_partner_filter_extend" model="ir.ui.view">
+        <field name="name">res.partner.select.extend</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="customer_code"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

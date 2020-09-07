@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="tocb_report_tree">
+        <field name="name">tocb.report.tree</field>
+        <field name="model">tocb.report</field>
+        <field name="arch" type="xml">
+            <tree edit="false" create="false" delete="false">
+                <field name="date_order"/>
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="partner_id"/>
+                <field name="country_id"/>
+                <field name="shipment_date"/>
+                <field name="bill_of_ladding_date"/>
+                <field name="date_arrival"/>
+                <field name="product_id"/>
+                <field name="purchase_price"/>
+                <field name="selling_price"/>
+                <field name="product_uom"/>
+                <field name="qty"/>
+                <field name="actual_qty"/>
+                <field name="no_of_packages"/>
+                <field name="vendor_total"/>
+                <field name="customer_total"/>
+                <field name="commission"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_tocb_report_all" model="ir.actions.act_window">
+        <field name="name">MASTEX Report</field>
+        <field name="res_model">tocb.report</field>
+        <field name="view_mode">tree,graph</field>
+        <field name="view_id"></field>  <!-- force empty -->
+        <field name="help">This report performs analysis on your quotations and sales orders. Analysis check your sales
+            revenues and sort it by different group criteria (salesman, partner, product, etc.) Use this report to
+            perform analysis on sales not having invoiced yet. If you want to analyse your turnover, you should use the
+            Invoice Analysis report in the Accounting application.
+        </field>
+    </record>
+    <menuitem id="menu_tocb_report_all"
+              name="MASTEX Report"
+              parent="sale.menu_sale_report"
+              sequence="5"
+              action="action_tocb_report_all"/>
+</odoo>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Inherit Purchase Order Form View to Modify it -->
+        <record id="view_attachment_form_inherit" model="ir.ui.view">
+            <field name="name">ir.attachment.form.inherit</field>
+            <field name="model">ir.attachment</field>
+            <field name="inherit_id" ref="base.view_attachment_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/label" position="replace">
+                    <label for="description" class="oe_edit_only"/>
+                </xpath>
+                <xpath expr="//field[@name='name']" position="replace">
+                    <field name="description" string="Description"/>
+                </xpath>
+                <xpath expr="//field[@name='type']" position="after">
+                    <field name="name" required="0"/>
+                </xpath>
+            </field>
+        </record>
+        <record id="inherit_view_ir_attachment_kanban" model="ir.ui.view">
+            <field name="name">inherit.view.ir.attachment</field>
+            <field name="model">ir.attachment</field>
+            <field name="inherit_id" ref="mail.view_document_file_kanban"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="description"/>
+                </field>
+                <xpath expr="//div[hasclass('o_kanban_details')]/div[hasclass('o_kanban_details_wrapper')]"
+                       position="inside">
+                    <div t-att-title="record.name.raw_value" class="o_kanban_record_title">
+                        <field name="description" class="o_text_overflow"/>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

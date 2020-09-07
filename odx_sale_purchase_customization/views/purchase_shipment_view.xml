@@ -1,0 +1,69 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="purchase_shipment_tree">
+            <field name="name">purchase.shipment.tree</field>
+            <field name="model">purchase.shipment</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom" edit="false">
+                    <field name="type"/>
+                    <field name="shipment_to"/>
+                    <field name="shipment_from"/>
+                    <field name="reference"/>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                    <field name="description"/>
+                    <field name="status"/>
+                    <field name="attachment" filename="attachment_name"/>
+                    <field name="attachment_name" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="purchase_shipment_form">
+            <field name="name">purchase.shipment.form</field>
+            <field name="model">purchase.shipment</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="shipment_to"/>
+                                <field name="shipment_from"/>
+                                <field name="from_date"/>
+                                <field name="to_date"/>
+                                <field name="type"/>
+                            </group>
+                            <group>
+                                <field name="reference"/>
+                                <field name="description"/>
+                                <field name="status"/>
+                                <field name="attachment" filename="attachment_name"/>
+                                <field name="attachment_name" invisible="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record model="ir.actions.act_window" id="action_purchase_shipment">
+            <field name="name">Courier</field>
+            <field name="res_model">purchase.shipment</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Create the first item
+                </p>
+            </field>
+        </record>
+        <menuitem name="Courier" id="menu_purchase_shipment" action="action_purchase_shipment"
+                  parent="menu_purchase_document"/>
+    </data>
+</odoo>
+
+
+
+
+
+
+
+
+
+

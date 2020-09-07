@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <report string="Dynamic reports"
+                id="report_account_reports_pdf"
+                model="dynamic.report.config"
+                report_type="qweb-pdf"
+                name="om_dynamic_reports.om_account_reports_pdf"
+                file="om_dynamic_reports.om_account_reports_pdf"
+                print_report_name="'Dynamic reports'"
+        />
+    </data>
+</odoo>

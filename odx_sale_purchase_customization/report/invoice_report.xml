@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="report_invoice_customized" inherit_id="account.report_invoice_document">
+            <xpath expr="//div[@id='aed_amounts']" position="replace">
+                <div t-if="o.company_id.country_id.code == 'AE' and o.currency_id != o.company_id.currency_id"
+                     id="aed_amounts" class="row clearfix ml-auto my-3 text-nowrap table">
+                    <t t-set="aed_rate"
+                       t-value="o.env['res.currency']._get_conversion_rate(o.customer_currency_id, o.company_id.currency_id, o.company_id, o.invoice_date or datetime.date.today())"/>
+                    <t t-set="aed_amount"
+                       t-value="o.env['res.currency']._convert(o.amount_total, o.company_currency_id,
+                                 o.company_id,o.date or datetime.date.today())"/>
+
+                    <table>
+                        <tr>
+                            <th>Exchange Rate</th>
+                            <td>
+                                <p class="m-0" t-esc="aed_rate"
+                                   t-options="{&quot;widget&quot;: &quot;float&quot;, &quot;precision&quot;: 5}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Subtotal (AED)</th>
+                            <td>
+                                <p class="m-0" t-esc="aed_amount"
+                                   t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_currency_id}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Bank Charge</th>
+                            <td>
+                                <p class="m-0" t-esc="o.bank_charge"
+                                   t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_currency_id}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Total (AED)</th>
+                            <td>
+                                <p class="m-0" t-esc="aed_amount + o.bank_charge"
+                                   t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_currency_id}"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </xpath>
+        </template>
+        <template id="report_invoice_document_inherit"
+                  inherit_id="account.report_invoice_document">
+            <xpath expr="//div[hasclass('clearfix')]//table" position="replace">
+                <table class="table table-sm;page-break-inside: avoid;">
+                    <tr class="border-black o_subtotal" style="">
+                        <td>
+                            <strong>Subtotal</strong>
+                        </td>
+                        <td class="text-right">
+                            <span t-field="o.amount_untaxed"/>
+                        </td>
+                    </tr>
+                    <tr class="border-black o_subtotal" style="" t-if="o.type in ('out_invoice', 'out_refund', 'out_receipt')">
+                        <td>
+                            <strong>Currency Charge</strong>
+                        </td>
+                        <td class="text-right">
+                            <span t-field="o.currency_charge" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                        </td>
+                    </tr>
+                    <tr class="border-black o_subtotal" style="">
+                        <td>
+                            <strong>Bank Charge</strong>
+                        </td>
+
+                        <td class="text-right">
+                            <p class="m-0" t-field="o.bank_charge_currency"
+                               t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                        </td>
+                    </tr>
+                    <t t-foreach="o.amount_by_group" t-as="amount_by_group">
+                        <tr style="">
+                            <t t-if="len(o.line_ids.filtered(lambda line: line.tax_line_id)) == 1 and o.amount_untaxed == amount_by_group[2]">
+                                <td>
+                                    <span t-esc="amount_by_group[0]"/>
+                                </td>
+                                <td class="text-right o_price_total">
+                                    <span t-esc="amount_by_group[3]"/>
+                                </td>
+                            </t>
+                            <t t-else="">
+                                <td>
+                                    <span t-esc="amount_by_group[0]"/>
+                                    <span>&amp;nbsp;
+                                        <span>on</span>
+                                        <t t-esc="amount_by_group[4]"/>
+                                    </span>
+                                </td>
+                                <td class="text-right o_price_total">
+                                    <span t-esc="amount_by_group[3]"/>
+                                </td>
+                            </t>
+                        </tr>
+                    </t>
+                    <tr class="border-black o_total">
+                        <td>
+                            <strong>Total</strong>
+                        </td>
+                        <td class="text-right">
+
+                            <span t-esc="o.bank_charge_currency+o.amount_untaxed+o.currency_charge"
+                                  t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                        </td>
+                    </tr>
+                </table>
+            </xpath>
+        </template>
+    </data>
+</odoo>

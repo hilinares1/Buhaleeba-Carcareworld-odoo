@@ -1,0 +1,71 @@
+<odoo>
+    <data>
+        <template id="external_layout_standard_inherit" inherit_id="web.external_layout_standard">
+            <xpath expr="//t/div[3]" position="replace">
+                <div class="footer o_standard_footer">
+                    <div class="text-center" style="border-top: 1px solid black;">
+                        <ul class="list-inline mb4">
+                            <!-- using the list-inline-item class from bootstrap causes weird behaviours in pdf report
+                                 adding d-inline class fixes the problem-->
+                            <li t-if="company.phone" class="list-inline-item d-inline">Phone:
+                                <span t-field="company.phone"/>
+                            </li>
+                            <li t-if="company.email" class="list-inline-item d-inline">Email:
+                                <span t-field="company.email"/>
+                            </li>
+                        </ul>
+
+                        <div name="financial_infos">
+                            <span t-field="company.report_footer"/>
+                        </div>
+
+                        <div t-if="report_type == 'pdf'" class="text-muted">
+                            Page:
+                            <span class="page"/>
+                            /
+                            <span class="topage"/>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//t/div[1]" position="replace">
+                <div class="header">
+                    <div class="row">
+                        <div class="col-3 mb4">
+                            <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="max-height: 45px;"
+                                 alt="Logo"/>
+                        </div>
+                        <div class="col-9 text-right" style="margin-top:22px;" t-field="company.report_header"
+                             name="moto"/>
+                    </div>
+                    <div t-if="company.logo or company.report_header" class="row zero_min_height">
+                        <div class="col-12">
+                            <div style="border-bottom: 1px solid black;"/>
+                        </div>
+                    </div>
+                    <div class="row">
+                         <div class="col-6" name="company_address">
+						<span t-field="company.partner_id" /><br/>
+						<span t-field="company.street" />
+						<t t-if="company.street">, </t>
+						<span t-field="company.street2" />
+						<t t-if="company.street2">, </t><br/>
+						<span t-field="company.city" />
+						<t t-if="company.city">, </t>
+						<span t-field="company.state_id.name" />
+						<t t-if="company.state_id">, </t><br/>
+						<span t-field="company.country_id.name" />
+						<t t-if="company.country_id">
+						</t>
+						<span t-field="company.zip" />
+                </div>
+<!--                        <div class="col-6" name="company_address">-->
+<!--                            <div t-field="company.partner_id"-->
+<!--                                 t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;name&quot;], &quot;no_marker&quot;: true}"/>-->
+<!--                        </div>-->
+                    </div>
+                </div>
+            </xpath>
+        </template>
+    </data>
+</odoo>

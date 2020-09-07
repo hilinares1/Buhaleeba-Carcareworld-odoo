@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="instruction_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <table width="100%" height="100">
+                                <tr>
+                                    <th>
+                                        <u>Order No</u>
+                                    </th>
+                                    <td>
+                                           <span t-field="o.name"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>
+                                        <u>Maker</u>
+                                    </th>
+                                    <td>
+                                        <span t-field="o.vendor_id"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>
+                                        <u>Total Quantity</u>
+                                    </th>
+                                    <td>
+                                        <t t-set="qty" t-value="0"/>
+                                        <t t-foreach="o.order_line" t-as="line">
+                                            <t t-set="qty" t-value="qty+line.product_uom_qty"/>
+                                        </t>
+                                         <span t-esc="qty"/>&#160;&#160;
+                                         <span t-if="o.order_line"
+                                              t-field="o.order_line[0].product_uom"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>
+                                        <u>Item Details</u>
+                                    </th>
+                                    <td>
+                                      <t t-foreach="o.order_line" t-as="line">
+                                            <span t-field="line.name"/>/
+                                        </t>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th>
+                                        <u>Date</u>
+                                    </th>
+                                    <td>
+                                        <span t-field="o.date_order" t-options='{"widget": "date"}'/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>
+                                        <u>Shipment</u>
+                                    </th>
+                                    <td>
+                                        <span t-field="o.shipment_date"/>-
+                                        <span t-field="o.destination_id"/>
+                                    </td>
+                                </tr>
+                            </table>
+                            <br/>
+                            <span style="color: #FF0000;font-size: 25px;">
+                                <u>Color Instructions:</u>
+                            </span>
+                            <p style="padding-left:10px" t-field="o.colour_instructions"/>
+                            <br/>
+                            <br/>
+                            <span style="font-size: 25px;">
+                                <u>Packing:</u>
+                            </span>
+                            <p style="padding-left:10px" t-field="o.packing"/>
+                            <br/>
+                            <br/>
+                            <span style="font-size: 25px;">
+                                <u>Face Stamp On Paper And Booklet:</u>
+                            </span>
+                            <p style="padding-left:10px" t-field="o.face_stamp"/>
+                            <br/>
+                            <span style="font-size: 25px;">
+                                <u>Selvedge:</u>
+                            </span>
+                            <p style="padding-left:10px" t-field="o.selvedge"/>
+                            <br/>
+                            <span style="font-size: 25px;">
+                                <u>Shipping Mark:</u>
+                            </span>
+                            <p style="padding-left:10px" t-field="o.shipping_mark"/>
+                            <br/>
+                            <br/>
+                            <span style="font-size: 25px;">
+                                <u>Shipping Sample book:</u>
+                            </span>
+                            <p style="padding-left:10px" t-field="o.shipping_sample_book"/>
+                            <br/>
+                            <br/>
+                            <span style="font-size: 25px;">
+                                <u>Notes:</u>
+                            </span>
+                            <p style="padding-left:10px" t-field="o.notes"/>
+
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>
+
