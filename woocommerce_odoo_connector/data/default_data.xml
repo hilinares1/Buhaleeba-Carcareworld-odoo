@@ -15,8 +15,8 @@
             <field name="debug">enable</field>
 	        <field name="auto_evaluate_feed">True</field>
 			<field name="auto_sync_stock">True</field>
-	        <field name="discount_product_id" ref='odoo_multi_channel_sale.discount_product'/>
-	        <field name="delivery_product_id" ref='odoo_multi_channel_sale.delivery_product'/>
+	        <field name="discount_product_id" ref='odoo_multi_channel_sale.discount_product_id'/>
+	        <field name="delivery_product_id" ref='odoo_multi_channel_sale.delivery_product_id'/>
 			<!-- <field name="import_product_date">"2019-01-01"</field> 
             <field name="import_customer_date">"2019-01-01"</field>
 			<field name="import_order_date">"2019-01-01"</field>
