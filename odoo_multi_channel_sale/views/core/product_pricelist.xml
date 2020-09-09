@@ -10,6 +10,7 @@
 			<field name="arch" type="xml">
 				<search string="Pricelist">
 					<field name="product_id" filter_domain="[('product_id','ilike',self)]"/>
+					<field name="company_id" filter_domain="[('company_id','ilike',self)]"/>
 					<field name="product_tmpl_id" filter_domain="[('product_tmpl_id','ilike',self)]"/>
 					<group expand="0" string="Group By...">
 						<filter
@@ -44,6 +45,7 @@
 					<field name="date_start"/>
 					<field name="date_end"/>
 					<field name="price" string="Price"/>
+					<field name="company_id" invisible="1"/>
 					<field name="base" invisible="1"/>
 					<field name="product_id" invisible="1"/>
 					<field name="product_tmpl_id" invisible="1"/>

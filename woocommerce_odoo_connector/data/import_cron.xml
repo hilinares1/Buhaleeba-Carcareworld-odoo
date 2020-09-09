@@ -12,8 +12,8 @@
             <field name="interval_type">hours</field>
             <field name="numbercall">-1</field>
             <field eval="False" name="doall"/>
-            <field eval="'multi.channel.sale'" name="model"/>
-            <field name="model_id" ref="model_multi_channel_sale"/>
+            <!-- <field eval="'multi.channel.sale'" name="model"/> -->
+            <field name="model_id" ref="odoo_multi_channel_sale.model_multi_channel_sale"/>
             <field name="state">code</field>
             <field name="code">model.import_woocommerce_products_cron()</field>
         </record>
@@ -26,8 +26,8 @@
             <field name="interval_type">hours</field>
             <field name="numbercall">-1</field>
             <field eval="False" name="doall"/>
-            <field eval="'multi.channel.sale'" name="model"/>
-	        <field name="model_id" ref="model_multi_channel_sale"/>
+            <!-- <field eval="'multi.channel.sale'" name="model"/> -->
+	        <field name="model_id" ref="odoo_multi_channel_sale.model_multi_channel_sale"/>
             <field name="state">code</field>
             <field name="code">model.import_woocommerce_orders_cron()</field>
         </record>
@@ -42,7 +42,7 @@
             <field name="numbercall">-1</field>
             <field eval="False" name="doall"/>
             <field eval="'multi.channel.sale'" name="model"/>
-	        <field name="model_id" ref="model_multi_channel_sale"/>
+	        <field name="model_id" ref="odoo_multi_channel_sale.model_multi_channel_sale"/>
             <field name="state">code</field>
             <field name="code">model.import_woocommerce_orders_update_cron()</field>
         </record> -->
