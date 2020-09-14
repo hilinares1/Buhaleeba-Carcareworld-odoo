@@ -50,7 +50,7 @@ class MultiChannelSale(models.Model):
 				if len(template.product_variant_ids)>1:
 					variable = 1
 				elif len(template.product_variant_ids) == 1:
-					if template.product_variant_ids[0].attribute_value_ids:
+					if template.product_variant_ids[0].product_template_attribute_value_ids:
 						variable = 1
 				if variable:
 					count += self.create_woocommerce_variable_product(template, woocommerce)
@@ -356,7 +356,7 @@ class MultiChannelSale(models.Model):
 				if len(template.product_variant_ids)>1:
 					variable = 1
 				elif len(template.product_variant_ids) == 1:
-					if template.product_variant_ids[0].attribute_value_ids:
+					if template.product_variant_ids[0].product_template_attribute_value_ids:
 						variable = 1
 				if variable:
 					count += self.create_woocommerce_variable_product(template, woocommerce)
