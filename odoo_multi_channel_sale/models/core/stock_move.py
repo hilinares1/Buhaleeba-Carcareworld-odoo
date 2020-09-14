@@ -13,7 +13,7 @@ _logger = getLogger(__name__)
 class StockMove(models.Model):
 	_inherit = 'stock.move'
 
-	def _action_done(self):
+	def _action_done(self, cancel_backorder=False):
 		"""
 			Makes the move done and if all moves are done,it will finish the picking.
 			@return:
