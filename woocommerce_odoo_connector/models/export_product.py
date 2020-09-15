@@ -78,7 +78,7 @@ class MultiChannelSale(models.Model):
 		return full_image_url,name
 
 	def create_woocommerce_product_image(self, template, variant = False):
-		if template.image:
+		if template.image_1920:
 			image_list = []
 			count = 0
 			template_url,name = self.set_woocommerce_image_path(template.name, template.product_variant_ids[0])
@@ -271,7 +271,7 @@ class MultiChannelSale(models.Model):
 						'stock_quantity'	: quantity,
 						'in_stock'			: True,
 			}
-			if template.image:
+			if template.image_1920:
 				product_dict['images'] = self.create_woocommerce_product_image(template)
 			if template.length or template.width or template.height:
 				dimensions = {
