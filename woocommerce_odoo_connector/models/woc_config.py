@@ -49,7 +49,7 @@ class MultiChannelSale(models.Model):
             consumer_secret=self.woocommerce_secret_key,
             wp_api=True,
             version="wc/v2",
-            timeout=1400,
+            timeout=40,
             query_string_auth=True,
             # verify_ssl        =    False,
         )
@@ -75,7 +75,7 @@ class MultiChannelSale(models.Model):
                 consumer_secret=self.woocommerce_secret_key,
                 wp_api=True,
                 version="wc/v2",
-                timeout=1400,
+                timeout=40,
                 query_string_auth=True,
                 # verify_ssl        =    False,
             )
