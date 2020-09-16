@@ -10,7 +10,7 @@ import logging
 _logger = logging.getLogger(__name__)
 from odoo.exceptions import UserError
 from odoo import api, fields, models,_
-# from odoo.addons.odoo_multi_channel_sale.tools import extract_list as EL
+from odoo.addons.odoo_multi_channel_sale.tools import extract_list as EL
 
 
 class ImportWoocommerceOrders(models.TransientModel):
