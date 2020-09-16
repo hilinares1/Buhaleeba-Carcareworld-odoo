@@ -15,7 +15,7 @@ except ImportError:
 from datetime import datetime, timedelta
 from odoo import api, fields, models
 from odoo.exceptions import UserError
-from odoo.addons.odoo_multi_channel_sale.tools import extract_list as EL
+from odoo.custom.addons.odoo_multi_channel_sale.tools import extract_list as EL
 from odoo.tools.translate import _
 
 
