@@ -1,336 +1,330 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #################################################################################
 #
 #   Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>)
 #    See LICENSE file for full copyright and licensing details.
-#################################################################################
-from odoo import api,fields,models
-from odoo.tools.translate import _
-from datetime import datetime,timedelta
-from odoo.addons.odoo_multi_channel_sale.tools import extract_list as EL
-from odoo.exceptions import UserError
+##########H#########Y#########P#########N#########O#########S###################
+import sys
 import logging
-_logger	 = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 try:
-	from woocommerce import API
+    from woocommerce import API
 except ImportError:
-	_logger.info('**Please Install Woocommerce Python Api=>(cmd: pip3 install woocommerce)')
+    _logger.info(
+        '**Please Install Woocommerce Python Api=>(cmd: pip3 install woocommerce)')
+from datetime import datetime, timedelta
+from odoo import api, fields, models
+from odoo.exceptions import UserError
+from odoo.addons.odoo_multi_channel_sale.tools import extract_list as EL
+from odoo.tools.translate import _
+
 
 class MultiChannelSale(models.Model):
-	_inherit = "multi.channel.sale"
-	
-	def get_channel(self):
-		res = super(MultiChannelSale, self).get_channel()
-		res.append(('woocommerce', "WooCommerce"))
-		return res
+    _inherit = "multi.channel.sale"
 
-	url=fields.Char(string="Url", help='eg. http://xyz.com')
-	consumer_key=fields.Char(
-		string='Consumer Key',
-		help='eg. ck_ccac94fc4362ba12a2045086ea9db285e8f02ac9',
-		)
-	secret_key = fields.Char(string='Secret Key',
-		 help='eg. cs_a4c0092684bf08cf7a83606b44c82a6e0d8a4cae'
-		 )
-	pagination_info = fields.Char("Api Pagination")
+    woocommerce_url = fields.Char(string="URI", help='eg. http://xyz.com')
+    woocommerce_consumer_key = fields.Char(
+        string='Consumer Key',
+        help='eg. ck_ccac94fc4362ba12a2045086ea9db285e8f02ac9',
+    )
+    woocommerce_secret_key = fields.Char(
+        help='eg. cs_a4c0092684bf08cf7a83606b44c82a6e0d8a4cae')
 
-	def stripTime(self, date_str ):
-		if not date_str:
-			return False, False
-		if not isinstance(date_str,str):
-			date_str = str(date_str)
-		date_str = date_str.split()
-		_logger.info("======>%r",date_str[1])
-		return date_str[0],date_str[1]
-	
-	def get_woocommerce_import_date(self):
-		date=''
-		if 'name' in self._context:
-			if self._context['name'] == 'product':
-				date_str,time = self.stripTime(self.import_product_date)
-				if not date_str:
-					return False
-				date=datetime.strptime(date_str,'%Y-%m-%d').date()
-			elif self._context['name'] == 'order':
-				date_str,time = self.stripTime(self.import_order_date)
-				if not date_str:
-					return False
-				date=datetime.strptime(date_str,'%Y-%m-%d').date()
-			elif self._context['name'] == 'customer':
-				date_str,time = self.stripTime(self.import_customer_date)
-				if not date_str:
-					return False
-				date=datetime.strptime(date_str,'%Y-%m-%d').date()
-			else:
-				raise UserError(_('Context Empty'))
-		date = date-timedelta(days=1)
-		return str(date)+"T"+str(time)
+    @api.model
+    def get_channel(self):
+        channel_names = super(MultiChannelSale, self).get_channel()
+        channel_names.append(('woocommerce', 'WooCommerce'))
+        return channel_names
 
-	def get_woocommerce_update_date(self):
-		date=''
-		if 'name' in self._context:
-			if self._context['name'] == 'product':
-				date_str,time = self.stripTime(self.update_product_date)
-				if not date_str:
-					return False
-				date=datetime.strptime(date_str,'%Y-%m-%d').date()
-			elif self._context['name'] == 'order':
-				date_str,time = self.stripTime(self.update_order_date)
-				if not date_str:
-					return False
-				date=datetime.strptime(date_str,'%Y-%m-%d').date()
-			elif self._context['name'] == 'customer':
-				date_str,time = self.stripTime(self.update_customer_date)
-				if not date_str:
-					return False
-				date=datetime.strptime(date_str,'%Y-%m-%d').date()
-			elif self._context['name'] == 'category':
-				date_str,time = self.stripTime(self.update_product_date)
-				if not date_str:
-					return False
-				date=datetime.strptime(date_str,'%Y-%m-%d').date()
-			else:
-				raise UserError(_('Context Empty'))
-		date = date-timedelta(days=1)
-		date = str(date)
-		return date +"T"+str(time)
+    def get_core_feature_compatible_channels(self):
+        vals = super().get_core_feature_compatible_channels()
+        vals.append('woocommerce')
+        return vals
 
-	def test_woocommerce_connection(self):
-		message=""
-		woocommerce = API(
-			url 			=	self.url,
-			consumer_key	=	self.consumer_key,
-			consumer_secret	=	self.secret_key,
-			wp_api			=	True,
-			version			=	"wc/v2",
-			timeout			=	30,
-			query_string_auth=True,
-			# verify_ssl		=	False,
-		)
-		try:
-			woocommerce_api=woocommerce.get('system_status')
-		except Exception as e:
-			raise UserError(_("Error:"+str(e)))
-		if  'message' in woocommerce_api.json():
-			message = "Connection Error"+str(woocommerce_api.status_code)+" : "+str(woocommerce_api.text)
-			raise UserError(_(message))
-		else:
-			self.state 	=	'validate'
-			message		=	"Connection Successful!!"
-		return self.display_message(message)
+    def connect_woocommerce(self):
+        message = ""
+        woocommerce = API(
+            url=self.woocommerce_url,
+            consumer_key=self.woocommerce_consumer_key,
+            consumer_secret=self.woocommerce_secret_key,
+            wp_api=True,
+            version="wc/v2",
+            timeout=40,
+            query_string_auth=True,
+            # verify_ssl        =    False,
+        )
+        try:
+            woocommerce_api = woocommerce.get('system_status').json()
+        except Exception as e:
+            raise UserError(_("Error:"+str(e)))
+        if 'message' in woocommerce_api:
+            message = "Connection Error" + \
+                str(woocommerce_api['data']['status']) + \
+                " : "+str(woocommerce_api["message"])
+            raise UserError(_(message))
+        else:
+            self.state = 'validate'
+            message = "Connection Successful!!"
+        return True, message
 
-	def get_woocommerce_connection(self):
-		woocommerce = API(
-			url 			=	self.url,
-			consumer_key	=	self.consumer_key,
-			consumer_secret	=	self.secret_key,
-			wp_api			=	True,
-			version			=	"wc/v2",
-			timeout			=	30,
-			query_string_auth=True,
-			# verify_ssl		=	False,
-		)
-		try:
-			woocommerce_api=woocommerce.get('system_status')
-		except Exception as e:
-			raise UserError(_("Error:"+str(e)))
-		if  'message' in woocommerce_api.json():
-			message = "Connection Error"+str(woocommerce_api.status_code)+" : "+str(woocommerce_api.text)
-			raise UserError(_(message))
-		else:
-			return woocommerce
+    def get_woocommerce_connection(self):
+        try:
+            woocommerce = API(
+                url=self.woocommerce_url,
+                consumer_key=self.woocommerce_consumer_key,
+                consumer_secret=self.woocommerce_secret_key,
+                wp_api=True,
+                version="wc/v2",
+                timeout=40,
+                query_string_auth=True,
+                # verify_ssl        =    False,
+            )
+        except ImportError:
+            raise UserError("**Please Install Woocommerce Python Api=>(cmd: pip3 install woocommerce)")
+        return woocommerce
 
-	# def woocommerce_export_api_config(self):
-	# 	woocommerce = API(
-	# 		url 			=	self.url,
-	# 		consumer_key	=	self.consumer_key,
-	# 		consumer_secret	=	self.secret_key,
-	# 		wp_api			=	True,
-	# 		version			=	"wc/v2",
-	# 		timeout			=	30,
-	# 		query_string_auth=True,
-	# 		# verify_ssl		=	False,
-	# 	)
-	# 	try:
-	# 		woocommerce_api=woocommerce.get('system_status')
-	# 	except Exception as e:
-	# 		raise UserError(_("Error:"+str(e)))
-	# 	if  'message' in woocommerce_api.json():
-	# 		message = "Connection Error"+str(woocommerce_api.status_code)+" : "+str(woocommerce_api.text)
-	# 		raise UserError(_(message))
-	# 	else:
-	# 		return woocommerce
-	
-	def update_woocommerce_quantity(self, woocommerce, quantity, product_map_rec):
-		if woocommerce and product_map_rec:
-			if product_map_rec.store_variant_id == 'No Variants':
-				product_dict = woocommerce.get('products/'+str(product_map_rec.store_product_id)).json()
-				if "bundle_layout" in product_dict:
-					product_dict.pop("bundle_layout")
-				if product_dict['stock_quantity'] is None:
-					product_dict['stock_quantity'] = 0
-				quantity = int(product_dict['stock_quantity']+quantity) #changes
-				product_dict.update({
-									'stock_quantity': quantity,
-				})
-				try:
-					return_dict = woocommerce.put('products/'+str(product_map_rec.store_product_id),product_dict).json()
-					if 'message' in return_dict:
-						raise UserError(_("Can't update product stock , "+str(return_dict['message'])))
-				except Exception as e:
-					raise UserError(_("Can't update product stock, "+str(e)))
-			else:
-				variant_dict = woocommerce.get('products/'+str(product_map_rec.store_product_id)+"/variations/"+product_map_rec.store_variant_id).json()
-				if variant_dict['stock_quantity'] is None:
-    					variant_dict['stock_quantity'] = 0
-				quantity = int(variant_dict['stock_quantity']+quantity)
-				variant_dict.update({
-									'stock_quantity': quantity,
-				})
-				try:
-					return_dict = woocommerce.put('products/'+str(product_map_rec.store_product_id)+"/variations/"+product_map_rec.store_variant_id,variant_dict).json()
-					if 'message' in return_dict:
-						raise UserError(_("Can't update product stock , "+str(return_dict['message'])))
-				except Exception as e:
-					raise UserError(_("Can't update product stock, "+str(e)))
-		return True
+#---------------------------------------Import Process ---------------------------------------------------------
 
-	def woocommerce_post_do_transfer(self, stock_picking, mapping_ids, result):
-		order_status = self.order_state_ids.filtered('odoo_ship_order')[0]
-		status = order_status.channel_state
-		woocommerce_order_id = mapping_ids.store_order_id
-		wcapi = self.get_woocommerce_connection()
-		data = wcapi.get('orders/'+woocommerce_order_id).json()
-		data.update({'status':status})
-		msg = wcapi.put('orders/'+woocommerce_order_id,data)
+    def import_woocommerce(self, object, **kwargs):
+        woocommerce = self.get_woocommerce_connection()
+        data_list = []
+        if object == 'product.category':
+            data_list = self.import_woocommerce_categories(
+                woocommerce, **kwargs)
+        elif object == 'res.partner':
+            data_list = self.import_woocommerce_customers(
+                woocommerce, **kwargs)
+        elif object == 'product.template':
+            data_list = self.import_woocommerce_products(
+                woocommerce, **kwargs)
+        elif object == 'sale.order':
+            data_list = self.import_woocommerce_orders(
+                woocommerce, **kwargs)
+        elif object == "delivery.carrier":
+            data_list = self.import_woocommerce_shipping(
+                woocommerce, **kwargs)
+        kwargs["page"] += 1
+        return data_list, kwargs
 
-	def woocommerce_post_confirm_paid(self, invoice, mapping_ids, result):
-		order_status = self.order_state_ids.filtered(lambda state:state.odoo_set_invoice_state=='paid')[0]
-		status = order_status.channel_state
-		woocommerce_order_id = mapping_ids.store_order_id
-		wcapi = self.get_woocommerce_connection()
-		data = wcapi.get('orders/'+woocommerce_order_id).json()
-		data.update({'status':status})
-		msg = wcapi.put('orders/'+woocommerce_order_id,data)
+    def import_woocommerce_shipping(self, woocommerce, **kwargs):
+        vals = dict(
+            channel_id = self.id,
+            operation = "import"
+        )
+        obj = self.env["import.woocommerce.shipping"].create(vals)
+        return obj.with_context({
+            "woocommerce":woocommerce,
+            "channel_id":self,
+        }).import_now(**kwargs)
 
-############################CRON FUNCTIONS##################################################-
-#@@@@@@@@@@@@@@@@@@@@@@@@@@@@---Export--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-
-	# @api.model
-	# def export_woocommerce_product_cron(self):
-	# 	all_channel = self.env['multi.channel.sale'].search([('channel','=','woocommerce')])
-	# 	for channel in all_channel:
-	# 		if channel.sudo().woocommerce_is_export:
-	# 			channel.sudo().export_woocommerce_product()
-	# return True
+    def import_woocommerce_categories(self, woocommerce, **kwargs):
+        vals = dict(
+            channel_id=self.id,
+            operation='import',
+        )
+        obj = self.env['import.woocommerce.categories'].create(vals)
+        return obj.with_context({
+            "woocommerce": woocommerce,
+            "channel_id": self,
+        }).import_now(**kwargs)
 
-	# @api.model
-	# def export_woocommerce_category_cron(self):
-	# 	all_channel = self.env['multi.channel.sale'].search([('channel','=','woocommerce')])
-	# 	for channel in all_channel:
-	# 		if channel.woocommerce_is_export:
-	# 			channel.export_woocommerce_category()
-	# 	return True
+    def import_woocommerce_customers(self, woocommerce, **kwargs):
+        vals = dict(
+            channel_id=self.id,
+            operation='import',
+        )
+        obj = self.env['import.woocommerce.partners'].create(vals)
+        return obj.with_context({
+            "woocommerce": woocommerce,
+            "channel_id": self,
+        }).import_now(**kwargs)
 
-#@@@@@@@@@@@@@@@@@@@@@@@@@@@@---Import--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-
-	@api.model
-	def import_woocommerce_products_cron(self):
-		all_channel = self.env['multi.channel.sale'].search([('channel','=','woocommerce')])
-		for channel in all_channel:
-			if channel.sudo().woocommerce_is_import:
-				channel.sudo().import_all_woocommerce_products()
-		return True
+    def import_woocommerce_products(self, woocommerce, **kwargs):
+        vals = dict(
+            channel_id=self.id,
+            operation='import',
+        )
+        self.env['import.woocommerce.attributes'].with_context({
+            "channel_id": self,
+            "woocommerce": woocommerce,
+        }).import_woocommerce_attribute()
+        obj = self.env['import.woocommerce.products'].create(vals)
+        return obj.with_context({
+            "woocommerce": woocommerce,
+            'channel_id': self,
+        }).import_now(**kwargs)
 
-	@api.model
-	def import_woocommerce_orders_cron(self):
-		all_channel = self.env['multi.channel.sale'].search([('channel','=','woocommerce')])
-		for channel in all_channel:
-			if channel.woocommerce_is_import:
-				try:
-					channel.import_woocommerce_orders()
-				except Exception as e:
-					_logger.info("=====Order Evaluate Failed (WooCommerce)====(%r)====(%r)",channel,e)
-					continue
-		return True
-	
-	# @api.model
-	# def import_woocommerce_orders_update_cron(self):
-	# 	all_channel = self.env['multi.channel.sale'].search([('channel','=','woocommerce')])
-	# 	for channel in all_channel:
-	# 		if channel.woocommerce_is_import:
-	# 			try:
-	# 				channel.update_woocommerce_orders()
-	# 			except Exception as e:
-	# 				_logger.info("=====Order Update Failed (WooCommerce)====(%r)====(%r)",channel,e)
-	# 				continue
-	# 	return True
+    def import_woocommerce_orders(self, woocommerce, **kwargs):
+        vals = dict(
+            channel_id=self.id,
+        )
+        obj = self.env['import.woocommerce.orders'].create(vals)
+        return obj.with_context({
+            'woocommerce': woocommerce,
+            'channel_id': self,
+        }).import_now(**kwargs)
 
+# ----------------------------------------------Export Process -------------------------------------------
 
-# class ProductFeed(models.Model):
-# 	_inherit = "product.feed"
+    def export_woocommerce(self, record):
+        woocommerce = self.get_woocommerce_connection()
+        data_list = []
+        if woocommerce:
+            if record._name == 'product.category':
+                initial_record_id = record.id
+                data_list = self.export_woocommerce_categories(
+                    woocommerce, record, initial_record_id)
+            elif record._name == 'product.template':
+                data_list = self.export_woocommerce_product(
+                    woocommerce, record)
+            return data_list
 
-# 	
-# 	def import_product(self, channel_id):
-# 		mapping_dict=super(ProductFeed, self).import_product(channel_id)
-# 		mapping_id=mapping_dict.get('mapping_id')
-# 		if mapping_id and channel_id.id in self.env['multi.channel.sale'].search([('channel','=','woocommerce')]):
-# 			template_id=mapping_id.template_name
-# 			template_id.type= template_id.name in ['shipping','voucher'] and 'service' or 'product'
-# 			template_id.sale_ok = template_id.type in ['service'] and False or True
-# 		return mapping_dict
+    def export_woocommerce_categories(self, woocommerce, record, initial_record_id):
+        vals = dict(
+            channel_id=self.id,
+            operation='export',
+        )
+        obj = self.env['export.categories'].create(vals)
+        return obj.with_context({
+            'woocommerce': woocommerce,
+            'channel_id': self,
+        }).woocommerce_export_now(record, initial_record_id)
 
+    def export_woocommerce_product(self, woocommerce, record):
+        vals = dict(
+            channel_id=self.id,
+            operation='export',
+        )
+        obj = self.env['export.templates'].create(vals)
+        return obj.with_context({
+            'woocommerce': woocommerce,
+            'channel_id': self,
+        }).woocommerce_export_now(record)
 
-class ProductTemplate(models.Model):
-	_inherit = "product.template"
-	
-	def write(self, vals):
-		status = super(ProductTemplate, self).write(vals)
-		for product_tmpl in self:
-			if product_tmpl.channel_mapping_ids:
-				for channel in product_tmpl.channel_mapping_ids:
-					channel.need_sync = 'yes'
-		return status
+#---------------------------------------Update Process -------------------------------------------
 
+    def update_woocommerce(self, record, get_remote_id):
+        woocommerce = self.get_woocommerce_connection()
+        data_list = []
+        if woocommerce:
+            remote_id = get_remote_id(record)
+            if record._name == 'product.category':
+                initial_record_id = record.id
+                data_list = self.update_woocommerce_categories(
+                    woocommerce, record, initial_record_id, remote_id)
+            elif record._name == 'product.template':
+                data_list = self.update_woocommerce_product(
+                    woocommerce, record, remote_id)
+            return data_list
 
-class ProductProduct(models.Model):
-	_inherit = "product.product"
-	
-	def write(self, vals):
-		status = super(ProductProduct, self).write(vals)
-		# product_tmpl_ids =self.mapped('product_tmpl_id.id')
-		for product in self:
-			template = product.product_tmpl_id
-			if template.channel_mapping_ids:
-				for channel in template.channel_mapping_ids:
-					channel.need_sync = 'yes'
-		return status
+    def update_woocommerce_categories(self, woocommerce, 
+        record, initial_record_id, remote_id):
+        vals = dict(
+            channel_id=self.id,
+            operation='export',
+        )
+        obj = self.env['export.categories'].create(vals)
+        return obj.with_context({
+            'woocommerce': woocommerce,
+            'channel_id': self,
+        }).woocommerce_update_now(record, initial_record_id, remote_id)
 
+    def update_woocommerce_product(self, woocommerce, record, remote_id):
+        vals = dict(
+            channel_id=self.id,
+            operation='export',
+        )
+        obj = self.env['export.templates'].create(vals)
+        return obj.with_context({
+            'woocommerce': woocommerce,
+            'channel_id': self,
+        }).woocommerce_update_now(record, remote_id)
 
-class ProductCategory(models.Model):
-	_inherit = "product.category"
-	
-	def write(self, vals):
-		status = super(ProductCategory, self).write(vals)
-		for product_categ in self:
-			if product_categ.channel_mapping_ids:
-				for channel in product_categ.channel_mapping_ids:
-					channel.need_sync = 'yes'
-		return status
+#----------------------------------- Core Methods -----------------------------------------------
+    def woocommerce_post_do_transfer(self, stock_picking, mapping_ids, result):
+        order_status = self.order_state_ids.filtered('odoo_ship_order')
+        if order_status:
+            order_status = order_status[0]
+            status = order_status.channel_state
+            woocommerce_order_id = mapping_ids.store_order_id
+            wcapi = self.get_woocommerce_connection()
+            data = wcapi.get('orders/'+woocommerce_order_id).json()
+            data.update({'status': status})
+            msg = wcapi.put('orders/'+woocommerce_order_id, data)
 
+    def woocommerce_post_confirm_paid(self, invoice, mapping_ids, result):
+        order_status = self.order_state_ids.filtered(
+            lambda state: state.odoo_set_invoice_state == 'paid')
+        if order_status:
+            order_status = order_status[0]
+            status = order_status.channel_state
+            woocommerce_order_id = mapping_ids.store_order_id
+            wcapi = self.get_woocommerce_connection()
+            data = wcapi.get('orders/'+woocommerce_order_id).json()
+            data.update({'status': status})
+            msg = wcapi.put('orders/'+woocommerce_order_id, data)
+    
+    def woocommerce_post_cancel_order(self, sale_order, mapping_ids, result):
+        order_status = self.order_state_ids.filtered(
+            lambda order_state_id: order_state_id.odoo_order_state == 'cancelled')
+        if order_status:
+            order_status = order_status[0]
+            status = order_status.channel_state
+            woocommerce_order_id = mapping_ids.store_order_id
+            wcapi = self.get_woocommerce_connection()
+            data = wcapi.get('orders/'+woocommerce_order_id).json()
+            data.update({'status': status})
+            msg = wcapi.put('orders/'+woocommerce_order_id, data)
 
-class StockMove(models.Model):
-	_inherit = 'stock.move'
+    def sync_quantity_woocommerce(self, mapping, qty):
+        woocommerce = self.get_woocommerce_connection()
+        return self.env['export.templates'].update_woocommerce_quantity(woocommerce, qty, mapping)
 
-	def multichannel_sync_quantity(self, pick_details):
-		channel_obj = self.env['multi.channel.sale']
-		for channel in pick_details['channel_ids']:
-			channel_rec = channel_obj.browse(channel)
-			if channel_rec.channel == 'woocommerce' and channel_rec.auto_sync_stock:
-				product_record = channel_rec.env['channel.product.mappings'].search([('erp_product_id','=',pick_details['product_id']),('channel_id.id','=',channel_rec.id)])
-				if product_record:
-					woocommerce = channel_rec.get_woocommerce_connection()
-					if channel_rec.location_id.id != pick_details['source_loc_id']:
-						channel_rec.update_woocommerce_quantity(woocommerce, pick_details['product_qty'], product_record)
-					else:
-						channel_rec.update_woocommerce_quantity(woocommerce,-(pick_details['product_qty']), product_record)
-		return super(StockMove, self).multichannel_sync_quantity(pick_details)
+# ---------------------------CRON OPERATIONS ---------------------------------------
+
+    def woocommerce_import_order_cron(self):
+        _logger.info("+++++++++++Import Order Cron Started++++++++++++")
+        kw = dict(
+            object = "sale.order",
+            page = 1,
+            woocommerce_import_date_from=self.import_order_date,
+            from_cron = True
+        )
+        self.env["import.operation"].create({
+            "channel_id":self.id ,
+        }).import_with_filter(**kw)
+
+    def woocommerce_import_product_cron(self):
+        _logger.info("+++++++++++Import Product Cron Started++++++++++++")
+        kw = dict(
+            object = "product.template",
+            page = 1,
+            woocommerce_import_date_from=self.import_product_date,
+            from_cron = True
+        )
+        self.env["import.operation"].create({
+            "channel_id":self.id ,
+        }).import_with_filter(**kw)
+
+    def woocommerce_import_partner_cron(self):
+        _logger.info("+++++++++++Import Partner Cron Started++++++++++++")
+        kw = dict(
+            object = "res.partner",
+            page= 1,
+            woocommerce_import_date_from=self.import_customer_date,
+            from_cron = True,
+        )
+        self.env["import.operation"].create({
+            "channel_id":self.id ,
+        }).import_with_filter(**kw)
+
+    def woocommerce_import_category_cron(self):
+        _logger.info("+++++++++++Import Category Cron Started++++++++++++")
+        kw = dict(
+            object = "product.category",
+            page = 1,
+            from_cron = True,
+        )
+        self.env["import.operation"].create({
+            "channel_id":self.id ,
+        }).import_with_filter(**kw)

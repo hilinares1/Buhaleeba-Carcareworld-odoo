@@ -35,7 +35,7 @@ class ChannelOrderStates(models.Model):
         ('open', 'Open'), ('paid', 'Paid')],
         string='Set Invoice State',
         help="The field is used to retrieve orders that are in a specific state.")
-    odoo_ship_order = fields.Boolean(string="Create Shippment")
+    odoo_ship_order = fields.Boolean(string="Create Shipment")
     _sql_constraints = [
         ('value_channel_state_uniq', 'unique (channel_state,channel_id)',
          'This channel state  already exists !')

@@ -7,6 +7,8 @@
 from odoo import api,fields,models
 from odoo.addons.odoo_multi_channel_sale.tools import extract_list as EL
 
+from logging import getLogger
+_logger = getLogger(__name__)
 
 PartnerFields = [
 	'name',
@@ -56,6 +58,46 @@ class PartnerFeed(models.Model):
 		required = True
 	)
 
+	@api.model
+	def _create_feeds(self,partner_data_list):
+		success_ids,error_ids = [],[]
+		self = self.contextualize_feeds('partner')
+		for partner_data in partner_data_list:
+			feed = self._create_feed(partner_data)
+			if feed:
+				self += feed
+				success_ids.append(partner_data.get('store_id'))
+			else:
+				error_ids.append(partner_data.get('store_id'))
+		return success_ids,error_ids,self
+
+	def _create_feed(self,partner_data):
+		contact_data_list = partner_data.pop('contacts',[])
+		channel_id = partner_data.get('channel_id')
+		store_id = str(partner_data.get('store_id'))
+		feed_id = self._context.get('partner_feeds').get(channel_id,{}).get(store_id)
+# Todo(Pankaj Kumar): Change feed field from state_id,country_id to state_code,country_code
+		partner_data['state_id'] = partner_data.pop('state_code',False)
+		partner_data['country_id'] = partner_data.pop('country_code',False)
+# & remove this code
+		try:
+			if feed_id:
+				feed = self.browse(feed_id)
+				partner_data.update(state='draft')
+				feed.write(partner_data)
+			else:
+				feed = self.create(partner_data)
+		except Exception as e:
+			_logger.error(
+				"Failed to create feed for Customer: "
+				f"{partner_data.get('store_id')}"
+				f" Due to: {e.args[0]}"
+			)
+		else:
+			for contact_data in contact_data_list:
+				feed+=self._create_feed(contact_data)
+			return feed
+
 	def import_partner(self,channel_id):
 		self.ensure_one()
 		message   = ""
@@ -104,7 +146,7 @@ class PartnerFeed(models.Model):
 			else:
 				vals['name'] =name
 		if match:
-			if  state =='done' :
+			if state =='done':
 				try:
 					match.odoo_partner.write(vals)
 					message +='<br/> Partner %s successfully updated'%(name)
@@ -134,6 +176,8 @@ class PartnerFeed(models.Model):
 		)
 
 	def import_items(self):
+		self = self.contextualize_feeds('partner',self.mapped('channel_id').ids)
+		self = self.contextualize_mappings('partner',self.mapped('channel_id').ids)
 		update_ids=[]
 		create_ids=[]
 		message = ''
@@ -149,9 +193,11 @@ class PartnerFeed(models.Model):
 			msz= res.get('message', '')
 			message+=msz
 			update_id = res.get('update_id')
-			if update_id:update_ids.append(update_id)
+			if update_id:
+				update_ids.append(update_id)
 			create_id = res.get('create_id')
-			if create_id:create_ids.append(create_id)
+			if create_id:
+				create_ids.append(create_id)
 			mapping_id = update_id or create_id
 			if mapping_id:
 				sync_vals['status'] = 'success'
@@ -167,8 +213,4 @@ class PartnerFeed(models.Model):
 		message = self.get_feed_result(feed_type='Partner')
 		return self.env['multi.channel.sale'].display_message(message)
 
-	@api.model
-	def cron_import_partner(self):
-		for record in self.search([('state','!=','done')]):
-			record.import_partner(record.channel_id)
-		return True
+	

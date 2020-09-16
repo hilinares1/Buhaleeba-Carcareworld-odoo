@@ -14,6 +14,13 @@
 						or
 						<button string="Cancel" type="button" name="cancel" class="oe_link"/>
 					</header>
+					<group name='cron_config' string='Import Schedulers'>
+						<field name="cron_import_partner"/>
+						<field name="cron_import_category"/>
+						<field name="cron_import_product"/>
+						<field name="cron_import_order"/>
+						<field name="cron_evaluation"/>
+					</group>
 					<group name='global_config' string='Global Configuration'>
 						<field name="avoid_duplicity"/>
 					</group>

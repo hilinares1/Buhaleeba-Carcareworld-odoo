@@ -56,3 +56,60 @@ class ProductTemplate(models.Model):
 		if 'channel' in self._context:
 			return True
 		return super(ProductTemplate, self)._create_variant_ids()
+
+	def write(self, vals):
+		for record in self:
+			mapping_ids = record.channel_mapping_ids
+			vals = record.pre_template_write(vals, mapping_ids)
+			mapping_ids.write({'need_sync': 'yes'})
+			res = super(ProductTemplate, record).write(vals)
+			record.post_template_write(vals, mapping_ids)
+		return res
+
+	def pre_template_write(self, vals, mapping_ids):
+		r""" Adds functionality to modify template Vals
+			Return vals
+		"""
+
+		_channel_ids = self.env['multi.channel.sale']
+		for template_mapping in mapping_ids:
+			channel_id = template_mapping.channel_id
+			_channel_ids |= channel_id
+			if hasattr(channel_id,'%s_mapped_pre_template_write'%channel_id.channel):
+				vals.update(getattr(
+					channel_id,'%s_mapped_pre_template_write'%channel_id.channel
+				)(self, template_mapping, vals) or vals)
+
+		channel_ids = self.env['multi.channel.sale'].search([
+						('state','=','validate'),
+						('id', 'not in', _channel_ids.ids)])
+		for channel_id in channel_ids:
+			if hasattr(channel_id,'%s_pre_template_write'%channel_id.channel):
+				vals.update(getattr(
+					channel_id,'%s_pre_template_write'%channel_id.channel
+				)(self, vals) or vals)
+		return vals
+
+	def post_template_write(self, vals, mapping_ids):
+		r"""Adds functionality after template write is called
+			Return True
+		"""
+
+		_channel_ids = self.env['multi.channel.sale']
+		for template_mapping in mapping_ids:
+			channel_id = template_mapping.channel_id
+			_channel_ids |= channel_id
+			if hasattr(channel_id,'%s_mapped_post_template_write'%channel_id.channel):
+				getattr(
+					channel_id,'%s_mapped_post_template_write'%channel_id.channel
+				)(self, template_mapping, vals)
+
+		channel_ids = self.env['multi.channel.sale'].search([
+						('state','=','validate'),
+						('id', 'not in', _channel_ids.ids)])
+		for channel_id in channel_ids:
+			if hasattr(channel_id,'%s_post_template_write'%channel_id.channel):
+				getattr(
+					channel_id,'%s_post_template_write'%channel_id.channel
+				)(self, vals)
+		return True

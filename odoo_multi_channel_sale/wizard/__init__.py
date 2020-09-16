@@ -6,6 +6,6 @@
 ##############################################################################
 from . import channel_operation
 from . import update_mapping_wizard
-# from . import feed_wizard
+from . import feed_wizard
 from . import exports
 from . import imports

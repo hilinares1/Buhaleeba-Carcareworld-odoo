@@ -40,12 +40,10 @@ class Channel(http.Controller):
 					  filename_field='datas_fname', unique=None, filename=None, mimetype=None,
 					  download=None, width=0, height=0, crop=False, access_token=None, **kwargs):
 		contenttype = kwargs.get('wk_mime_type') or 'image/jpg'
-		response = Binary().content_common(
-			xmlid=xmlid, model=model, id=id, field=field, unique=unique, filename=filename,
-			filename_field=filename_field, download=download, mimetype=mimetype,
-			default_mimetype='image/jpg', access_token=access_token)
-		status, headers, content =  response.status_code, response.headers, base64.b64encode(response.data)
-		
+		status, headers, content = request.env['ir.http'].sudo().binary_content(
+            xmlid=xmlid, model=model, id=id, field=field, unique=unique, filename=filename,
+            filename_field=filename_field, download=download, mimetype=mimetype, access_token=access_token)
+
 		if status == 304:
 			return werkzeug.wrappers.Response(status=304, headers=headers)
 		elif status == 301:
@@ -73,7 +71,7 @@ class Channel(http.Controller):
 		else:
 			image_base64 = Binary().placeholder()  # could return (contenttype, content) in master
 
-		headers.add_header('Content-Length', len(image_base64))
+		headers.append(('Content-Length', len(image_base64)))
 		response = request.make_response(image_base64, headers)
 		response.status_code = status
 		return response

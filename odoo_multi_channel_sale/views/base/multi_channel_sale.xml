@@ -13,7 +13,7 @@
 					class ="oe_background_grey o_kanban_dashboard o_salesteam_kanban o_project_kanban"
 					create="0"
 				>
-					<field name="color"/>
+					<field name="color_index"/>
 					<field name="name"/>
 					<field name="channel"/>
 					<field name="channel_products"/>
@@ -23,8 +23,8 @@
 					<templates>
 						<t t-name="kanban-box">
 							<div
-								t-attf-class="#{kanban_color(record.color.raw_value)} oe_kanban_global_click_edit"
-								style   ="padding-left:10px; height:300px"
+								t-attf-class="#{kanban_color(record.color_index.raw_value)} oe_kanban_global_click_edit"
+								style="padding-left:10px; height:300px"
 							>
 								<div class="o_project_kanban_manage">
 									<a
@@ -47,7 +47,7 @@
 										style="text-align:center;display:flex;top:-4px;position:relative"
 									>
 										<a
-											class="o_project_kanban_box"
+											class="o_project_kanban_box m-0"
 											name ="open_record_view"
 											type ="object"
 											style="
@@ -69,7 +69,7 @@
 										</a>
 
 										<a
-											class="o_project_kanban_box"
+											class="o_project_kanban_box m-0"
 											name ="open_record_view"
 											type ="object"
 											style="
@@ -91,7 +91,7 @@
 										</a>
 
 										<a
-											class="o_project_kanban_box"
+											class="o_project_kanban_box m-0"
 											name ="open_record_view"
 											type ="object"
 											style="
@@ -112,7 +112,7 @@
 											<span class="o_label" style="overflow:visible !important">Categories</span>
 										</a>
 										<a
-											class="o_project_kanban_box"
+											class="o_project_kanban_box m-0"
 											name ="open_record_view"
 											type ="object"
 											style="
@@ -187,7 +187,7 @@
 									</div>
 								</div>
 								<div t-if="widget.editable" class="o_project_kanban_colorpicker">
-									<ul class="oe_kanban_colorpicker" data-field="color"/>
+									<ul class="oe_kanban_colorpicker" data-field="color_index"/>
 								</div>
 							</div>
 						</t>
@@ -305,6 +305,7 @@
 								</div>
 							</button>
 						</div>
+						<field name="image" class="oe_avatar" widget="image"/>
 						<div class="oe_title">
 							<b><label for="name" string="Channel Name :"/></b>
 							<h1>
@@ -334,23 +335,46 @@
 								string="Operation"
 								attrs ="{'invisible':['|',('state','!=','validate')]}"
 							>
-								<group name="import_buttons">
+								<field name="use_core_feature" invisible="True"/>
+								<group
+									name ="operation_button_group"
+									attrs="{'invisible':[('use_core_feature','=',False)]}"
+								>
 									<button
 										aria-label="Import"
+										title     ="Import"
 										help      ="Open wizard to import record."
 										type      ="action"
 										name      ="%(odoo_multi_channel_sale.open_import_wizard_action)d"
 										class     ="oe_highlight wk_operation_btn box"
 										icon      ="fa-6x fa-sitemap"
-										style     ="height:120px;width:120px;"
-										context   ="{'default_channel_id':id}"
-										invisible ="True"
+										style     ="height:120px;width:100%;"
 									><br/>
 										<span>Import</span>
-										<span><i class="fa fa-fw fa-cloud-download"/></span>
+										<span>
+											<i class="fa fa-fw fa-cloud-download"/>
+										</span>
+									</button>
+
+									<button
+										aria-label="Export"
+										title     ="Export"
+										help      ="Open wizard to export record."
+										type      ="action"
+										name      ="%(odoo_multi_channel_sale.open_export_wizard_action)d"
+										class     ="oe_highlight wk_operation_btn box"
+										icon      ="fa-6x fa-sitemap"
+										style     ="height:120px;width:100%;"
+									><br/>
+										<span>Export</span>
+										<span>
+											<i class="fa fa-fw fa-cloud-upload"/>
+										</span>
 									</button>
 								</group>
-								<group name="export_buttons"></group>
+								<!-- For Legacy Bridges -->
+								<group name="import_buttons"/>
+								<group name="export_buttons"/>
 							</page>
 							<page
 								name  ="credentials"
@@ -426,11 +450,32 @@
 											required="1"
 										/>
 										<field
+											attrs   ="{'readonly':[('state','=','validate')]}"
+											name    ="company_id"
+											invisible="1"
+										/>
+										<field
 											name ="auto_evaluate_feed"
 											attrs="{'readonly':[('state','=','validate')]}"
 										/>
 										<field
 											name ="auto_sync_stock"
+											attrs="{'readonly':[('state','=','validate')]}"
+										/>
+										<field
+											name ="channel_stock_action"
+											attrs="{'readonly':[('state','=','validate')]}"
+										/>
+										<field
+											name ="sync_cancel"
+											attrs="{'readonly':[('state','=','validate')]}"
+										/>
+										<field
+											name ="sync_invoice"
+											attrs="{'readonly':[('state','=','validate')]}"
+										/>
+										<field
+											name ="sync_shipment"
 											attrs="{'readonly':[('state','=','validate')]}"
 										/>
 									</group>
@@ -470,9 +515,21 @@
 									<group>
 										<field name="api_record_limit" required="1"/>
 									</group>
-									<group></group>
 								</group>
-								<group name="advanced_configuration"></group>
+								<group name="advanced_configuration" col="4">
+									<field name="color" widget="color"/>
+									<field name="color_index" groups="base.group_no_one"/>
+									<field name="blog_url" groups="base.group_no_one"/>
+									<field name="store_url" groups="base.group_no_one"/>
+								</group>
+							</page>
+							<page name="crons" string = "Crons" attrs="{'invisible':[('use_core_feature','=',False)]}">
+								<group name="cron_group" col="4">
+									<field name="import_category_cron"/>
+									<field name="import_partner_cron"/>
+									<field name="import_product_cron"/>
+									<field name="import_order_cron"/>
+								</group>
 							</page>
 						</notebook>
 					</sheet>
@@ -511,7 +568,7 @@
 			name    ="Instances"
 			parent  ="menu_multi_channel_configuration"
 			action  ="action_multi_channel_view"
-			sequence="1"
+			sequence="2"
 		/>
 	</data>
 </odoo>

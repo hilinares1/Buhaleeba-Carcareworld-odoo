@@ -6,7 +6,8 @@
 #
 #################################################################################
 
-from . import models,wizard
+from . import models
+from . import wizard
 def pre_init_check(cr):
     try:
         from woocommerce import API

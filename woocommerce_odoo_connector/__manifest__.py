@@ -12,48 +12,51 @@
 #
 # You should have received a copy of the License along with this program.
 # If not, see <https://store.webkul.com/license.html/>
-###################################################################################
+#################################################################################
 {
-  "name"                 :  "Woocommerce Odoo Connector",
-  "summary"              :  "Woocommerce Odoo Connector integrates Odoo with Woocommerce. Manage your Woocommerce store in Odoo. Handle Woocommerce orders in Odoo. Ecommerce Connector",
-  "category"             :  "Website",
-  "version"              :  "1.0.2",
-  "sequence"             :  1,
-  "author"               :  "Webkul Software Pvt. Ltd.",
-  "license"              :  "Other proprietary",
-  "website"              :  "https://store.webkul.com/Woocommerce-Odoo-Connector.html",
-  "description"          :  """Woocommerce Odoo Connector
-Odoo Woocommerce connector
-Odoo Woocommerce bridge
-Woocommerce bridge
-Odoo Woocommerce
-Connect Woocommerce with Odoo
-Manage Woocommerce in Odoo
-Woocommerce Odoo data transfer
-Woocommerce store in Odoo
-Integrate Odoo with Woocommerce
-Integrate Woocommerce with Odoo
-Woocommerce order in Odoo
-Ecommerce website to Odoo
-E-commerce website to Odoo
-Connect ecommerce website
-E-commerce Connector
-Ecommerce Connector""",
-  "live_test_url"        :  "http://wpodoo.webkul.com/woocommerce_odoo_connector/",
-  "depends"              :  ['odoo_multi_channel_sale'],
-  "data"                 :  [
-                             'views/woc_config_views.xml',
-                             'data/import_cron.xml',
-                             'views/inherited_woocommerce_dashboard_view.xml',
-                             'wizard/import_update_wizard.xml',
-                             'data/default_data.xml',
-                             'security/ir.model.access.csv',
-                            ],
-  "images"               :  ['static/description/Banner.png'],
-  "application"          :  True,
-  "installable"          :  True,
-  "auto_install"         :  False,
-  "price"                :  100,
-  "currency"             :  "EUR",
-  "external_dependencies":  {'python': ['woocommerce']},
+    "name":  "Odoo Multichannel Woocommerce connector",
+    "summary":  """Woocommerce Odoo Connector integrates Odoo with Woocommerce. Manage your Woocommerce store in Odoo. Handle Woocommerce orders in Odoo. Ecommerce Connector""",
+    "category":  "Website",
+    "version":  "2.0.6",
+    "sequence":  1,
+    "author":  "Webkul Software Pvt. Ltd.",
+    "license":  "Other proprietary",
+    "website":  "https://store.webkul.com/Woocommerce-Odoo-Connector.html",
+    "maintainer":  "Karan Negi",
+    "description":  """Woocommerce Odoo Connector
+                                          Odoo Woocommerce connector
+                                          Odoo Woocommerce bridge
+                                          Woocommerce bridge
+                                          Odoo Woocommerce
+                                          Connect Woocommerce with Odoo
+                                          Manage Woocommerce in Odoo
+                                          Woocommerce Odoo data transfer
+                                          Woocommerce store in Odoo
+                                          Integrate Odoo with Woocommerce
+                                          Integrate Woocommerce with Odoo
+                                          Woocommerce order in Odoo
+                                          Ecommerce website to Odoo
+                                          E-commerce website to Odoo
+                                          Connect ecommerce website
+                                          E-commerce Connector
+                                          Ecommerce Connector""",
+    "live_test_url":  "http://wpodoo.webkul.com/woocommerce_odoo_connector/",
+    "depends":  ['odoo_multi_channel_sale'],
+    "qweb":  ["views/inherit_multi_channel_template.xml", ],
+    "data":  [
+        'data/demo.xml',
+        'views/woc_config_views.xml',
+        'views/inherited_woocommerce_dashboard_view.xml',
+        'wizard/import_operation.xml',
+        'wizard/export_product_view.xml',
+        'wizard/export_template_view.xml',
+        'wizard/export_category_view.xml',
+    ],
+    "images":  ['static/description/banner.gif'],
+    "application":  True,
+    "installable":  True,
+    "auto_install": False,
+    "price":  80,
+    "currency":  "EUR",
+    "external_dependencies":  {'python': ['woocommerce']},
 }

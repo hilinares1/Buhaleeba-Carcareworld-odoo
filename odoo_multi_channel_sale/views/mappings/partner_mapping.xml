@@ -72,7 +72,7 @@
 			<field name="model">channel.partner.mappings</field>
 			<field name="type">tree</field>
 			<field name="arch" type="xml">
-				<tree string="Channel Parnter Mapping" decoration-danger="need_sync=='yes'">
+				<tree string="Channel Partner Mapping" decoration-danger="need_sync=='yes'">
 					<field name="channel_id"/>
 					<field name="store_customer_id"/>
 					<field name="odoo_partner_id"/>
@@ -87,7 +87,7 @@
 		</record>
 
 		<record id="channel_parnter_mapping_action_id" model="ir.actions.act_window">
-			<field name="name">Channel Parnter Mappings</field>
+			<field name="name">Channel Partner Mappings</field>
 			<field name="res_model">channel.partner.mappings</field>
 			<field name="view_mode">tree,form</field>
 			<field name="context">

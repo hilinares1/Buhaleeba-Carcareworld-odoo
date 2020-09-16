@@ -12,6 +12,15 @@ _logger=getLogger(__name__)
 
 class FeedSyncWizard(models.TransientModel):
 	_name='feed.sync.wizard'
+	_description='Evaluate Feeds Wizard'
+
+	channel_id=fields.Many2one(
+		comodel_name='multi.channel.sale',
+		string='Channel ID',
+		required=True,
+		readonly=True,
+		domain=[('state','=','validate')]
+	)
 
 	feed_type=fields.Selection(
 		selection=[
@@ -21,22 +30,16 @@ class FeedSyncWizard(models.TransientModel):
 			('partner.feed','Partner'),
 			('shipping.feed','Shipping')
 		],
-		string  ='Feed Type',
+		string='Feed Type',
 		required=True
 	)
 
-
-	@api.model
-	def default_get(self,fields):
-		res=super(FeedSyncWizard,self).default_get(fields)
-		if not res.get('feed_type'):
-			res.update({'feed_type':self._context.get('active_model')})
-		return res
-
-	def sync_feed(self):
+	def action_sync_feed(self):
 		self.ensure_one()
-		context=dict(self._context)
-		model  =self.env[context.get('active_model')]
-		ids    =context.get('active_ids')
-		recs   =model.browse(ids)
-		return recs.import_items()
+		res = self.env[self.feed_type].search(
+			[
+				('channel_id','=',self.channel_id.id),
+				('state','!=','done'),
+			]
+		).with_context(channel_id=self.channel_id).import_items()
+		return res

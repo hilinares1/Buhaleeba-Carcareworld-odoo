@@ -26,24 +26,18 @@ class AccountInvoice(models.Model):
 
 	def wk_pre_confirm_paid(self):
 		for invoice in self:
-			for order_id in self.wk_get_invoice_order(invoice):
+			for order_id in invoice.invoice_line_ids.mapped('sale_line_ids').mapped('order_id'):
 				mapping_ids = order_id.channel_mapping_ids
-				channel_id  = mapping_ids.mapped('channel_id')
-				channel_id  = channel_id and channel_id[0] or channel_id
-				if hasattr(channel_id,'%s_pre_confirm_paid'%channel_id.channel):
-					res = getattr(
-						channel_id,'%s_pre_confirm_paid'%channel_id.channel
-					)(invoice,mapping_ids)
-		return True
+				if mapping_ids:
+					channel_id = mapping_ids[0].channel_id
+					if hasattr(channel_id,'%s_pre_confirm_paid'%channel_id.channel) and channel_id.sync_invoice:
+						getattr(channel_id,'%s_pre_confirm_paid'%channel_id.channel)(invoice,mapping_ids)
 
 	def wk_post_confirm_paid(self,result):
 		for invoice in self:
-			for order_id in self.wk_get_invoice_order(invoice):
+			for order_id in invoice.invoice_line_ids.mapped('sale_line_ids').mapped('order_id'):
 				mapping_ids = order_id.channel_mapping_ids
-				channel_id  = mapping_ids.mapped('channel_id')
-				channel_id  = channel_id and channel_id[0] or channel_id
-				if hasattr(channel_id,'%s_post_confirm_paid'%channel_id.channel):
-					res = getattr(
-						channel_id,'%s_post_confirm_paid'%channel_id.channel
-					)(invoice,mapping_ids,result)
-		return True
+				if mapping_ids:
+					channel_id = mapping_ids[0].channel_id
+					if hasattr(channel_id,'%s_post_confirm_paid'%channel_id.channel) and channel_id.sync_invoice:
+						getattr(channel_id,'%s_post_confirm_paid'%channel_id.channel)(invoice,mapping_ids,result)

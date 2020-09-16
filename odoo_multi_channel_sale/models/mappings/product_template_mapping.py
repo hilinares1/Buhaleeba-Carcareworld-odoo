@@ -36,7 +36,8 @@ class ChannelTemplateMappings(models.Model):
 		for record in self:
 			if record.store_product_id:
 				match = record.channel_id.match_product_feeds(record.store_product_id)
-				if match: match.unlink()
+				if match:
+					match.unlink()
 		return super(ChannelTemplateMappings,self).unlink()
 
 	@api.onchange('template_name')

@@ -4,14 +4,18 @@
 # See LICENSE file for full copyright and licensing details.
 # License URL : <https://store.webkul.com/license.html/>
 ##############################################################################
-import logging
 import binascii
 import codecs
-from io import StringIO, BytesIO
-from PIL import Image
+import logging
 import requests
+
+from io import BytesIO
+from PIL import Image
+
 from odoo import fields, models, api, _
-from ...tools import chunks, DomainVals, ReverseDict
+
+from ...tools import DomainVals, ReverseDict
+
 _logger = logging.getLogger(__name__)
 
 HelpImportOrderDate  = _(
@@ -38,7 +42,7 @@ ENVIRONMENT = [
 	('production', 'Production Server'),
 	('sandbox', 'Testing(Sandbox) Server)')
 ]
-Feed = [
+FEED = [
 	('all', 'For All Models'),
 	('order', 'For Order Only'),
 ]
@@ -62,6 +66,50 @@ class MultiChannelSale(models.Model):
 	_description = 'Multi Channel Sale'
 	_inherit = ['mail.thread', 'mail.activity.mixin']
 
+	import_order_cron = fields.Boolean("Import Orders")
+	import_product_cron = fields.Boolean("Import Products")
+	import_partner_cron = fields.Boolean("Import Customers")
+	import_category_cron = fields.Boolean("Import Categories")
+
+	channel_stock_action = fields.Selection([
+        ('qoh', 'Quantity on hand'),
+        ('fq', 'Forecast Quantity')
+        ],
+        default='qoh',
+        string='Stock Management',
+        help="Manage Stock")
+
+	@api.model
+	def get_quantity(self, obj_pro):
+		"""
+			to get quantity of product or product template
+			@params : product template obj or product obj
+			@return : quantity in hand or quantity forecasted
+		"""
+		quantity = 0.0
+		ctx = self._context.copy() or {}
+		if not 'location' in ctx:
+			ctx.update({
+				'location': self.location_id.id
+			})
+		qty = obj_pro.with_context(ctx)._product_available(None, False)
+		if self.channel_stock_action =="qoh":
+			quantity = qty[obj_pro.id]['qty_available']
+		else:
+			quantity = qty[obj_pro.id]['virtual_available']
+		if type(quantity) == str:
+			quantity = quantity.split('.')[0]
+		if type(quantity) == float:
+			quantity = quantity.as_integer_ratio()[0]
+		return quantity
+
+	@api.model
+	def create(self, vals):
+		res = super().create(vals)
+		channels = self.get_core_feature_compatible_channels()
+		if res.channel in channels:
+			res.use_core_feature = True
+		return res
 
 	url     = fields.Char()
 	email   = fields.Char(string='Api User')
@@ -87,6 +135,16 @@ class MultiChannelSale(models.Model):
 
 	def display_message(self, message):
 		return self.env['wk.wizard.message'].genrated_message(message,'Summary')
+
+	def get_core_feature_compatible_channels(self):
+		'''
+			Channels supporting core features such as import/export
+			operation wizard to be appended by bridges.
+
+			Returns:
+				list -- names of channels
+		'''
+		return []
 
 	def set_to_draft(self):
 		self.state = 'draft'
@@ -118,16 +176,18 @@ class MultiChannelSale(models.Model):
 		]
 		erp_ids = self.env[res_model].search(domain).mapped(odoo_mapping_field)
 		erp_model = ReverseDict(MAPPINGMODEL).get(res_model)
-		if erp_model:
-			return {
-				'name': ('Record'),
-				'type': 'ir.actions.act_window',
-				'view_mode': 'tree,form',
-				'res_model': erp_model,
-				'view_id': False,
-				'domain': [('id', 'in', erp_ids)],
-				'target': 'current',
-			}
+		domain = [('id', 'in', erp_ids)]
+		if erp_model == 'res.partner':
+			domain.append(('parent_id', '=', False))
+		return {
+			'name': ('Record'),
+			'type': 'ir.actions.act_window',
+			'view_mode': 'tree,form',
+			'res_model': erp_model,
+			'view_id': False,
+			'domain': domain,
+			'target': 'current',
+		}
 
 	def _get_count(self):
 		for rec in self:
@@ -135,11 +195,11 @@ class MultiChannelSale(models.Model):
 			rec.channel_products   = self.env['channel.template.mappings'].search_count(domain)
 			rec.channel_categories = self.env['channel.category.mappings'].search_count(domain)
 			rec.channel_orders     = self.env['channel.order.mappings'].search_count(domain)
-			domain.append(('type', '=', 'contact'))
+			domain.append(('odoo_partner.parent_id', '=', False))
 			rec.channel_customers  = self.env['channel.partner.mappings'].search_count(domain)
 
 	active = fields.Boolean(default=True)
-	color  = fields.Integer(string='Color Index')
+	color_index  = fields.Integer(string='Color Index')
 
 
 	# @api.model
@@ -151,20 +211,27 @@ class MultiChannelSale(models.Model):
 		channel_list = []
 		return channel_list
 
-	channel = fields.Selection(selection='get_channel',required=True)
-	name = fields.Char(
-		string='Name',
-		required=True
-	)
-	state = fields.Selection(
-		selection=STATE,
-		default='draft'
-	)
-	debug = fields.Selection(
-		selection=DEBUG,
-		default='enable',
-		required=True
-	)
+	@api.model
+	def get_info_urls(self):
+		return {}
+
+	def set_info_urls(self):
+		for instance in self:
+			url_info = self.get_info_urls().get(instance.channel,{})
+			instance.blog_url = url_info.get('blog','https://webkul.com/blog/odoo-multi-channel-sale/')
+			instance.store_url = url_info.get('store','https://store.webkul.com/Odoo-Multi-Channel-Sale.html')
+
+
+	use_core_feature = fields.Boolean(readonly=True)
+	channel = fields.Selection(selection='get_channel',required=True,inverse=set_info_urls)
+	name = fields.Char('Name',required=True)
+	state = fields.Selection(STATE,default='draft')
+	color = fields.Char(default='#000')
+	image = fields.Image(max_width=256,max_height=256)
+	blog_url = fields.Char()
+	store_url = fields.Char()
+	debug = fields.Selection(DEBUG,default='enable',required=True)
+
 	environment = fields.Selection(
 		selection=ENVIRONMENT,
 		string='Environment',
@@ -173,63 +240,61 @@ class MultiChannelSale(models.Model):
 	)
 	sku_sequence_id = fields.Many2one(
 		comodel_name='ir.sequence',
-		help="""Default sequence used as sku/default code for product(in case product not have sku/default code).""",
 		string='Sequence For SKU',
+		help="""Default sequence used as sku/default code for product(in case product not have sku/default code).""",
 	)
 	language_id = fields.Many2one(
 		comodel_name='res.lang',
-		string='Language',
 		default = lambda self: self.env['res.lang'].search([], limit=1),
 		help="""The language used over e-commerce store/marketplace.""",
+	)
 
-	)
-	pricelist_id = fields.Many2one(
-		comodel_name='channel.pricelist.mappings',
-		string='Pricelist Mapping'
-	)
+	pricelist_id = fields.Many2one('channel.pricelist.mappings','Pricelist Mapping')
+
 	pricelist_name = fields.Many2one(
 		comodel_name='product.pricelist',
 		string='Default Pricelist',
 		default=lambda self: self.env['product.pricelist'].search([], limit=1),
 		help="""Select the same currency of pricelist used  over e-commerce store/marketplace.""",
-
 	)
 	default_category_id = fields.Many2one(
 		comodel_name='product.category',
-		help="""Default category used as product internal category for imported products.""",
 		string='Category',
-		default=lambda self: self.env['product.category'].search([], limit=1)
+		default=lambda self: self.env['product.category'].search([], limit=1),
+		help="""Default category used as product internal category for imported products.""",
 	)
 	delivery_product_id = fields.Many2one(
 		comodel_name='product.product',
-		help="""Delivery product used in sale order line.""",
 		string='Delivery Product',
 		domain=[('type', '=', 'service')],
+		help="""Delivery product used in sale order line.""",
 	)
 	discount_product_id = fields.Many2one(
 		comodel_name='product.product',
-		help="""Discount product used in sale order line.""",
 		string='Discount Product',
 		domain=[('type', '=', 'service')],
+		help="""Discount product used in sale order line.""",
 	)
 	warehouse_id = fields.Many2one(
 		comodel_name='stock.warehouse',
-		string='WareHouse',
+		string='Warehouse',
 		default=lambda self: self.env['stock.warehouse'].search([], limit=1),
-		help='WareHouse used for imported product.',
+		help='Warehouse used for imported product.',
 	)
 	location_id = fields.Many2one(
 		related='warehouse_id.lot_stock_id',
 		string='Stock Location',
 		help='Stock Location used for imported product.',
-
+	)
+	company_id = fields.Many2one(
+		related='warehouse_id.company_id',
+		string='Company Id',
 	)
 	crm_team_id = fields.Many2one(
 		comodel_name='crm.team',
 		string='Sales Team',
 		default=lambda self: self.env['crm.team'].search([], limit=1),
 		help='Sales Team used for imported order.',
-
 	)
 	order_state_ids = fields.One2many(
 		comodel_name='channel.order.states',
@@ -238,12 +303,8 @@ class MultiChannelSale(models.Model):
 		help='Imported order will process in odoo on basis of these state mappings.',
 	)
 
-	feed = fields.Selection(
-		selection=Feed,
-		string='Feed',
-		default='all',
-		required=True
-	)
+	feed = fields.Selection(FEED,default='all',required=True)
+
 	auto_evaluate_feed = fields.Boolean(
 		string='Auto Evaluate Feed',
 		default=1,
@@ -253,6 +314,19 @@ class MultiChannelSale(models.Model):
 		string='Auto Sync Stock',
 		default=0,
 		help='Enable this for real time stock sync over channel.',
+	)
+
+	sync_cancel = fields.Boolean(
+		string='Cancel Status',
+		help='Enable for cancel status at E-commerce',
+	)
+	sync_invoice = fields.Boolean(
+		string='Invoice Status',
+		help='Enable for update invoice status at E-commerce',
+	)
+	sync_shipment = fields.Boolean(
+		string='Shipment Status',
+		help='Enable for update shipment status at E-commerce',
 	)
 
 	import_order_date =  fields.Datetime(
@@ -284,9 +358,7 @@ class MultiChannelSale(models.Model):
 	update_product_date =  fields.Datetime(
 		string='Product Updated',
 		# default = fields.Datetime.now(),
-
 	)
-
 
 	import_customer_date =  fields.Datetime(
 		string='Customer Imported',
@@ -302,31 +374,22 @@ class MultiChannelSale(models.Model):
 		default = 100,
 	)
 
+	channel_products   = fields.Integer(compute='_get_count')
+	channel_categories = fields.Integer(compute='_get_count')
+	channel_orders     = fields.Integer(compute='_get_count')
+	channel_customers  = fields.Integer(compute='_get_count')
 
-
-	channel_products = fields.Integer(
-		compute='_get_count'
-	)
-	channel_categories = fields.Integer(
-		compute='_get_count'
-	)
-	channel_orders = fields.Integer(
-		compute='_get_count'
-	)
-	channel_customers = fields.Integer(
-		compute='_get_count'
-	)
 	@api.constrains('api_record_limit')
 	def check_api_record_limit(self):
 		if self.api_record_limit<=0:
 			raise Warning("""The api record limit should be postive.""")
 
-
 	@api.model
 	def set_channel_cron(self,ref_name='',active=False):
 		try:
 			cron_obj= self.env.ref(ref_name,False)
-			if cron_obj:cron_obj.sudo().write(dict(active=active))
+			if cron_obj:
+				cron_obj.sudo().write(dict(active=active))
 		except Exception as e:
 			_logger.error("#1SetCronError  \n %r"%(e))
 			raise Warning(e)
@@ -344,13 +407,19 @@ class MultiChannelSale(models.Model):
 	def set_channel_date(self, operation = 'import',record = 'product'):
 		current_date = fields.Datetime.now()
 		if operation == 'import':
-			if record == 'order':self.import_order_date = current_date
-			elif record == 'product':self.import_product_date = current_date
-			elif record == 'customer':self.import_customer_date = current_date
+			if record == 'order':
+				self.import_order_date = current_date
+			elif record == 'product':
+				self.import_product_date = current_date
+			elif record == 'customer':
+				self.import_customer_date = current_date
 		else:
-			if record == 'order':self.update_order_date = current_date
-			elif record == 'product':self.update_product_date = current_date
-			elif record == 'customer':self.update_customer_date = current_date
+			if record == 'order':
+				self.update_order_date = current_date
+			elif record == 'product':
+				self.update_product_date = current_date
+			elif record == 'customer':
+				self.update_customer_date = current_date
 		return True
 
 	def toggle_enviroment_value(self):
@@ -394,7 +463,8 @@ class MultiChannelSale(models.Model):
 		om_date = None
 		message = ''
 		try:
-			if date_string:om_date = fields.Date.from_string(date_string)
+			if date_string:
+				om_date = fields.Date.from_string(date_string)
 		except Exception as e:
 			message += '%r'%e
 		return dict(
@@ -406,7 +476,8 @@ class MultiChannelSale(models.Model):
 		om_date_time = None
 		message = ''
 		try:
-			if date_time_string:om_date_time = fields.Datetime.from_string(date_time_string)
+			if date_time_string:
+				om_date_time = fields.Datetime.from_string(date_time_string)
 		except Exception as e:
 			message += '%r'%e
 		return dict(
@@ -465,7 +536,8 @@ class MultiChannelSale(models.Model):
 			ObjModel = self.env[model_name]
 			data = self.env[model_name]
 			for val in vals:
-				if kwargs.get('extra_val'):val.update( kwargs.get('extra_val'))
+				if kwargs.get('extra_val'):
+					val.update( kwargs.get('extra_val'))
 				match =False
 				if val.get('store_id'):
 					obj = ObjModel.search([('store_id', '=', val.get('store_id'))],limit= 1)
@@ -492,7 +564,7 @@ class MultiChannelSale(models.Model):
 
 	@api.model
 	def create_tax(self, name, amount, amount_type='percent', price_include=False):
-		pass
+		raise NotImplementedError
 
 	@api.model
 	def match_create_pricelist_id(self, currency_id):
@@ -552,7 +624,8 @@ class MultiChannelSale(models.Model):
 		domain= []
 		if type(self.id) == int:
 			domain+= [('channel_id', '=', self.id)]
-		if pre_domain:domain+=pre_domain
+		if pre_domain:
+			domain+=pre_domain
 		return domain
 
 	@api.model
@@ -675,14 +748,16 @@ class MultiChannelSale(models.Model):
 	@api.model
 	def match_order_mappings(self, store_order_id=None,domain=None, limit=1):
 		map_domain = self.get_channel_domain(domain)
-		if store_order_id:map_domain += [('store_order_id', '=', store_order_id)]
+		if store_order_id:
+			map_domain += [('store_order_id', '=', store_order_id)]
 		return self.env['channel.order.mappings'].search(map_domain, limit=limit)
 
 
 	@api.model
 	def match_carrier_mappings(self, shipping_service_name=None, domain=None, limit=1):
 		map_domain = self.get_channel_domain(domain)
-		if shipping_service_name:map_domain +=[('shipping_service', '=', shipping_service_name)]
+		if shipping_service_name:
+			map_domain +=[('shipping_service', '=', shipping_service_name)]
 		return self.env['channel.shipping.mappings'].search(map_domain, limit=limit)
 
 
@@ -699,14 +774,16 @@ class MultiChannelSale(models.Model):
 	@api.model
 	def match_category_feeds(self, store_id=None,domain=None,limit=1):
 		map_domain = self.get_channel_domain(domain)
-		if store_id:map_domain  += [('store_id', '=', store_id)]
+		if store_id:
+			map_domain  += [('store_id', '=', store_id)]
 		return self.env['category.feed'].search(map_domain, limit=limit)
 
 
 	@api.model
 	def match_product_feeds(self, store_id=None,domain=None,limit=1):
 		map_domain = self.get_channel_domain(domain)
-		if store_id:map_domain  += [('store_id', '=', store_id)]
+		if store_id:
+			map_domain  += [('store_id', '=', store_id)]
 
 		return self.env['product.feed'].search(map_domain, limit=limit)
 
@@ -723,12 +800,14 @@ class MultiChannelSale(models.Model):
 	@api.model
 	def match_partner_feeds(self, store_id=None, _type='contact',domain=None,limit=1):
 		map_domain = self.get_channel_domain(domain)+[('type', '=', _type)]
-		if store_id:map_domain  += [('store_id', '=', store_id)]
+		if store_id:
+			map_domain  += [('store_id', '=', store_id)]
 		return self.env['partner.feed'].search(map_domain, limit=limit)
 	@api.model
 	def match_order_feeds(self, store_id=None,domain=None,limit=1):
 		map_domain = self.get_channel_domain(domain)
-		if store_id:map_domain  += [('store_id', '=', store_id)]
+		if store_id:
+			map_domain  += [('store_id', '=', store_id)]
 
 		return self.env['order.feed'].search(map_domain, limit=limit)
 
@@ -788,7 +867,7 @@ class MultiChannelSale(models.Model):
 			fixed_price=0,
 		)
 		carrier_id = carrier_obj.sudo().create(carrier_vals)
-		service_id = service_id and service_id or name
+		service_id = service_id or name
 		vals = dict(
 			shipping_service=name,
 			shipping_service_id=service_id,
@@ -860,6 +939,13 @@ class MultiChannelSale(models.Model):
 			ir_values = self.default_multi_channel_values()
 			if ir_values.get('avoid_duplicity') and default_code:
 				record = oe_env.search([('default_code', '=', default_code)], limit=1)
+			if not record:
+				if 'product_template_attribute_value_ids' in vals and 'product_tmpl_id' in vals:
+					_ids = vals['product_template_attribute_value_ids'][0][2]
+					ids = ','.join([str(i) for i in sorted(_ids)])
+					record = oe_env.search([('product_tmpl_id','=',vals['product_tmpl_id']),
+						('product_template_attribute_value_ids','in', _ids)]
+					).filtered(lambda prod: prod.product_template_attribute_value_ids._ids2str()==ids)
 		return record
 
 
@@ -1040,6 +1126,7 @@ class MultiChannelSale(models.Model):
 		data = None
 		try:
 			res = requests.get(image_url)
+			# _logger.info("res ==========> %r",res)
 			if res.status_code == 200:
 				data = binascii.b2a_base64((res.content))
 		except Exception as e:
@@ -1066,7 +1153,7 @@ class MultiChannelSale(models.Model):
 	@staticmethod
 	def get_feed_import_message( obj, create_ids=[], update_ids=[], map_create_ids=[], map_update_ids=[]):
 		message = ''
-		if (map_create_ids or map_update_ids):
+		if map_create_ids or map_update_ids:
 			if len(map_create_ids):
 				message += '<br/>Total %s  new %s created.' % (
 					len(map_create_ids), obj)
@@ -1147,3 +1234,40 @@ class MultiChannelSale(models.Model):
 		if not image_type:
 			image_type='jpg'
 		return image_type
+
+	@api.model
+	def cron_feed_evaluation(self):
+		for object_model in  ["product.feed","order.feed","category.feed","partner.feed"]:
+			records = self.env[object_model].search([
+				("state","!=","done"),
+				("channel_id.state","=","validate")
+			])
+			records.import_items()
+		return True
+
+	@api.model
+	def cron_import_all(self,model):
+		config_ids = self.env['multi.channel.sale'].search([("state","=","validate")])
+		for config_id in config_ids:
+			if model == "order" and config_id.import_order_cron:
+				if hasattr(config_id, "{}_import_order_cron".format(config_id.channel)):
+					getattr(config_id,"{}_import_order_cron".format(config_id.channel))()
+				else:
+					_logger.warn('Error in use of MultiChannelSale class : use of (%r)_import_order_cron function to import orders from channel to odoo',config_id.channel)
+			elif model == "product" and config_id.import_product_cron:
+				if hasattr(config_id, "{}_import_product_cron".format(config_id.channel)):
+					getattr(config_id,"{}_import_product_cron".format(config_id.channel))()
+				else:
+					_logger.warn('Error in use of MultiChannelSale class : use of (%r)_import_product_cron function to import orders from channel to odoo',config_id.channel)
+			elif model == "partner" and config_id.import_partner_cron:
+				if hasattr(config_id, "{}_import_partner_cron".format(config_id.channel)):
+					getattr(config_id,"{}_import_partner_cron".format(config_id.channel))()
+				else:
+					_logger.warn('Error in use of MultiChannelSale class : use of (%r)_import_partner_cron function to import orders from channel to odoo',config_id.channel)
+			elif model == "category" and config_id.import_category_cron:
+				if hasattr(config_id, "{}_import_category_cron".format(config_id.channel)):
+					getattr(config_id,"{}_import_category_cron".format(config_id.channel))()
+				else:
+					_logger.warn('Error in use of MultiChannelSale class : use of (%r)_import_category_cron function to import orders from channel to odoo',config_id.channel)
+		return True
+

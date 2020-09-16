@@ -47,6 +47,62 @@ class ProductProduct(models.Model):
 		digits  = 'Product Price',
 	)
 
+	def write(self, vals):
+		for record in self:
+			mapping_ids = record.channel_mapping_ids
+			vals = record.pre_product_write(vals, mapping_ids)
+			mapping_ids.write({'need_sync': 'yes'})
+			res = super(ProductProduct, record).write(vals)
+			record.post_product_write(vals, mapping_ids)
+		return res
+
+	def pre_product_write(self, vals, mapping_ids):
+		r""" Adds functionality to modify product Vals
+			Return vals
+		"""
+
+		_channel_ids = self.env['multi.channel.sale']
+		for product_mapping in mapping_ids:
+			channel_id = product_mapping.channel_id
+			_channel_ids |= channel_id
+			if hasattr(channel_id,'%s_mapped_pre_product_write'%channel_id.channel):
+				vals.update(getattr(
+					channel_id,'%s_mapped_pre_product_write'%channel_id.channel
+				)(self, product_mapping, vals) or vals)
+
+		channel_ids = self.env['multi.channel.sale'].search([
+						('state','=','validate'),
+						('id', 'not in', _channel_ids.ids)])
+		for channel_id in channel_ids:
+			if hasattr(channel_id,'%s_pre_product_write'%channel_id.channel):
+				vals.update(getattr(
+					channel_id,'%s_pre_product_write'%channel_id.channel
+				)(self, vals) or vals)
+		return vals
+
+	def post_product_write(self, vals, mapping_ids):
+		r"""Adds functionality after product write is called
+			Return True
+		"""
+
+		_channel_ids = self.env['multi.channel.sale']
+		for product_mapping in mapping_ids:
+			channel_id = product_mapping.channel_id
+			_channel_ids |= channel_id
+			if hasattr(channel_id,'%s_mapped_post_product_write'%channel_id.channel):
+				vals.update(getattr(
+					channel_id,'%s_mapped_post_product_write'%channel_id.channel
+				)(self, product_mapping, vals) or vals)
+
+		channel_ids = self.env['multi.channel.sale'].search([
+						('state','=','validate'),
+						('id', 'not in', _channel_ids.ids)])
+		for channel_id in channel_ids:
+			if hasattr(channel_id,'%s_post_product_write'%channel_id.channel):
+				vals.update(getattr(
+					channel_id,'%s_post_product_write'%channel_id.channel
+				)(self, vals) or vals)
+		return True
 
 	@api.model
 	def check_for_new_price(self,template_id,value_id,price_extra):

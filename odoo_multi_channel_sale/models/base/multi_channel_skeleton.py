@@ -93,7 +93,7 @@ class MultiChannelSkeleton(models.Model):
         try:
             order_obj.action_confirm()
             if kwargs.get('confirmation_date'):
-                order_obj.write({'confirmation_date':kwargs.get('confirmation_date')})
+                order_obj.write({'date_order':kwargs.get('confirmation_date')})
             status_message += "Order==> Confirmed. "
         except Exception as e:
             status_message += "Error in Confirming Order on Odoo: %s<br/>" % str(
@@ -172,14 +172,13 @@ class MultiChannelSkeleton(models.Model):
         status_message = "Invoice==> Created. "
         try:
             if not order_obj.invoice_ids:
-                invoice_id = order_obj.action_invoice_create()
+                invoice_id = order_obj._create_invoices()
             else:
                 status = False
                 status_message = "<br/>Already Created"
         except Exception as e:
             status = False
-            status_message = "<br/>Error in creating Invoice: %s <br/>" % str(
-                e)
+            status_message = "<br/>Error in creating Invoice: %s <br/>" % str(e)
         finally:
             return {
                 'status': status,
@@ -196,7 +195,7 @@ class MultiChannelSkeleton(models.Model):
         context = dict(self._context or {})
         status = True
         counter = 0
-        draft_invoice_ids = []
+        draft_invoice_ids = self.env['account.move']
         invoice_id = False
         journal_id = payment_data.get('journal_id', False)
         sale_obj = self.env['sale.order'].browse(payment_data['order_id'])
@@ -206,27 +205,26 @@ class MultiChannelSkeleton(models.Model):
             create_invoice = self.create_order_invoice(sale_obj)
             status_message += create_invoice['status_message']
             if create_invoice['status']:
-                draft_invoice_ids.append(create_invoice['invoice_id'])
-                draft_amount = self.env['account.move'].browse(
-                    create_invoice['invoice_id']).amount_total
+                draft_invoice_ids += create_invoice['invoice_id']
         elif sale_obj.invoice_ids:
             for invoice in sale_obj.invoice_ids:
-                if invoice.state == 'open':
+                if invoice.state == 'posted':
                     invoice_id = invoice.id
                 elif invoice.state == 'draft':
-                    if date_invoice:invoice.write(dict(date_invoice = date_invoice))
-                    draft_invoice_ids.append(invoice.id)
+                    if date_invoice:
+                        invoice.write({'invoice_date': date_invoice})
+                    draft_invoice_ids += invoice
                 counter += 1
         if counter <= 1:
             try:
                 if draft_invoice_ids:
-                    invoice_id = self.env['account.move'].browse(draft_invoice_ids[0])
+                    invoice_id = draft_invoice_ids[0]
                     if date_invoice:
-                        invoice_id.write(dict(date_invoice = date_invoice))
-                    invoice_id.action_invoice_open()
+                        invoice_id.write({'invoice_date': date_invoice})
+                    invoice_id.action_post()
                     invoice_id = invoice_id.id
                 # Setting Context for Payment Wizard
-                open_inv = sale_obj.invoice_ids.filtered(lambda inv: inv.state == 'open')
+                open_inv = sale_obj.invoice_ids.filtered(lambda inv: inv.state == 'posted')
                 if len(open_inv) and (payment_data['invoice_state'] == 'paid'):
                     ctx = {
                         'default_invoice_ids'          : [(4, invoice_id)],

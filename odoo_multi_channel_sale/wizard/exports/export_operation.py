@@ -8,7 +8,6 @@ from ...ApiTransaction import Transaction
 
 from odoo import api,fields,models
 
-
 class ExportOperation(models.TransientModel):
 	_name = 'export.operation'
 	_description = 'Export Operation'
@@ -23,9 +22,24 @@ class ExportOperation(models.TransientModel):
 		required=True
 	)
 
+	object = fields.Selection(
+		selection=[
+			('product.category','Category'),
+			('product.template','Product Template'),
+		],
+		default='product.category',
+	)
+
 	def export_button(self):
-		return Transaction(channel=self.channel_id).export_data(
-			object = self._context.get('active_model'),
-			object_ids = self._context.get('active_ids'),
-			operation = self.operation
-		)
+		if self._context.get('active_model','multi.channel.sale') == 'multi.channel.sale':
+			return Transaction(channel=self.channel_id).export_data(
+				object = self.object,
+				object_ids = self.env[self.object].search([]).ids,
+				operation = 'export',
+			)
+		else:
+			return Transaction(channel=self.channel_id).export_data(
+				object = self._context.get('active_model'),
+				object_ids = self._context.get('active_ids'),
+				operation = self.operation,
+			)

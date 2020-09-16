@@ -31,7 +31,7 @@
 			target       ="new"
 		/>
 
-<!-- Note: These actions are to be reconsidered to replace old ones -->
+<!-- Note(Pankaj Kumar): These actions are to be reconsidered to replace old ones -->
 <!--
 		<act_window
 			id           ="export_category"

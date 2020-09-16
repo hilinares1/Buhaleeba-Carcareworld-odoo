@@ -89,35 +89,32 @@ class WkFeed(models.Model):
 
 	def open_mapping_view(self):
 		self.ensure_one()
-		duplicity_domain = []
-		domain           = [('channel_id','=',self.channel_id.id)]
-		res_model        = self._context.get('mapping_model')
-		store_field      = self._context.get('store_field')
-		duplicity_config = self.env['multi.channel.sale.config'].get_values()
+		model = self._context.get('mapping_model')
 
-		if res_model in ['channel.product.mappings','channel.template.mappings'] and duplicity_config.get('avoid_duplicity'):
-			avoid_duplicity_using  = duplicity_config.get('avoid_duplicity_using')
-			barcode                = self.barcode
-			default_code           = self.default_code
-			domain                += ['|',(store_field,'=',self.store_id)]
-			if default_code and barcode:
-				domain += ['|',('barcode','=',barcode),('default_code','=',default_code)]
-			elif default_code:
-				domain += [('default_code','=',default_code)]
-			else:
-				domain += [('barcode','=',barcode)]
-		else:
-			domain+=[(store_field,'=',self.store_id)]
-		mapping_ids = self.env[res_model].search(domain).ids
-		return {
-			'name'     : ('Mapping'),
+		action = {
+			'name'     : 'Mapping',
 			'type'     : 'ir.actions.act_window',
-			'view_mode': 'tree,form',
-			'res_model': res_model,
-			'view_id'  : False,
-			'domain'   : [('id','in',mapping_ids)],
+			'res_model': model,
 			'target'   : 'current',
 		}
+
+		res  = self.env[model].search(
+			[
+				('channel_id', '=', self.channel_id.id),
+				( self._context.get('store_field'), '=', self.store_id),
+			]
+		)
+		if len(res) == 1:
+			action.update(
+				view_mode = 'form',
+				res_id = res.id,
+			)
+		else:
+			action.update(
+				view_mode = 'tree',
+				domain = [('id','in',res.ids)],
+			)
+		return action
 
 	def set_feed_state(self,state='done'):
 		self.state = state
@@ -160,17 +157,22 @@ class WkFeed(models.Model):
 	def get_categ_id(self,store_categ_id,channel_id):
 		message = ''
 		categ_id = None
-		match = channel_id.match_category_mappings(store_categ_id)
+		context = self._context.copy() or {}
+		match = self._context.get('category_mappings').get(channel_id.id,{}).get(store_categ_id)
 		if match:
+			match = self.env['channel.category.mappings'].browse(match)
 			categ_id = match.odoo_category_id
 		else:
-			feed = channel_id.match_category_feeds(store_categ_id)
-			if feed:
-				res = feed.import_category(channel_id)
+			match = self._context.get('category_feeds').get(channel_id.id,{}).get(store_categ_id)
+			if match:
+				feed = self.env['category.feed'].browse(match)
+				res = feed.with_context(**context).import_category(channel_id)
 				message += res.get('message','')
 				mapping_id = res.get('update_id') or res.get('create_id')
 				if mapping_id:
 					categ_id = mapping_id.odoo_category_id
+					context.get('category_mappings', {}).setdefault(channel_id.id, {})[
+                        mapping_id.store_category_id] = mapping_id.id
 			else:
 				message += '<br/>Category Feed Error: No mapping as well category feed found for %s .' % (
 					store_categ_id)
@@ -203,15 +205,18 @@ class WkFeed(models.Model):
 		partner_shipping_id = None
 		context = dict(self._context)
 		context['no_mapping'] = self.customer_is_guest
-		partner_id = self.with_context(context).create_partner_contact_id(
-				partner_id,channel_id,store_partner_id)
-		partner_invoice_id = self.with_context(context).create_partner_invoice_id(
-			partner_id,channel_id,self.invoice_partner_id)
-		if self.same_shipping_billing:
-			partner_shipping_id = partner_invoice_id
-		else:
-			partner_shipping_id = self.with_context(context).create_partner_shipping_id(
-				partner_id,channel_id,self.shipping_partner_id)
+		try:
+			partner_id = self.with_context(context).create_partner_contact_id(
+					partner_id,channel_id,store_partner_id)
+			partner_invoice_id = self.with_context(context).create_partner_invoice_id(
+				partner_id,channel_id,self.invoice_partner_id)
+			if self.same_shipping_billing:
+				partner_shipping_id = partner_invoice_id
+			else:
+				partner_shipping_id = self.with_context(context).create_partner_shipping_id(
+					partner_id,channel_id,self.shipping_partner_id)
+		except Exception as e:
+			message += e.args[0]
 		return dict(
 			partner_id=partner_id,
 			partner_shipping_id=partner_shipping_id,
@@ -253,25 +258,26 @@ class WkFeed(models.Model):
 		if barcode:
 			domain += [('barcode','=',barcode)]
 		product_id = None
-		match = channel_id.match_product_mappings(
-			store_product_id,line_variant_ids,domain=domain)
+		match = self._context.get('variant_mappings').get(channel_id.id,{}).get(store_product_id,{}).get(line_variant_ids)
 		if match:
+			match = self.env['channel.product.mappings'].browse(match)
 			product_id = match.product_name
 		else:
-			feed = channel_id.match_product_feeds(store_product_id ,domain = domain)
-			product_variant_feeds = channel_id.match_product_variant_feeds(store_product_id,domain=domain)
+			feed = self._context.get('product_feeds').get(channel_id.id,{}).get(store_product_id)
+			feed = self.env['product.feed'].browse(feed)
+			product_variant_feed = feed.feed_variants.filtered(lambda self: self.store_id==line_variant_ids)
 			if feed:
 				res = feed.import_product(channel_id)
 				mapping_id = res.get('update_id') or res.get('create_id')
-
-				match = channel_id.match_product_mappings(
-					store_product_id,line_variant_ids,domain=domain)
+				self = self.contextualize_mappings('product',channel_id.ids)
+				match = self._context.get('variant_mappings').get(channel_id.id,{}).get(store_product_id,{}).get(line_variant_ids)
 				if match:
+					match = self.env['channel.product.mappings'].browse(match)
 					product_id = match.product_name
 				else:
 					message += '<br/>Product Feed Error: For product id (%s) & variant id (%s) no mapping as well feed found.' % (store_product_id,line_variant_ids)
-			elif product_variant_feeds and product_variant_feeds.feed_templ_id:
-				res = product_variant_feeds.feed_templ_id.import_product(channel_id)
+			elif product_variant_feed and product_variant_feed.feed_templ_id:
+				res = product_variant_feed.feed_templ_id.import_product(channel_id)
 				message += res.get('message','')
 				match = channel_id.match_product_mappings(
 					 line_variant_ids=store_product_id)
@@ -289,7 +295,7 @@ class WkFeed(models.Model):
 	def get_carrier_id(self,carrier_id,service_id=None,channel_id=None):
 		message = ''
 		res_id = None
-		shipping_service_name = service_id and service_id or carrier_id
+		shipping_service_name = service_id or carrier_id
 		match = channel_id.match_carrier_mappings(shipping_service_name)
 		if match:
 			res_id = match.odoo_shipping_carrier
@@ -307,7 +313,7 @@ class WkFeed(models.Model):
 			name = '%s %s' % (name,self.invoice_last_name)
 		vals = dict(
 			type='invoice',
-			name=self.invoice_name,
+			name=name,
 			street=self.invoice_street,
 			street2=self.invoice_street2,
 			city=self.invoice_city,
@@ -352,7 +358,7 @@ class WkFeed(models.Model):
 			name = '%s %s' % (name,self.shipping_last_name)
 		vals = dict(
 			type      = 'delivery',
-			name      = self.shipping_name,
+			name      = name,
 			street    = self.shipping_street,
 			street2   = self.shipping_street2,
 			city      = self.shipping_city,
@@ -397,7 +403,7 @@ class WkFeed(models.Model):
 			name = '%s %s' % (name,self.customer_last_name)
 		vals = dict(
 			type   = _type,
-			name   = self.customer_name,
+			name   = name,
 			email  = self.customer_email,
 			phone  = self.customer_phone,
 			mobile = self.customer_mobile,
@@ -417,6 +423,105 @@ class WkFeed(models.Model):
 			erp_id = match.odoo_partner
 		else:
 			erp_id = partner_obj.create(vals)
-			if (not self._context.get('no_mapping') and store_partner_id):
+			if not self._context.get('no_mapping') and store_partner_id:
 				channel_id.create_partner_mapping(erp_id,store_partner_id,'contact')
 		return erp_id
+
+	def contextualize_feeds(self,type,channel_ids=False):
+		if not channel_ids and 'channel_id' in self._context:
+			channel_ids = self._context.get('channel_id').ids
+		if not channel_ids:
+			raise Exception('No channel_ids available to contextualize feeds.')
+		if type == 'category':
+			feeds = {}
+			for rec in self.env['category.feed'].search_read(
+				[('channel_id','in',channel_ids)],
+				['id','store_id','channel_id'],
+			):
+				feeds.setdefault(rec.get('channel_id')[0],{})[rec.get('store_id')] = rec.get('id')
+			return self.with_context(category_feeds=feeds)
+		elif type == 'product':
+			product_feeds = {}
+			for rec in self.env['product.feed'].search_read(
+				[('channel_id','in',channel_ids)],
+				['id','store_id','channel_id'],
+			):
+				product_feeds.setdefault(rec.get('channel_id')[0],{})[rec.get('store_id')] = rec.get('id')
+			return self.with_context(product_feeds=product_feeds)
+		elif type == 'partner':
+			feeds = {}
+			for rec in self.env['partner.feed'].search_read(
+				[('channel_id','in',channel_ids)],
+				['id','store_id','channel_id'],
+			):
+				feeds.setdefault(rec.get('channel_id')[0],{})[rec.get('store_id')] = rec.get('id')
+			return self.with_context(partner_feeds=feeds)
+		elif type == 'order':
+			feeds = {}
+			for rec in self.env['order.feed'].search_read(
+				[('channel_id','in',channel_ids)],
+				['id','store_id','channel_id'],
+			):
+				feeds.setdefault(rec.get('channel_id')[0],{})[rec.get('store_id')] = rec.get('id')
+			return self.with_context(order_feeds=feeds)
+		elif type == 'shipping':
+			feeds = {}
+			for rec in self.env['shipping.feed'].search_read(
+					[('channel_id', 'in', channel_ids)],
+					['id', 'store_id', 'channel_id'],
+			):
+				feeds.setdefault(rec.get('channel_id')[0], {})[
+					rec.get('store_id')] = rec.get('id')
+			return self.with_context(shipping_feeds=feeds)
+		else:
+			raise Exception('Wrong type for feeds to be contextualized.')
+
+	def contextualize_mappings(self,type,channel_ids=False):
+		if not channel_ids and 'channel_id' in self._context:
+			channel_ids = self._context.get('channel_id').ids
+		if not channel_ids:
+			raise Exception('No channel_ids available to contextualize mappings.')
+		if type == 'category':
+			mappings = {}
+			for rec in self.env['channel.category.mappings'].search_read(
+				[('channel_id','in',channel_ids)],
+				['id','store_category_id','channel_id'],
+			):
+				mappings.setdefault(rec.get('channel_id')[0],{})[rec.get('store_category_id')] = rec.get('id')
+			return self.with_context(category_mappings=mappings)
+		elif type == 'product':
+			product_mappings,variant_mappings = {},{}
+			for rec in self.env['channel.template.mappings'].search_read(
+				[('channel_id','in',channel_ids)],
+				['id','store_product_id','channel_id'],
+			):
+				product_mappings.setdefault(rec.get('channel_id')[0],{})[rec.get('store_product_id')] = rec.get('id')
+			for rec in self.env['channel.product.mappings'].search_read(
+				[('channel_id','in',channel_ids)],
+				['id','store_product_id','store_variant_id','channel_id'],
+			):
+				variant_mappings.setdefault(
+					rec.get('channel_id')[0],{}
+				).setdefault(
+					rec.get('store_product_id'),{}
+				)[rec.get('store_variant_id')] = rec.get('id')
+			return self.with_context(product_mappings=product_mappings,variant_mappings=variant_mappings)
+		elif type == 'partner':
+			mappings = {}
+			for rec in self.env['channel.partner.mappings'].search_read(
+				[('channel_id','in',channel_ids)],
+				['id','store_customer_id','channel_id'],
+			):
+				mappings.setdefault(rec.get('channel_id')[0],{})[rec.get('store_customer_id')] = rec.get('id')
+			return self.with_context(partner_mappings=mappings)
+		elif type == 'order':
+			mappings = {}
+			for rec in self.env['channel.order.mappings'].search_read(
+				[('channel_id','in',channel_ids)],
+				['id','store_order_id','channel_id'],
+			):
+				mappings.setdefault(rec.get('channel_id')[0],{})[rec.get('store_order_id')] = rec.get('id')
+			return self.with_context(order_mappings=mappings)
+		else:
+			raise Exception('Wrong type for mappings to be contextualized.')
+

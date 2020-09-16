@@ -6,7 +6,10 @@
 ##############################################################################
 from odoo import api,fields,models
 from odoo.addons.odoo_multi_channel_sale.tools import extract_list as EL
+from logging import getLogger
 
+
+_logger = getLogger(__name__)
 
 ShippingFields = [
 	'name',
@@ -34,10 +37,9 @@ class ShippingFeed(models.Model):
 	def get_shiping_carrier(self,carrier_name,channel_id=None):
 		channel_id  = channel_id or self.channel_id
 		return self.env['delivery.carrier'].search(
-			[('name','=',carrier_name)]
+			[('name','=',carrier_name)], limit=1
 		) or self.env['delivery.carrier'].create(
 			{
-				'product_type': 'service',
 				'name'        : carrier_name,
 				'fixed_price' : 0,
 				'product_id'  : channel_id.delivery_product_id.id
@@ -55,6 +57,41 @@ class ShippingFeed(models.Model):
 				store_id = shipping_service_id
 			)
 			return self.create_shipping_mapping(channel_id,carrier_id.id,vals)
+
+	@api.model
+	def _create_feeds(self, shipping_data_list):
+		success_ids, error_ids = [], []
+		self = self.contextualize_feeds('shipping')
+		for shipping_data in shipping_data_list:
+			feed = self._create_feed(shipping_data)
+			if feed:
+				self += feed
+				success_ids.append(shipping_data.get('store_id'))
+			else:
+				error_ids.append(shipping_data.get('store_id'))
+		return success_ids, error_ids, self
+
+	@api.model
+	def _create_feed(self, shipping_data):
+		channel_id = shipping_data.get('channel_id')
+		store_id = str(shipping_data.get('store_id'))
+		feed_id = self._context.get('shipping_feeds').get(
+			channel_id, {}).get(store_id)
+		try:
+			if feed_id:
+				feed = self.browse(feed_id)
+				shipping_data.update(state='draft')
+				feed.write(shipping_data)
+			else:
+				feed = self.create(shipping_data)
+		except Exception as e:
+			_logger.error(
+				"Failed to create feed for Collection: "
+				f"{shipping_data.get('store_id')}"
+				f" Due to: {e.args[0]}"
+			)
+		else:
+			return feed
 
 	@api.model
 	def create_shipping_mapping(self,channel_id,carrier_id,vals):
@@ -156,4 +193,5 @@ class ShippingFeed(models.Model):
 				update_ids=update_ids,
 				create_ids=create_ids,
 			)
+		message = self.get_feed_result(feed_type='Shipping')
 		return self.env['multi.channel.sale'].display_message(message)

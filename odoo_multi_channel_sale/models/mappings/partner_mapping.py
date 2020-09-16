@@ -11,7 +11,7 @@ class ChannelOrderMappings(models.Model):
 	_name        = 'channel.partner.mappings'
 	_inherit     = 'channel.mappings'
 	_description = 'Partner Mapping'
-	
+
 	type = fields.Selection(
 		selection = [
 			('contact','Contact'),
@@ -24,7 +24,7 @@ class ChannelOrderMappings(models.Model):
 	store_customer_id = fields.Char('Store Customer ID',required=True)
 	odoo_partner      = fields.Many2one('res.partner','Odoo Partner', required=True)
 	odoo_partner_id   = fields.Integer('Odoo Partner ID',required=True)
-	
+
 	_sql_constraints = [
 		(
 			'channel_store_customer_id_uniq',

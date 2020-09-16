@@ -4,4 +4,5 @@
 # See LICENSE file for full copyright and licensing details.
 # License URL : <https://store.webkul.com/license.html/>
 ##############################################################################
+from . import backend
 from . import main

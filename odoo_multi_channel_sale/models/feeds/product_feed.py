@@ -30,11 +30,54 @@ class ProductFeed(models.Model):
 		inverse_name = 'feed_templ_id'
 	)
 
+	@api.model
+	def _create_feeds(self,product_data_list):
+		success_ids,error_ids = [],[]
+		self = self.contextualize_feeds('product')
+		for product_data in product_data_list:
+			feed = self._create_feed(product_data)
+			if feed:
+				self += feed
+				success_ids.append(product_data.get('store_id'))
+			else:
+				error_ids.append(product_data.get('store_id'))
+		return success_ids,error_ids,self
+
+	def _create_feed(self,product_data):
+		variant_data_list = product_data.pop('variants')
+		channel_id = product_data.get('channel_id')
+		store_id = str(product_data.get('store_id'))
+		feed_id = self._context.get('product_feeds').get(channel_id,{}).get(store_id)
+		try:
+			if feed_id:
+				feed = self.browse(feed_id)
+				feed.feed_variants=False
+				product_data.update(state='draft')
+				feed.write(product_data)
+			else:
+				feed = self.create(product_data)
+		except Exception as e:
+			_logger.error(
+				"Failed to create feed for Product: "
+				f"{product_data.get('store_id')}"
+				f" Due to: {e.args[0]}"
+			)
+		else:
+			for variant_data in variant_data_list:
+				variant_data.update(feed_templ_id=feed.id)
+				try:
+					self.env['product.variant.feed'].create(variant_data)
+				except Exception as e:
+					_logger.error(
+						"Failed to create feed for Product Variant: "
+						f"{variant_data.get('store_id')}"
+						f" Due to: {e.args[0]}"
+					)
+			return feed
 
 	def match_attribute(self,attribute):
 		return self.env['product.attribute'].search([('name','=',attribute)]) \
 			or self.env['product.attribute'].create({'name':attribute})
-
 
 	def match_attribute_value(self,value,attribute_id):
 		value = value.strip("'").strip("'")
@@ -82,14 +125,15 @@ class ProductFeed(models.Model):
 				variant_store_id = variant.store_id
 			else:
 				variant_store_id = attr_string
-			exists = channel_id.match_product_mappings(
-				store_id,variant_store_id,default_code=variant.default_code,barcode=variant.barcode)
+			exists = self._context.get('variant_mappings').get(channel_id.id,{}).get(store_id,{}).get(variant_store_id)
 			if not exists:
 				self.with_context(context)._create_product_line(
 					variant,template_id,store_id,location_id,channel_id)
 			else:
+				exists = self.env['channel.product.mappings'].browse(exists)
 				attribute_value_ids = prod_env.with_context(context).check_for_new_attrs(
 					template_id,variant)
+				_logger.info("attribute_value_ids ----%r", attribute_value_ids)
 				if variant.list_price:
 					exists.product_name.wk_extra_price = parse_float(
 						variant.list_price) - parse_float(template_id.list_price)
@@ -103,6 +147,8 @@ class ProductFeed(models.Model):
 				if context.get('wk_qty_update',True) and  variant.qty_available and eval(variant.qty_available) > 0:
 					res = self.wk_change_product_qty(
 						exists.product_name,variant.qty_available,location_id)
+				exists.product_name.write({'default_code':variant.default_code,'barcode':variant.barcode or False})
+				exists.write({'default_code':variant.default_code,'barcode':variant.barcode})
 		return message
 
 	def get_variant_extra_values(self,template_id,variant,channel_id):
@@ -114,15 +160,10 @@ class ProductFeed(models.Model):
 			image_url = variant.image_url
 			if image_url and (image_url not in ['false','False',False]):
 				image_res = channel_id.read_website_image_url(image_url)
-				if image_res:vals['image_1920'] = image_res
+				if image_res:
+					vals['image_1920'] = image_res
 		if variant.description_sale:
 			vals['description_sale'] = variant.description_sale
-		weight_unit = variant.weight_unit
-		if weight_unit:
-			uom_id = channel_id.get_uom_id(name=weight_unit).id
-			if uom_id:
-				vals['uom_id'] = uom_id
-				vals['uom_po_id'] = uom_id
 
 		dimensions_unit = variant.dimensions_unit
 		if dimensions_unit:
@@ -140,7 +181,7 @@ class ProductFeed(models.Model):
 			vals['wk_extra_price'] = parse_float(variant.list_price) - parse_float(template_id.list_price)
 		if variant.default_code:
 			vals['default_code'] = variant.default_code
-		if variant.default_code:
+		if variant.barcode:
 			vals['barcode'] = variant.barcode
 		return {'vals': vals,'state': state}
 
@@ -152,8 +193,10 @@ class ProductFeed(models.Model):
 
 		message = ''
 		variant_id = variant.store_id or 'No Variants'
-		exists = channel_id.match_product_mappings(
-			store_id,variant_id,default_code=variant.default_code,barcode=variant.barcode)
+		# REMOVE(Pankaj Kumar)
+		# exists = channel_id.match_product_mappings(
+		# 	store_id,variant_id,default_code=variant.default_code,barcode=variant.barcode)
+		exists = self._context.get('variant_mappings').get(channel_id.id,{}).get(store_id,{}).get(variant_id)
 		if not exists:
 			vals = {
 				'name': template_id.name,
@@ -166,7 +209,8 @@ class ProductFeed(models.Model):
 				'product_tmpl_id': template_id.id,
 				'default_code':variant.default_code,
 			}
-			if variant.barcode: vals['barcode']=variant.barcode
+			if variant.barcode:
+				vals['barcode']=variant.barcode
 
 			product_template_attribute_value_ids = prod_env.with_context(context).check_for_new_attrs(
 				template_id,variant)
@@ -174,6 +218,8 @@ class ProductFeed(models.Model):
 			res = self.get_variant_extra_values(template_id,variant,channel_id)
 			state = res['state']
 			vals.update(res['vals'])
+			if not vals.get('barcode'):
+				vals['barcode'] = False
 			product_exists_odoo = channel_id.match_odoo_product(vals)
 			if not product_exists_odoo:
 				product_id = prod_env.with_context(context).create(vals)
@@ -189,20 +235,32 @@ class ProductFeed(models.Model):
 				if variant.qty_available and eval(variant.qty_available) > 0:
 					self.wk_change_product_qty(
 						product_id,variant.qty_available,location_id)
-				#FIX EXTRA FIELDS
-				mapping_id = self.channel_id.create_product_mapping(
-					template_id,product_id,store_id,variant_id,
-					vals = dict(default_code = vals.get('default_code'),barcode=vals.get('barcode'))
-				)
+				# REMOVE(Pankaj Kumar)
+				# #FIX EXTRA FIELDS
+				# match = channel_id.match_product_mappings(
+				# 	store_id,variant_id) #Added
+				match = self._context.get('variant_mappings').get(channel_id.id,{}).get(store_id,{}).get(variant_id)
+				match = self.env['channel.product.mappings'].browse(match)
+				if not match:
+					self.channel_id.create_product_mapping(
+						template_id,product_id,store_id,variant_id,
+						vals = dict(default_code = vals.get('default_code'),barcode=vals.get('barcode'))
+					)
 			else:
+				vals.pop('uom_id',None)
+				vals.pop('uom_po_id',None)
 				product_exists_odoo.write(vals)
 				product_id = product_exists_odoo
-				mapping_id = channel_id.create_product_mapping(
-					product_id.product_tmpl_id,product_id,store_id,variant_id,
-					vals = dict(default_code=variant.default_code,barcode=variant.barcode)
-				)
-		else:
-			mapping_id = exists
+				# REMOVE(Pankaj Kumar)
+				# match = channel_id.match_product_mappings(
+				# 	store_id,variant_id) #Added
+				match = self._context.get('variant_mappings').get(channel_id.id,{}).get(store_id,{}).get(variant_id)
+				match = self.env['channel.product.mappings'].browse(match)
+				if not match:
+					channel_id.create_product_mapping(
+						product_id.product_tmpl_id,product_id,store_id,variant_id,
+						vals = dict(default_code=variant.default_code,barcode=variant.barcode)
+					)
 		return message
 
 	def _create_product_lines(self,variant_ids,template_id,store_id,location_id,channel_id):
@@ -219,10 +277,9 @@ class ProductFeed(models.Model):
 			and pitem.applied_on=='0_product_variant'
 		)
 		if pricelist_item:
-			pricelist_item = pricelist_item[0]
-			pricelist_item.write(dict(fixed_price=price))
+			pricelist_item = pricelist_item[0].write(dict(fixed_price=price))
 		else:
-			pricelist_item = self.env['product.pricelist.item'].create({
+			self.env['product.pricelist.item'].create({
 				'pricelist_id':channel_id.pricelist_name.id,
 				'applied_on':'0_product_variant',
 				'product_id': product_id.id,
@@ -279,17 +336,11 @@ class ProductFeed(models.Model):
 		categ_id = channel_id.default_category_id.id
 		if categ_id:
 			vals['categ_id'] = categ_id
-		weight_unit = vals.pop('weight_unit')
-		if weight_unit:
-			uom_id = channel_id.get_uom_id(name=weight_unit).id
-			if uom_id:
-				vals['uom_id'] = uom_id
-				vals['uom_po_id'] = uom_id
+		vals.pop('weight_unit')
 
 		dimensions_unit = vals.pop('dimensions_unit')
 		if dimensions_unit:
-			vals['dimensions_uom_id'] = channel_id.get_uom_id(
-				name=dimensions_unit).id
+			vals['dimensions_uom_id'] = channel_id.get_uom_id(name=dimensions_unit).id
 		if not vals.pop('wk_product_id_type'):
 			vals['wk_product_id_type'] = 'wk_upc'
 		variant_lines = vals.pop('feed_variants')
@@ -302,14 +353,21 @@ class ProductFeed(models.Model):
 		list_price = vals.get('list_price')
 		list_price = list_price and parse_float(list_price) or 0
 		image_url = vals.pop('image_url')
+		if not vals.get('barcode'):
+			vals['barcode'] = False
 		location_id = channel_id.location_id
+		if not vals.get('default_code'):
+			vals['default_code'] = False
+		if not vals.get('barcode'):
+			vals['barcode'] = False
 		b64_image = vals.pop('image')
 		if b64_image:
 			vals['image_1920'] = b64_image
 		if not b64_image and image_url and (image_url not in ['false','False',False]):
 			image_res = channel_id.read_website_image_url(image_url)
-			if image_res:vals['image_1920'] = image_res
-		match = channel_id.match_template_mappings(store_id,**vals)
+			if image_res:
+				vals['image_1920'] = image_res
+		match = self._context.get('product_mappings').get(channel_id.id,{}).get(store_id)
 		template_exists_odoo = channel_id.match_odoo_template(
 			vals ,variant_lines=feed_variants)
 		vals.pop('website_message_ids','')
@@ -317,6 +375,9 @@ class ProductFeed(models.Model):
 
 		if state == 'done':
 			if match:
+				match = self.env['channel.template.mappings'].browse(match)
+				vals.pop('uom_id',None)
+				vals.pop('uom_po_id',None)
 				extra_categ_ids = vals.pop('extra_categ_ids')
 				if not template_exists_odoo:
 					template_id = match.template_name
@@ -325,7 +386,12 @@ class ProductFeed(models.Model):
 					template_exists_odoo.with_context(context).write(vals)
 					template_id = template_exists_odoo
 				match.write({'default_code':vals.get('default_code'),'barcode':vals.get('barcode')})
-				extra_categ = self.env['extra.categories'].search([('instance_id','=',channel_id.id),('product_id','=',template_id.id)])
+				extra_categ = self.env['extra.categories'].search(
+					[
+						('instance_id','=',channel_id.id),
+						('product_id','=',template_id.id),
+					]
+				)
 				if extra_categ_ids:
 					res = self.get_extra_categ_ids(extra_categ_ids,channel_id)
 					message += res.get('message','')
@@ -337,7 +403,7 @@ class ProductFeed(models.Model):
 						'instance_id' : channel_id.id,
 						'category_id':categ_id,
 						}
-						extra_categ = extra_categ.with_context(context).write(data)
+						extra_categ.with_context(context).write(data)
 					else:
 						state = 'error'
 				if len(variant_lines):
@@ -355,6 +421,7 @@ class ProductFeed(models.Model):
 							price = list_price,
 							channel_id = channel_id
 						)
+						# Question(Pankaj) What's its purpose?
 						# if qty_available and eval(qty_available) > 0:
 						#     self.wk_change_product_qty(
 						#         variant_id,qty_available,location_id)
@@ -462,6 +529,10 @@ class ProductFeed(models.Model):
 		)
 
 	def import_items(self):
+		self = self.contextualize_feeds('category',self.mapped('channel_id').ids)
+		self = self.contextualize_mappings('category',self.mapped('channel_id').ids)
+		self = self.contextualize_feeds('product',self.mapped('channel_id').ids)
+		self = self.contextualize_mappings('product',self.mapped('channel_id').ids)
 		update_ids = []
 		create_ids = []
 
@@ -499,8 +570,4 @@ class ProductFeed(models.Model):
 		message = self.get_feed_result(feed_type='Product')
 		return self.env['multi.channel.sale'].display_message(message)
 
-	@api.model
-	def cron_import_product(self):
-		for record in self.search([('state','!=','done')]):
-			record.import_product(record.channel_id)
-		return True
+

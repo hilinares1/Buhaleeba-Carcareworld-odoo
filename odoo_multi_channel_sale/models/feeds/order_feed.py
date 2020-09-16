@@ -98,6 +98,47 @@ class OrderFeed(models.Model):
 	)
 	line_ids = fields.One2many('order.line.feed','order_feed_id',string='Line Ids')
 
+	@api.model
+	def _create_feeds(self,order_data_list):
+		success_ids,error_ids = [],[]
+		self = self.contextualize_feeds('order')
+		for order_data in order_data_list:
+			order_feed = self._create_feed(order_data)
+			if order_feed:
+				self += order_feed
+				success_ids.append(order_data.get('store_id'))
+			else:
+				error_ids.append(order_data.get('store_id'))
+		return success_ids,error_ids,self
+
+	def _create_feed(self,order_data):
+		channel_id = order_data.get('channel_id')
+		store_id = str(order_data.get('store_id'))
+		feed_id = self._context.get('order_feeds').get(channel_id,{}).get(store_id)
+# Todo(Pankaj Kumar): Change feed field from state_id,country_id to state_code,country_code
+		order_data['invoice_state_id'] = order_data.pop('invoice_state_code',False)
+		order_data['invoice_country_id'] = order_data.pop('invoice_country_code',False)
+
+		if not order_data.get('same_shipping_billing'):
+			order_data['shipping_state_id'] = order_data.pop('shipping_state_code',False)
+			order_data['shipping_country_id'] = order_data.pop('shipping_country_code',False)
+# & remove this code
+		try:
+			if feed_id:
+				feed = self.browse(feed_id)
+				feed.line_ids=False
+				order_data.update(state='draft')
+				feed.write(order_data)
+			else:
+				feed = self.create(order_data)
+		except Exception as e:
+			_logger.error(
+				"Failed to create feed for Order: "
+				f"{order_data.get('store_id')}"
+				f" Due to: {e.args[0]}"
+			)
+		else:
+			return feed
 
 	@api.model
 	def _get_order_line_vals(self,vals,carrier_id,channel_id):
@@ -107,7 +148,8 @@ class OrderFeed(models.Model):
 		line_ids = vals.pop('line_ids')
 		line_name = vals.pop('line_name')
 		line_price_unit = vals.pop('line_price_unit')
-		if line_price_unit:line_price_unit = parse_float(line_price_unit)
+		if line_price_unit:
+			line_price_unit = parse_float(line_price_unit)
 		line_product_id = vals.pop('line_product_id')
 		line_variant_ids = vals.pop('line_variant_ids')
 		line_product_uom_qty = vals.pop('line_product_uom_qty')
@@ -118,7 +160,8 @@ class OrderFeed(models.Model):
 		if line_ids:
 			for line_id in self.env['order.line.feed'].browse(line_ids):
 				line_price_unit = line_id.line_price_unit
-				if line_price_unit:line_price_unit = parse_float(line_price_unit)
+				if line_price_unit:
+					line_price_unit = parse_float(line_price_unit)
 				if line_id.line_source =='delivery':
 					product_id = carrier_id.product_id
 				elif line_id.line_source =='discount':
@@ -167,7 +210,8 @@ class OrderFeed(models.Model):
 			)
 			product_id = product_res.get('product_id')
 			if product_id:
-				if line_product_uom_qty:line_product_uom_qty = parse_float(line_product_uom_qty) or 1
+				if line_product_uom_qty:
+					line_product_uom_qty = parse_float(line_product_uom_qty) or 1
 				line = dict(
 					name=line_name or '',
 					price_unit=(line_price_unit),
@@ -225,7 +269,7 @@ class OrderFeed(models.Model):
 						  'price_include'   : inclusive,
 						  'amount'          : float(tax['rate']),
 						}
-						tax_id = tax_record.search([('name','=',tax_dict['name'])])
+						tax_id = tax_record.search([('name','=',tax_dict['name'])],limit=1)
 						if not tax_id:
 							tax_id=tax_record.create(tax_dict)
 						tax_map_vals={
@@ -275,18 +319,21 @@ class OrderFeed(models.Model):
 		store_id = vals.pop('store_id')
 
 		store_source = vals.pop('store_source')
-		match = channel_id.match_order_mappings(store_id)
+		match = self._context.get('order_mappings').get(channel_id.id,{}).get(store_id)
+		if match:
+			match = self.env['channel.order.mappings'].browse(match)
 		state = 'done'
 		store_partner_id = vals.pop('partner_id')
 
 
 		date_info = self.get_order_date_info(channel_id,vals)
-		if date_info.get('date_order'):
+		if date_info.get('confirmation_date'):
+			vals['date_order']=date_info.get('confirmation_date')
+		elif date_info.get('date_order'):
 			vals['date_order']=date_info.get('date_order')
 
 		date_invoice =  date_info.get('date_invoice')
 		confirmation_date = date_info.get('confirmation_date')
-
 
 		if store_partner_id:
 			if not match:
@@ -351,7 +398,6 @@ class OrderFeed(models.Model):
 		if match and match.order_name:
 			if  state =='done' :
 				try:
-
 					order_state = vals.pop('order_state')
 					if match.order_name.state=='draft':
 						match.order_name.write(dict(order_line=[(5,0)]))
@@ -390,6 +436,11 @@ class OrderFeed(models.Model):
 		)
 
 	def import_items(self):
+		self = self.contextualize_feeds('category',self.mapped('channel_id').ids)
+		self = self.contextualize_mappings('category',self.mapped('channel_id').ids)
+		self = self.contextualize_feeds('product',self.mapped('channel_id').ids)
+		self = self.contextualize_mappings('product',self.mapped('channel_id').ids)
+		self = self.contextualize_mappings('order',self.mapped('channel_id').ids)
 		update_ids=[]
 		create_ids=[]
 		message=''
@@ -404,9 +455,11 @@ class OrderFeed(models.Model):
 			msz= res.get('message','')
 			message+=msz
 			update_id = res.get('update_id')
-			if update_id:update_ids.append(update_id)
+			if update_id:
+				update_ids.append(update_id)
 			create_id = res.get('create_id')
-			if create_id:create_ids.append(create_id)
+			if create_id:
+				create_ids.append(create_id)
 			mapping_id = update_id or create_id
 			if mapping_id:
 				sync_vals['status'] = 'success'
@@ -422,8 +475,3 @@ class OrderFeed(models.Model):
 		message =  self.get_feed_result(feed_type='Sale Order')
 		return self.env['multi.channel.sale'].display_message(message)
 
-	@api.model
-	def cron_import_order(self):
-		for record in self.search([('state','!=','done')]):
-			record.import_order(record.channel_id)
-		return True

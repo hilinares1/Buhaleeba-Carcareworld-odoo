@@ -9,31 +9,38 @@
 			<field name="model">export.operation</field>
 			<field name="type">form</field>
 			<field name="arch" type="xml">
-				<form string="Import">
-						<group>
-							<group>
-								<field name="operation" widget="radio"/>
-							</group>
-							<group>
-								<field name="channel_id" options="{'no_create_edit':True}"/>
-							</group>
+				<form string="Export">
+					<group col="4">
+						<field
+							name="channel_id"
+							options="{'no_quick_create':True,'no_create_edit':True,'no_open': True}"
+							invisible="context.get('default_channel_id',False)"
+						/>
+						<field name="channel" groups="base.group_no_one"/>
+					</group>
+					<group>
+						<group name="filters">
+							<field name="object" required="True"/>
 						</group>
+					</group>
 					<footer>
 						<button
 							string="Confirm Export"
 							type  ="object"
 							name  ="export_button"
 							class ="oe_highlight"
-							context="{
-								'active_model': active_model,
-								'active_ids'  : active_ids,
-								'operation'   : operation
-							}"
 						/>
 						<button string="Cancel" name="cancel" special="cancel"/>
 					</footer>
 				</form>
 			</field>
+		</record>
+
+		<record id="open_export_wizard_action" model="ir.actions.act_window">
+			<field name="name">Export Wizard</field>
+			<field name="res_model">export.operation</field>
+			<field name="view_mode">form</field>
+			<field name="target">new</field>
 		</record>
 	</data>
 </odoo>

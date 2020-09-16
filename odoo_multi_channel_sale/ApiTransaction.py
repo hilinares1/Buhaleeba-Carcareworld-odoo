@@ -4,7 +4,10 @@
 # See LICENSE file for full copyright and licensing details.
 # License URL : <https://store.webkul.com/license.html/>
 ##############################################################################
+from logging import getLogger
 
+
+_logger = getLogger(__name__)
 
 METAMAP = {
 	'product.category': {
@@ -30,133 +33,92 @@ class Transaction:
 		self.instance = channel
 		self.channel = channel.channel
 		self.env = channel.env
+		self._cr = channel._cr
 		self.evaluate_feed = channel.auto_evaluate_feed
 		self.display_message = channel.display_message
 
-	def import_data(self, object, object_id):
+	def import_data(self, object, **kw):
 		msg = "Current channel doesn't allow it."
-		success_ids, error_ids = [],[]
+
+		success_ids = []
+		error_ids   = []
+		create_ids  = []
+		update_ids  = []
+		kw.update(
+			page_size = self.instance.api_record_limit
+		)
 		if hasattr(self.instance,'import_{}'.format(self.channel)):
 			msg = ''
-			data_list = getattr(self.instance,'import_{}'.format(self.channel))(object,object_id)
 			try:
-				if object == 'product.category':
-					success_ids,error_ids=self.create_categories(data_list)
-				elif object == 'product.template':
-					success_ids,error_ids=self.create_products(data_list)
-				elif object == 'res.partner':
-					success_ids,error_ids=self.create_partners(data_list)
-				elif object == 'sale.order':
-					success_ids,error_ids=self.create_orders(data_list)
-				else:
-					msg ='I have yet to learn to import it.'
+				while True:
+					feeds = False
+					data_list, kw = getattr(
+						self.instance, 'import_{}'.format(self.channel))(object, **kw), kw
+					kw = data_list[1] if isinstance(data_list, tuple) else kw
+					data_list = [] if data_list == None else data_list[0]
+					if data_list:
+						kw['last_id'] = data_list[-1].get('store_id')
+					if object == 'product.category':
+						s_ids,e_ids,feeds = self.env['category.feed'].with_context(
+							channel_id=self.instance
+						)._create_feeds(data_list)
+					elif object == 'product.template':
+						s_ids,e_ids,feeds = self.env['product.feed'].with_context(
+							channel_id=self.instance
+						)._create_feeds(data_list)
+					elif object == 'res.partner':
+						s_ids,e_ids,feeds = self.env['partner.feed'].with_context(
+							channel_id=self.instance
+						)._create_feeds(data_list)
+					elif object == 'sale.order':
+						s_ids,e_ids,feeds = self.env['order.feed'].with_context(
+							channel_id=self.instance
+						)._create_feeds(data_list)
+					elif object == 'delivery.carrier':
+						s_ids, e_ids, feeds = self.env['shipping.feed'].with_context(
+							channel_id=self.instance
+						)._create_feeds(data_list)
+					else:
+						raise Exception('Invalid object type')
+
+					#NOTE: To handle api_limit==1 infinity loop
+					if kw.get('page_size') == 1:
+						if locals().get('old_last_id') == kw.get('last_id'):
+							break
+						else:
+							old_last_id = kw.get('last_id')
+
+					self._cr.commit()
+					_logger.info(f'~~~~{len(s_ids)} feeds committed~~~~')
+					_logger.info(f"~~~~Latest Id: {kw.get('last_id')}~~~~")
+					success_ids.extend(s_ids)
+					error_ids.extend(e_ids)
+					if self.evaluate_feed and feeds:
+						mapping_ids = feeds.with_context(get_mapping_ids=True).import_items()
+						create_ids.extend([mapping.id for mapping in mapping_ids.get('create_ids')])
+						update_ids.extend([mapping.id for mapping in mapping_ids.get('update_ids')])
+						self._cr.commit()
+						_logger.info('~~~~Created feeds are evaluated~~~~')
+					if len(data_list) < kw.get('page_size'):
+						break
 			except Exception as e:
-				msg = 'Something went wrong: `{}`'.format(e.args[0])
+				msg = f'Something went wrong: `{e.args[0]}`'
+				_logger.exception(msg)
 
 			if not msg:
 				if success_ids:
-					msg += "<p style='color:green'>{} imported.</p>".format(success_ids)
+					msg += f"<p style='color:green'>{success_ids} imported.</p>"
 				if error_ids:
-					msg += "<p style='color:red'>{} not imported.</p>".format(error_ids)
+					msg += f"<p style='color:red'>{error_ids} not imported.</p>"
+				if create_ids:
+					msg += f"<p style='color:blue'>{create_ids} created.</p>"
+				if update_ids:
+					msg += f"<p style='color:blue'>{update_ids} updated.</p>"
+				if kw.get('last_id'):
+					msg+= f"<p style='color:brown'>Last Id: {kw.get('last_id')}.</p>"
+			if not msg:
+				msg="<p style='color:red'>No records found for applied filter.</p>"
 		return self.display_message(msg)
-
-	def create_categories(self,category_data_list):
-		success_ids,error_ids = [],[]
-		for category_data in category_data_list:
-			res,category_feed = self.create_category(category_data)
-			if res:
-				success_ids.append(category_data.get('store_id'))
-			else:
-				error_ids.append(category_data.get('store_id'))
-		return success_ids,error_ids
-
-	def create_category(self,category_data):
-		res = False
-		category_feed = self.env['category.feed'].create(category_data)
-		if category_feed:
-			res = True
-			if self.evaluate_feed:
-				mapping_ids = category_feed.with_context(get_mapping_ids=True).import_items()
-				res = bool(mapping_ids.get('create_ids')+mapping_ids.get('update_ids'))
-		return res,category_feed
-
-	def create_products(self,product_data_list):
-		success_ids,error_ids = [],[]
-		for product_data in product_data_list:
-			res,product_feed =  self.create_product(product_data)
-			if res:
-				success_ids.append(product_data.get('store_id'))
-			else:
-				error_ids.append(product_data.get('store_id'))
-		return success_ids,error_ids
-
-	def create_product(self,product_data):
-		res = False
-		variant_data_list = product_data.pop('variants')
-		product_feed = self.env['product.feed'].create(product_data)
-		if product_feed:
-			res = True
-			for variant_data in variant_data_list:
-				variant_data.update(feed_templ_id=product_feed.id)
-				self.env['product.variant.feed'].create(variant_data)
-			if self.evaluate_feed:
-				mapping_ids = product_feed.with_context(get_mapping_ids=True).import_items()
-				res = bool(mapping_ids.get('create_ids')+mapping_ids.get('update_ids'))
-		return res,product_feed
-
-	def create_partners(self,partner_data_list):
-		success_ids,error_ids = [],[]
-		for partner_data in partner_data_list:
-			res,partner_feeds = self.create_partner(partner_data)
-			if res:
-				success_ids.append(partner_data.get('store_id'))
-			else:
-				error_ids.append(partner_data.get('store_id'))
-		return success_ids,error_ids
-
-	def create_partner(self,partner_data):
-		res = False
-		address_data_list = partner_data.pop('addresses',[])
-# Todo: Change feed field from state_id,country_id to state_code,country_code
-		partner_data['state_id']   = partner_data.pop('state_code',False)
-		partner_data['country_id'] = partner_data.pop('country_code',False)
-# & remove this code
-		partner_feed = self.env['partner.feed'].create(partner_data)
-		if partner_feed:
-			res = True
-			if self.evaluate_feed:
-				mapping_ids = partner_feed.with_context(get_mapping_ids=True).import_items()
-				res = bool(mapping_ids.get('create_ids')+mapping_ids.get('update_ids'))
-			for address_data in address_data_list:
-				r,address_feed = self.create_partner(address_data)
-		return res,partner_feed
-
-	def create_orders(self,order_data_list):
-		success_ids,error_ids = [],[]
-		for order_data in order_data_list:
-			res,order_feed = self.create_order(order_data)
-			if res:
-				success_ids.append(order_data.get('store_id'))
-			else:
-				error_ids.append(order_data.get('store_id'))
-		return success_ids,error_ids
-
-	def create_order(self,order_data):
-		res = False
-# Todo: Change feed field from state_id,country_id to state_code,country_code
-		order_data['invoice_state_id']    = order_data.pop('invoice_state_code',False)
-		order_data['invoice_country_id']  = order_data.pop('invoice_country_code',False)
-
-		if not order_data.get('same_shipping_billing'):
-			order_data['shipping_state_id']   = order_data.pop('shipping_state_code',False)
-			order_data['shipping_country_id'] = order_data.pop('shipping_country_code',False)
-# & remove this code
-		order_feed = self.env['order.feed'].create(order_data)
-		if order_feed:
-			if self.evaluate_feed:
-				mapping_ids = order_feed.with_context(get_mapping_ids=True).import_items()
-				res = bool(mapping_ids.get('create_ids')+mapping_ids.get('update_ids'))
-		return res,order_feed
 
 	def export_data(self, object, object_ids, operation='export'):
 		msg = "Selected Channel doesn't allow it."
@@ -169,15 +131,15 @@ class Transaction:
 					METAMAP.get(object).get('local_field'),
 					'in',
 					object_ids
-				)
+				),
 			]
-		)
-		local_ids = mappings.mapped(
-			lambda mapping: int(getattr(mapping,METAMAP.get(object).get('local_field')))
 		)
 
 		if operation == 'export' and hasattr(self.instance,'export_{}'.format(self.channel)):
 			msg = ''
+			local_ids = mappings.mapped(
+				lambda mapping: int(getattr(mapping,METAMAP.get(object).get('local_field')))
+			)
 			local_ids = set(object_ids)-set(local_ids)
 			if not local_ids:
 				return self.display_message(
@@ -196,12 +158,23 @@ class Transaction:
 
 		elif operation == 'update' and hasattr(self.instance,'update_{}'.format(self.channel)):
 			msg = ''
+			local_ids = mappings.filtered_domain([
+				('need_sync', '=', 'yes')]).mapped(
+				lambda mapping: int(getattr(mapping,METAMAP.get(object).get('local_field')))
+			)
 			if not local_ids:
-				return self.display_message(
-					"""<p style='color:orange'>
-						Selected records haven't been exported yet.
-					</p>"""
-				)
+				if mappings:
+					return self.display_message(
+						"""<p style='color:orange'>
+							Nothing to update on selected records.
+						</p>"""
+					)
+				else:
+					return self.display_message(
+						"""<p style='color:orange'>
+							Selected records haven't been exported yet.
+						</p>"""
+					)
 			operation = 'updated'
 			for record in self.env[object].browse(local_ids):
 				res,remote_object = getattr(self.instance,'update_{}'.format(self.channel))(
@@ -213,11 +186,19 @@ class Transaction:
 				else:
 					error_ids.append(record.id)
 
+		self.env[METAMAP.get(object).get('model')].search([
+				('channel_id','=',self.instance.id),
+				(
+					METAMAP.get(object).get('local_field'),
+					'in',
+					success_ids
+				)]).write({'need_sync': 'no'})
+
 		if not msg:
 			if success_ids:
-				msg += "<p style='color:green'>{} {}.</p>".format(success_ids,operation)
+				msg += f"<p style='color:green'>{success_ids} {operation}.</p>"
 			if error_ids:
-				msg += "<p style='color:red'>{} not {}.</p>".format(error_ids,operation)
+				msg += f"<p style='color:red'>{error_ids} not {operation}.</p>"
 		return self.display_message(msg)
 
 	def get_remote_id(self,record):
@@ -237,7 +218,7 @@ class Transaction:
 					'ecom_store'       : self.instance.channel,
 					'category_name'    : local_record.id,
 					'odoo_category_id' : local_record.id,
-					'store_category_id': remote_object.id,
+					'store_category_id': remote_object.get('id') if isinstance(remote_object,dict) else remote_object.id,
 					'operation'        : 'export',
 				}
 			)
@@ -250,11 +231,12 @@ class Transaction:
 					'odoo_template_id': local_record.id,
 					'default_code'    : local_record.default_code,
 					'barcode'         : local_record.barcode,
-					'store_product_id': remote_object.id,
+					'store_product_id': remote_object.get('id') if isinstance(remote_object,dict) else remote_object.id,
 					'operation'       : 'export',
 				}
 			)
-			for local_variant,remote_variant in zip(local_record.product_variant_ids,remote_object.variants):
+			remote_variants = remote_object.get('variants') if isinstance(remote_object,dict) else remote_object.variants
+			for local_variant,remote_variant in zip(local_record.product_variant_ids,remote_variants):
 				self.env['channel.product.mappings'].create(
 					{
 						'channel_id'      : self.instance.id,
@@ -263,7 +245,7 @@ class Transaction:
 						'erp_product_id'  : local_variant.id,
 						'default_code'    : local_variant.default_code,
 						'barcode'         : local_variant.barcode,
-						'store_product_id': remote_object.id,
-						'store_variant_id': remote_variant.id
+						'store_product_id': remote_object.get('id') if isinstance(remote_object,dict) else remote_object.id,
+						'store_variant_id': remote_variant.get('id') if isinstance(remote_variant,dict) else remote_variant.id,
 					}
 				)

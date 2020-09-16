@@ -18,25 +18,17 @@ class StockPicking(models.Model):
 		return result
 
 	def wk_pre_do_transfer(self):
-		order_id = self.sale_id
-		if order_id:
-			mapping_ids = order_id.channel_mapping_ids
-			channel_id  = mapping_ids.mapped('channel_id')
-			channel_id  = channel_id and channel_id[0] or channel_id
-			if hasattr(channel_id,'%s_pre_do_transfer'%channel_id.channel):
-				res = getattr(
-					channel_id,'%s_pre_do_transfer'%channel_id.channel
-				)(self,mapping_ids)
-		return True
+		if self.sale_id:
+			mapping_ids = self.sale_id.channel_mapping_ids
+			if mapping_ids:
+				channel_id = mapping_ids[0].channel_id
+				if hasattr(channel_id,'%s_pre_do_transfer'%channel_id.channel) and channel_id.sync_shipment:
+					getattr(channel_id,'%s_pre_do_transfer'%channel_id.channel)(self,mapping_ids)
 
 	def wk_post_do_transfer(self,result):
-		order_id = self.sale_id
-		if order_id:
-			mapping_ids = order_id.channel_mapping_ids
-			channel_id  = mapping_ids.mapped('channel_id')
-			channel_id  = channel_id and channel_id[0] or channel_id
-			if hasattr(channel_id,'%s_post_do_transfer'%channel_id.channel):
-				res = getattr(
-					channel_id,'%s_post_do_transfer'%channel_id.channel
-				)(self,mapping_ids,result)
-		return True
+		if self.sale_id:
+			mapping_ids = self.sale_id.channel_mapping_ids
+			if mapping_ids:
+				channel_id = mapping_ids[0].channel_id
+				if hasattr(channel_id,'%s_post_do_transfer'%channel_id.channel) and channel_id.sync_shipment:
+					getattr(channel_id,'%s_post_do_transfer'%channel_id.channel)(self,mapping_ids,result)

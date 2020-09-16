@@ -23,3 +23,9 @@ class ProductCategory(models.Model):
 		inverse_name = 'category_id',
 		copy         = False
 	)
+
+	def write(self, vals):
+		for record in self:
+			record.channel_mapping_ids.write({'need_sync': 'yes'})
+			res = super(ProductCategory, record).write(vals)
+		return res
