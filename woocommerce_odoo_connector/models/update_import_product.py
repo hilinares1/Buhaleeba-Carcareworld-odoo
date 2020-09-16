@@ -9,7 +9,7 @@
 from odoo import api,fields,models
 from odoo.tools.translate import _
 from datetime import datetime,timedelta
-from odoo.addons.odoo_multi_channel_sale.tools import extract_list as EL
+# from odoo.addons.odoo_multi_channel_sale.tools import extract_list as EL
 from odoo.exceptions import UserError
 import logging
 import re

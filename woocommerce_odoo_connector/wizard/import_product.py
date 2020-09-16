@@ -10,7 +10,7 @@ _logger = logging.getLogger(__name__)
 from odoo import api, fields, models
 from odoo.tools.translate import _
 from odoo.exceptions import UserError
-from odoo.addons.odoo_multi_channel_sale.tools import remove_tags
+# from odoo.addons.odoo_multi_channel_sale.tools import remove_tags
 
 class ImportWoocommerceProducts(models.TransientModel):
     _name = "import.woocommerce.products"
