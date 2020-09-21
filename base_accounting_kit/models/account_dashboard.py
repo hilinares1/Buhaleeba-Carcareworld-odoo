@@ -573,9 +573,9 @@ class DashBoard(models.Model):
 
         states_arg = ""
         if post[0] != 'posted':
-            states_arg = """ state in ('posted', 'draft')"""
+            states_arg = """ account_move.state in ('posted', 'draft')"""
         else:
-            states_arg = """ state = 'posted'"""
+            states_arg = """ account_move.state = 'posted'"""
 
         if post[1] == 'this_month':
             self._cr.execute((''' 
