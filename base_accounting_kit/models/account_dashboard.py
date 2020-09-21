@@ -632,9 +632,9 @@ class DashBoard(models.Model):
 
         states_arg = ""
         if post[0] != 'posted':
-            states_arg = """ state in ('posted', 'draft')"""
+            states_arg = """ account_move.state in ('posted', 'draft')"""
         else:
-            states_arg = """ state = 'posted'"""
+            states_arg = """ account_move.state = 'posted'"""
         if post[1] == 'this_month':
             self._cr.execute((''' select res_partner.name as customers, account_move.commercial_partner_id as parent, 
                                     sum(account_move.amount_total) as amount from account_move, res_partner
