@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="res_partner_inherits_form" model="ir.ui.view">
+            <field name="name">res.partner.inherits.form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet" position="before">
+                    <header>
+                        <button name="action_submit" type="object" string="Submit" states="draft"/>
+                        <button name="action_approve" type="object" string="Approve" states="approve" groups="account.group_account_manager"/>
+                        <button name="action_reject" type="object" string="Reject" states="approve" groups="account.group_account_manager"/>
+                        <button name="set_to_draft" type="object" string="Set to Draft" states="reject" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
+                    </header>
+                </xpath>
+                <xpath expr="//field[@name='vat']" position="after">
+                    <field name="classification" />
+                    <field name="is_confirm" invisible="1"/>
+                </xpath>
+                <xpath expr="//div[@class='oe_title']" position="after">
+                    <div name="options_customers">
+                        <div>
+                            <field name="is_customer"/>
+                            <label for="is_customer"/>
+                        </div>
+                        <div>
+                            <field name="is_vendor"/>
+                            <label for="is_vendor"/>
+                        </div>
+                        <div>
+                            <field name="is_employee"/>
+                            <label for="is_employee"/>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="purchase_order_inherits_form" model="ir.ui.view">
+            <field name="name">purchase.order.inherits.form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='partner_id']" position="attributes">
+                    <attribute name="domain">[('is_confirm','=',True)]</attribute>
+                    <attribute name="options">{'no_create':True}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree//field[@name='product_id']" position="attributes">
+                    <attribute name="options">{'no_create':True}</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="stock_picking_inherits_form" model="ir.ui.view">
+            <field name="name">stock.picking.inherits.form</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="inside"> 
+                    <button name="action_approve" type="object" string="Approve" attrs="{'invisible': [('status','!=','approve')]}"  groups="account.group_account_manager"/>
+                    <button name="action_reject" type="object" string="Reject" attrs="{'invisible': [('status','!=','approve')]}" groups="account.group_account_manager"/>
+                    <button name="set_to_draft" type="object" string="Set to Draft" attrs="{'invisible': ['|',('status','!=','reject')]}" />
+                </xpath>
+                <xpath expr="//field[@name='state']" position="before"> 
+                    <field name="status" widget="statusbar" statusbar_visible="approve,done,reject"/>
+                </xpath>
+                <xpath expr="//button[@name='button_validate'][1]" position="attributes"> 
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'in', ('waiting','confirmed')),'|',('is_approve','in',[1,2]), ('show_validate', '=', False)]}</attribute>
+                </xpath>
+                <xpath expr="//button[@name='button_validate'][2]" position="attributes"> 
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'not in', ('waiting', 'confirmed')),'|',('is_approve','in',[1,2]), ('show_validate', '=', False)]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='partner_id']" position="after"> 
+                    <field name="classification" />
+                    <field name="is_approve" />
+                </xpath>
+            </field>
+        </record>
+
+
+    </data>
+</odoo>
