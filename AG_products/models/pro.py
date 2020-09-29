@@ -35,6 +35,13 @@ class ProductTemplate(models.Model):
         ('confirmed', 'Confirmed'),
         ('reject', 'Reject')], string='Status', default='draft', copy=False)
 
+    pr_category = fields.Many2one('product.categories',string="Product Category",domain=[('parent_id','=',False)])
+    sub_pr_category = fields.Many2one('product.categories',string="Sub-Category",domain=[('parent_id','!=',False)])
+    pr_type = fields.Many2one('product.type',string="Product Type",domain=[('parent_id','=',False)])
+    sub_pr_type = fields.Many2one('product.type',string="Sub-Type",domain=[('parent_id','!=',False)])
+    pr_brand = fields.Many2one('product.brand',string="Product Brand")
+    
+
     def action_submit(self):
         self.write({'state':'approve'})
 
@@ -98,8 +105,34 @@ class ProductProduct(models.Model):
         self.write({'state':'reject'})
 
     
+class ProductCategory(models.Model):
+    _name = "product.categories"
+
+    name = fields.Char('Name',required=True)
+    slug = fields.Char('Slug')
+    parent_id = fields.Many2one('product.categories',string="Parent Category",domain=[('parent_id','=',False)])
+    description = fields.Text('Description')
+    display_type = fields.Selection([
+        ('Default', 'Default'),
+        ('Products', 'Products'),
+        ('Subcategories', 'Subcategories'),
+        ('Both', 'Both')], string='Display Type', default='Default', copy=False)
 
 
+class ProductType(models.Model):
+    _name = "product.type"
+
+    name = fields.Char('Name',required=True)
+    slug = fields.Char('Slug')
+    parent_id = fields.Many2one('product.type',string="Parent Type",domain=[('parent_id','=',False)])
+    description = fields.Text('Description')
+
+    
+class ProductBrand(models.Model):
+    _name = "product.brand"
+
+    name = fields.Char('Name',required=True)
+    description = fields.Text('Description')
 
     
 

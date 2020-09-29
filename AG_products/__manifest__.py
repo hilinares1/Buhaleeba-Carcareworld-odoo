@@ -21,10 +21,12 @@
     'name': 'Product Master Changes',
     'category': 'Product',
     'summary': "Product master : Approval level, aut internal ref",
-    'depends': ['product','purchase'],
+    'depends': ['product','purchase','delivery'],
     'data': [
         'views/pr_view.xml',
         'data/pro_data.xml',
+        'security/ir.model.access.csv',
+        'report/report_deliveryslip.xml',
 
     ],
     'demo': [

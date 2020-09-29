@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 #############################################################################
 #
+#    Cybrosys Technologies Pvt. Ltd.
 #
+#    Copyright (C) 2019-TODAY Cybrosys Technologies(<https://www.cybrosys.com>).
+#    Author: Faslu Rahman(odoo@cybrosys.com)
 #
 #    You can modify it under the terms of the GNU AFFERO
 #    GENERAL PUBLIC LICENSE (AGPL v3), Version 3.
@@ -16,23 +19,6 @@
 #    If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
+# from . import sale
+from . import account
 
-{
-    'name': 'Purchase Changes',
-    'category': 'Purcase',
-    'summary': "Vendor creation Approval level, and GRN approval level",
-    'depends': ['stock','purchase','stock_landed_costs'],
-    'data': [
-        'views/pr_view.xml',
-        'data/pro_data.xml',
-        'wizard/land_cost.xml',
-        'security/ir.model.access.csv',
-
-    ],
-    'demo': [
-    ],
-    'license': 'AGPL-3',
-    'application': True,
-    'installable': True,
-    'auto_install': False,
-}

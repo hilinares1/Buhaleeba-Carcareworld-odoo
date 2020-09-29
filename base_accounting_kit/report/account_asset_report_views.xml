@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
+<!-- 
     <record model="ir.ui.view" id="action_account_asset_report_pivot">
         <field name="name">asset.asset.report.pivot</field>
         <field name="model">asset.asset.report</field>
@@ -73,5 +73,5 @@
     
     <menuitem name="Assets" action="action_asset_asset_report"
               id="menu_action_asset_asset_report"
-              parent="account.account_reports_management_menu" sequence="21"/>
+              parent="account.account_reports_management_menu" sequence="21"/> -->
 </odoo>

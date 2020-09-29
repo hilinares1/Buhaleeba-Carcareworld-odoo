@@ -51,6 +51,10 @@
                 <xpath expr="//field[@name='order_line']/tree//field[@name='product_id']" position="attributes">
                     <attribute name="options">{'no_create':True}</attribute>
                 </xpath>
+                <xpath expr="//field[@name='taxes_id']" position="replace">
+                    <field name="taxes_id" string="VAT" widget="many2many_tags" domain="[('type_tax_use','=','purchase'), ('company_id', '=', parent.company_id)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}" optional="show"/>
+                    <field name="price_tax" string="VAT Amount"/>
+                </xpath>
             </field>
         </record>
 
@@ -76,6 +80,18 @@
                 <xpath expr="//field[@name='partner_id']" position="after"> 
                     <field name="classification" />
                     <field name="is_approve" />
+                </xpath>
+            </field>
+        </record>
+
+        <record id="sale_order_inherits_form" model="ir.ui.view">
+            <field name="name">sale.order.inherits.form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='order_line']/tree//field[@name='tax_id']" position="replace">
+                    <field name="tax_id" string="VAT" widget="many2many_tags" options="{'no_create': True}" domain="[('type_tax_use','=','sale'),('company_id','=',parent.company_id)]" attrs="{'readonly': [('qty_invoiced', '&gt;', 0)]}" optional="show"/>
+                    <field name="price_tax" string="VAT Amount"/>
                 </xpath>
             </field>
         </record>

@@ -18,14 +18,13 @@
 #############################################################################
 
 {
-    'name': 'Purchase Changes',
-    'category': 'Purcase',
-    'summary': "Vendor creation Approval level, and GRN approval level",
-    'depends': ['stock','purchase','stock_landed_costs'],
+    'name': 'Accounts Changes',
+    'category': 'Accounts',
+    'summary': "Accounts Changes",
+    'depends': ['account'],
     'data': [
-        'views/pr_view.xml',
-        'data/pro_data.xml',
-        'wizard/land_cost.xml',
+        'views/account_view.xml',
+        'data/account_data.xml',
         'security/ir.model.access.csv',
 
     ],

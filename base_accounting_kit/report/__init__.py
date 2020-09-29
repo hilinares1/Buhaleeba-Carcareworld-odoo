@@ -31,5 +31,5 @@ from . import cash_flow_report
 from . import account_bank_book
 from . import account_cash_book
 from . import account_day_book
-from . import account_asset_report
+# from . import account_asset_report
 
