@@ -13,7 +13,7 @@
             <field name="target_move" position="after">
                 <field name="debit_credit"/>
             </field>
-            <field name="journal_ids" position="after">
+            <field name="date_to" position="after">
                 <group>
                     <field name="company_id" position="replace"/>
                 </group>
@@ -30,7 +30,7 @@
                     </page>
                 </notebook>
             </field>
-            <field name="journal_ids" position="replace"/>
+            <!-- <field name="journal_ids" position="replace"/> -->
         </field>
     </record>
 

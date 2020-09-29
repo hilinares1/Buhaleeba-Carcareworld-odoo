@@ -73,7 +73,7 @@
                 <field name="enable_filter"/>
                 <field name="debit_credit" attrs="{'invisible': [('enable_filter','=',True)]}"/>
             </field>
-            <field name="journal_ids" position="after">
+            <field name="company_id" position="after">
                 <notebook tabpos="up" colspan="4">
                     <page string="Comparison" name="comparison" attrs="{'invisible': [('enable_filter','=',False)]}">
                         <group>
@@ -87,7 +87,7 @@
                     </page>
                 </notebook>
             </field>
-            <field name="journal_ids" position="replace"/>
+            <!-- <field name="company_id" position="replace"/> -->
         </field>
     </record>
 
