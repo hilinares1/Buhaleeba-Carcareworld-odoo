@@ -112,9 +112,21 @@ class ResPartner(models.Model):
         ('customer', 'Customer'),
         ('vendor', 'Vendor'),
         ('employee', 'Employee')], string='Partner Type',default='customer', copy=False)
+    sequence_no = fields.Char('Code', required=True, copy=False, readonly=True, index=True, default=lambda self: _('New'),track_visibility="onchange")
+    
     # is_customer = fields.Boolean('Is Customer')
     # is_vendor = fields.Boolean('Is Vendor')
     # is_employee = fields.Boolean('Is Employee',default=True)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        partners = super(ResPartner, self).create(vals_list)
+        for user in partners:
+            # if partner is global we keep it that way
+            # user.partner_id.partner_type = 'employee'
+            # if user.sequence_no == 'New':
+            user.sequence_no = self.env['ir.sequence'].next_by_code('res.partner.code') or 'New'
+        return partners
 
     @api.onchange('partner_type')
     def _change_customer(self):

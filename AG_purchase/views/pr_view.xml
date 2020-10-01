@@ -16,6 +16,9 @@
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
                     </header>
                 </xpath>
+                <xpath expr="//field[@name='type']" position="before">
+                    <field name="sequence_no" />  
+                </xpath>
                 <xpath expr="//field[@name='vat']" position="after">
                     <field name="classification" />
                     <field name="is_confirm" invisible="1"/>
