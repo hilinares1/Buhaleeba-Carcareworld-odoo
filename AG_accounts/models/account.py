@@ -39,8 +39,118 @@ import re
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+
+    @api.model
+    def _get_default_invoice_date(self):
+        return fields.Date.today() if self._context.get('default_type', 'entry') in ('in_invoice', 'in_refund', 'in_receipt') else False
+
+    @api.model
+    def _get_default_currency(self):
+        ''' Get the default currency from either the journal, either the default journal's company. '''
+        journal = self._get_default_journal()
+        return journal.currency_id or journal.company_id.currency_id
+
+    @api.model
+    def _get_default_journal(self):
+        ''' Get the default journal.
+        It could either be passed through the context using the 'default_journal_id' key containing its id,
+        either be determined by the default type.
+        '''
+        move_type = self._context.get('default_type', 'entry')
+        journal_type = 'general'
+        if move_type in self.get_sale_types(include_receipts=True):
+            journal_type = 'sale'
+        elif move_type in self.get_purchase_types(include_receipts=True):
+            journal_type = 'purchase'
+
+        if self._context.get('default_journal_id'):
+            journal = self.env['account.journal'].browse(self._context['default_journal_id'])
+
+            if move_type != 'entry' and journal.type != journal_type:
+                raise UserError(_("Cannot create an invoice of type %s with a journal having %s as type.") % (move_type, journal.type))
+        else:
+            company_id = self._context.get('force_company', self._context.get('default_company_id', self.env.company.id))
+            domain = [('company_id', '=', company_id), ('type', '=', journal_type)]
+
+            journal = None
+            if self._context.get('default_currency_id'):
+                currency_domain = domain + [('currency_id', '=', self._context['default_currency_id'])]
+                journal = self.env['account.journal'].search(currency_domain, limit=1)
+
+            if not journal:
+                journal = self.env['account.journal'].search(domain, limit=1)
+
+            if not journal:
+                error_msg = _('Please define an accounting miscellaneous journal in your company')
+                if journal_type == 'sale':
+                    error_msg = _('Please define an accounting sale journal in your company')
+                elif journal_type == 'purchase':
+                    error_msg = _('Please define an accounting purchase journal in your company')
+                raise UserError(error_msg)
+        return journal
+
+
     currency_rate = fields.Float('Rate')
     is_update = fields.Integer('Is Updated')
+    is_confirm = fields.Integer('Is Confirmed',default=0)
+    state = fields.Selection(selection=[
+            ('confirm', 'In confirm'),
+            ('approve', 'First Approval'),
+            ('secapprove', 'Second Approval'),
+            ('draft', 'Draft'),
+            ('posted', 'Posted'),
+            ('cancel', 'Cancelled')
+        ], string='Status', required=True, readonly=True, copy=False, tracking=True,
+        default='confirm')
+    partner_id = fields.Many2one('res.partner', readonly=True, tracking=True,
+        states={'draft': [('readonly', False)],'confirm': [('readonly', False)]},
+        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+        string='Partner', change_default=True)
+    invoice_date = fields.Date(string='Invoice/Bill Date', readonly=True, index=True, copy=False,
+        states={'draft': [('readonly', False)],'confirm': [('readonly', False)]},
+        default=_get_default_invoice_date)
+    invoice_payment_term_id = fields.Many2one('account.payment.term', string='Payment Terms',
+        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+        readonly=True, states={'draft': [('readonly', False)],'confirm': [('readonly', False)]})
+    invoice_date_due = fields.Date(string='Due Date', readonly=True, index=True, copy=False,
+        states={'draft': [('readonly', False)],'confirm': [('readonly', False)]})
+    currency_id = fields.Many2one('res.currency', store=True, readonly=True, tracking=True, required=True,
+        states={'draft': [('readonly', False)],'confirm': [('readonly', False)]},
+        string='Currency',
+        default=_get_default_currency)
+    journal_id = fields.Many2one('account.journal', string='Journal', required=True, readonly=True,
+        states={'draft': [('readonly', False)],'confirm': [('readonly', False)]},
+        domain="[('company_id', '=', company_id)]",
+        default=_get_default_journal)
+    invoice_line_ids = fields.One2many('account.move.line', 'move_id', string='Invoice lines',
+        copy=False, readonly=True,
+        domain=[('exclude_from_invoice_tab', '=', False)],
+        states={'draft': [('readonly', False)],'confirm': [('readonly', False)]})
+    line_ids = fields.One2many('account.move.line', 'move_id', string='Journal Items', copy=True, readonly=True,
+        states={'draft': [('readonly', False)],'confirm': [('readonly', False)]})
+   
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super(AccountMove,self).create(vals_list)
+        if res.type == 'out_refund':
+            res.state = 'confirm'
+            res.is_confirm = 1
+        else:
+            res.state = 'draft'
+        return res
+
+    def send_to_approve(self):
+        for rec in self:
+            rec.write({'state':'approve'})
+
+    def action_approve(self):
+        for rec in self:
+            rec.write({'state':'secapprove'})
+    
+    def action_second_approve(self):
+        for rec in self:
+            rec.write({'state':'draft'})
 
     @api.onchange('currency_id')
     def _currency_change(self):

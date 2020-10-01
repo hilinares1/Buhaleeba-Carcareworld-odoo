@@ -20,19 +20,66 @@ from odoo.tools.misc import formatLang, format_date, get_lang
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
 
+
+    state = fields.Selection([
+        ('draft', 'RFQ'),
+        ('sent', 'RFQ Sent'),
+        ('to approve', 'Operation Manager Approve'),
+        ('second approve', 'Purchase Manager Approve'),
+        ('purchase', 'Purchase Order'),
+        ('done', 'Locked'),
+        ('cancel', 'Cancelled')
+    ], string='Status', readonly=True, index=True, copy=False, default='draft', tracking=True)
+
+    # def button_confirm(self):
+    #     res = super(PurchaseOrder,self).button_confirm()
+    #     # rec = self.env['account.lock.date'].search([('id','=',1)])
+    #     # raise UserError(self.date_order)
+    #     orderdate = "%s" %(self.date_order)
+    #     if dateutil.parser.parse(orderdate).date() <= self.company_id.fiscalyear_lock_date:
+    #         lock_date = self.company_id.fiscalyear_lock_date
+    #         if self.user_has_groups('account.group_account_manager'):
+    #             message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s.") % format_date(self.env, lock_date)
+    #         else:
+    #             message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s. Check the company settings or ask someone with the 'Adviser' role") % format_date(self.env, lock_date)
+    #         raise UserError(message)
+    #     return res
+
     def button_confirm(self):
-        res = super(PurchaseOrder,self).button_confirm()
-        # rec = self.env['account.lock.date'].search([('id','=',1)])
-        # raise UserError(self.date_order)
-        orderdate = "%s" %(self.date_order)
-        if dateutil.parser.parse(orderdate).date() <= self.company_id.fiscalyear_lock_date:
-            lock_date = self.company_id.fiscalyear_lock_date
-            if self.user_has_groups('account.group_account_manager'):
-                message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s.") % format_date(self.env, lock_date)
+        for order in self:
+            orderdate = "%s" %(self.date_order)
+            if dateutil.parser.parse(orderdate).date() <= self.company_id.fiscalyear_lock_date:
+                lock_date = self.company_id.fiscalyear_lock_date
+                if self.user_has_groups('account.group_account_manager'):
+                    message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s.") % format_date(self.env, lock_date)
+                else:
+                    message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s. Check the company settings or ask someone with the 'Adviser' role") % format_date(self.env, lock_date)
+                raise UserError(message)
+            if order.state not in ['draft', 'sent']:
+                continue
+            order._add_supplier_to_product()
+            # Deal with double validation process
+            if order.company_id.po_double_validation == 'one_step'\
+                    or (order.company_id.po_double_validation == 'two_step'\
+                        and order.amount_total < self.env.company.currency_id._convert(
+                            order.company_id.po_double_validation_amount, order.currency_id, order.company_id, order.date_order or fields.Date.today()))\
+                    or order.user_has_groups('purchase.group_purchase_manager'):
+                order.write({'state': 'to approve'})
             else:
-                message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s. Check the company settings or ask someone with the 'Adviser' role") % format_date(self.env, lock_date)
-            raise UserError(message)
-        return res
+                order.write({'state': 'second approve'})
+        return True
+
+
+    # def button_approve(self, force=False):
+    #     self.write({'state': 'second approve', 'date_approve': fields.Datetime.now()})
+    #     self.filtered(lambda p: p.company_id.po_lock == 'lock').write({'state': 'done'})
+    #     return {}
+
+    def button_operation_approve(self):
+        self.write({'state': 'to approve', 'date_approve': fields.Datetime.now()})
+        # self.button_approve()
+        # self.filtered(lambda p: p.company_id.po_lock == 'lock').write({'state': 'done'})
+        # return {}
     # def _check_fiscalyear_lock_date(self):
     #     for move in self.filtered(lambda move: move.state == 'posted'):
     #         lock_date = max(move.company_id.period_lock_date or date.min, move.company_id.fiscalyear_lock_date or date.min)
@@ -48,6 +95,7 @@ class PurchaseOrder(models.Model):
 
 
 
+
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
@@ -60,40 +108,44 @@ class ResPartner(models.Model):
         ('approve', 'In Approval'),
         ('confirmed', 'Confirmed'),
         ('reject', 'Reject')], string='Status', default='draft', copy=False)
-    is_customer = fields.Boolean('Is Customer')
-    is_vendor = fields.Boolean('Is Vendor')
-    is_employee = fields.Boolean('Is Employee',default=True)
+    partner_type = fields.Selection([
+        ('customer', 'Customer'),
+        ('vendor', 'Vendor'),
+        ('employee', 'Employee')], string='Partner Type',default='customer', copy=False)
+    # is_customer = fields.Boolean('Is Customer')
+    # is_vendor = fields.Boolean('Is Vendor')
+    # is_employee = fields.Boolean('Is Employee',default=True)
 
-    @api.onchange('is_customer')
+    @api.onchange('partner_type')
     def _change_customer(self):
         for rec in self:
-            if rec.is_customer == True:
+            if rec.partner_type == 'customer' :
                 rec.state = 'confirmed'
-                rec.is_vendor = False
-                rec.is_employee = False
                 rec.is_confirm = False
-            else:
+            elif rec.partner_type == 'vendor':
                 rec.state = 'draft'
+            else:
+                rec.state = 'confirmed'
     
-    @api.onchange('is_vendor')
-    def _change_vendor(self):
-        for rec in self:
-            if rec.is_vendor == True:
-                rec.state = 'draft'
-                rec.is_customer = False
-                rec.is_employee = False
-            else:
-                rec.state = 'confirmed'
+    # @api.onchange('is_vendor')
+    # def _change_vendor(self):
+    #     for rec in self:
+    #         if rec.is_vendor == True:
+    #             rec.state = 'draft'
+    #             rec.is_customer = False
+    #             rec.is_employee = False
+    #         else:
+    #             rec.state = 'confirmed'
 
-    @api.onchange('is_employee')
-    def _change_employee(self):
-        for rec in self:
-            if rec.is_employee == True:
-                rec.state = 'confirmed'
-                rec.is_customer = False
-                rec.is_vendor = False
-            else:
-                rec.state = 'draft'
+    # @api.onchange('is_employee')
+    # def _change_employee(self):
+    #     for rec in self:
+    #         if rec.is_employee == True:
+    #             rec.state = 'confirmed'
+    #             rec.is_customer = False
+    #             rec.is_vendor = False
+    #         else:
+    #             rec.state = 'draft'
 
     def action_submit(self):
         self.write({'state':'approve'})
@@ -106,6 +158,18 @@ class ResPartner(models.Model):
     
     def action_reject(self):
         self.write({'state':'reject'})
+
+
+class ResUsers(models.Model):
+    _inherit = "res.users"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        users = super(ResUsers, self).create(vals_list)
+        for user in users:
+            # if partner is global we keep it that way
+            user.partner_id.partner_type = 'employee'
+        return users
 
 class StockInventory(models.Model):
     _inherit = "stock.inventory"

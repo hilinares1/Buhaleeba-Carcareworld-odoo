@@ -18,15 +18,15 @@
 #############################################################################
 
 {
-    'name': 'Accounts Changes',
-    'category': 'Accounts',
-    'summary': "Accounts Changes",
-    'depends': ['account'],
+    'name': 'Purchase Requisition',
+    'category': 'Purchase',
+    'summary': "Purchase Requisition",
+    'depends': ['stock','purchase','purchase_requisition'],
     'data': [
-        'views/account_view.xml',
-        'data/account_data.xml',
+        'views/material_requisition_view.xml',
         'security/ir.model.access.csv',
         'security/security_view.xml',
+        'data/material_requisition_template_view.xml',
 
     ],
     'demo': [

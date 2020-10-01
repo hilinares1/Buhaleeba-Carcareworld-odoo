@@ -27,6 +27,7 @@
         'data/pro_data.xml',
         'wizard/land_cost.xml',
         'security/ir.model.access.csv',
+        'security/security_view.xml',
 
     ],
     'demo': [
