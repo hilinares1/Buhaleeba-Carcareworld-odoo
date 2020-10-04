@@ -14,10 +14,10 @@
                 </xpath>
                 
                 <xpath expr="//field[@name='currency_id']" position="after">
-                    <field name="currency_rate"  digits="[12,12]" attrs="{'readonly' : [('state', 'not in', ['draft','confirm'])],'invisible': [('type', '=', 'entry')]}"/>
+                    <field name="currency_rate"  digits="[12,12]" attrs="{'readonly' : [('state', 'not in', ['draft','confirm','approve'])],'invisible': [('type', '=', 'entry')]}"/>
                     <field name="is_update" readonly="1" invisible="1"/>
                     <field name="is_confirm" readonly="1" invisible="1"/>
-                    <button name="currency_changes" string="Update Rate" class="oe_highlight" type="object" attrs="{'invisible' : ['|', ('state', 'not in', ['draft']),('type', '=', 'entry')]}"/>
+                    <button name="currency_changes" string="Update Rate" class="oe_highlight" type="object" attrs="{'invisible' : ['|', ('state', 'not in', ['draft','confirm','approve']),('type', '=', 'entry')]}"/>
                 </xpath>
 
                 <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='tax_ids']" position="replace">

@@ -64,6 +64,11 @@
                     <field name="taxes_id" string="VAT" widget="many2many_tags" domain="[('type_tax_use','=','purchase'), ('company_id', '=', parent.company_id)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}" optional="show"/>
                     <field name="price_tax" string="VAT Amount"/>
                 </xpath>
+                <xpath expr="//field[@name='currency_id']" position="after">
+                    <field name="currency_rate"  digits="[12,12]" attrs="{'readonly' : [('state', 'not in', ['draft','sent','to approve','second approve'])]}"/>
+                    <field name="is_update" readonly="1" invisible="1"/>
+                    
+                </xpath>
             </field>
         </record>
 
@@ -88,7 +93,9 @@
                 </xpath>
                 <xpath expr="//field[@name='partner_id']" position="after"> 
                     <field name="classification" />
-                    <field name="is_approve" />
+                    <field name="is_approve" invisible="1"/>
+                    <field name="currency_rate" digits="[12,12]" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
                 </xpath>
             </field>
         </record>

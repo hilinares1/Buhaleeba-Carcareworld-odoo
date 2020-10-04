@@ -128,7 +128,7 @@ class AccountMove(models.Model):
         states={'draft': [('readonly', False)],'confirm': [('readonly', False)]})
     line_ids = fields.One2many('account.move.line', 'move_id', string='Journal Items', copy=True, readonly=True,
         states={'draft': [('readonly', False)],'confirm': [('readonly', False)]})
-   
+    is_purchase = fields.Integer('Purchase',default=0)    
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -139,6 +139,8 @@ class AccountMove(models.Model):
                 res.is_confirm = 1
             else:
                 res.state = 'draft'
+            if res.is_purchase != 0:
+                res.currency_changes()
         return reses
 
     def send_to_approve(self):
@@ -156,7 +158,9 @@ class AccountMove(models.Model):
     @api.onchange('currency_id')
     def _currency_change(self):
         for rec in self:
-            rec.currency_rate = rec.currency_id.rate
+            if rec.is_purchase == 0:
+                rec.currency_rate = rec.currency_id.rate
+            
 
     # @api.onchange('invoice_line_ids')
     def currency_changes(self):
