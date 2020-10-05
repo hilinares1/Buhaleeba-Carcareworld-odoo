@@ -93,8 +93,8 @@ class PurchaseOrder(models.Model):
 
     def button_confirm(self):
         for order in self:
-            orderdate = "%s" %(self.date_order)
-            if dateutil.parser.parse(orderdate).date() <= self.company_id.fiscalyear_lock_date:
+            orderdate = "%s" %(order.date_order)
+            if dateutil.parser.parse(orderdate).date() <= order.company_id.fiscalyear_lock_date:
                 lock_date = self.company_id.fiscalyear_lock_date
                 if self.user_has_groups('account.group_account_manager'):
                     message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s.") % format_date(self.env, lock_date)
@@ -120,9 +120,9 @@ class PurchaseOrder(models.Model):
                 new_name = self.env['ir.sequence'].next_by_code('purchase.order') or '/'
                 order.write({'interchanging_rfq_sequence':order.name})
                 order.write({'name': new_name})
-            self.picking_ids.write({'origin': order.interchanging_po_sequence})
-            if self.picking_ids:
-                for pick in self.picking_ids:
+            order.picking_ids.write({'origin': order.interchanging_po_sequence})
+            if order.picking_ids:
+                for pick in order.picking_ids:
                     pick.move_lines.write({'origin': order.interchanging_po_sequence})
         return True
 
@@ -355,13 +355,13 @@ class StockPicking(models.Model):
 
     def write(self,vals):
         result = super(StockPicking, self).write(vals)
-        # for res in result:
-        if self.picking_type_id.id == 1 and self.classification == 'overseas':
-            # raise UserError(vals.get('state'))
-            if self.state == 'done':
-                land = self.env['stock.landed.cost'].search([('picking_ids','in',self.id)])
-                # raise UserError('test')
-                land.button_validate()
+        for res in self:
+            if res.picking_type_id.id == 1 and res.classification == 'overseas':
+                # raise UserError(vals.get('state'))
+                if res.state == 'done':
+                    land = self.env['stock.landed.cost'].search([('picking_ids','in',self.id)])
+                    # raise UserError('test')
+                    land.button_validate()
         return result
 
     def action_approve(self):
