@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="purchase_order_inherits_form_dis" model="ir.ui.view">
+            <field name="name">purchase.order.inherits.form.dis</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='order_line']/tree//field[@name='taxes_id']" position="before">
+                    <field name="discount" />
+                    <field name="is_percentage" />
+                </xpath>
+                <xpath expr="//form/sheet/notebook/page[1]/group" position="after">
+                    <div class="ks_container">
+                        <label for="total_discount" string="Discount Amount:" />
+                        <field name="total_discount" class="oe_inline" attrs="{'readonly':[('state','not in',['draft','sent'])]}"/>
+                        <button name="compute_discount" string="Apply" class="oe_highlight" type="object" attrs="{'invisible': [('state','not in',['draft','sent'])]}"/>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>
