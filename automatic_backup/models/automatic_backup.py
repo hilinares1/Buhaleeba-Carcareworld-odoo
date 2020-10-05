@@ -198,7 +198,7 @@ class Cron(models.Model):
             self.dropbox_flow = self.env['ir.attachment'].create(dict(
                 datas=base64.b64encode(pickle.dumps(flow)),
                 name='dropbox_flow',
-                datas_fname='dropbox_flow',
+                # datas_fname='dropbox_flow',
                 description='Automatic Backup File'
             )).id
 
@@ -215,7 +215,7 @@ class Cron(models.Model):
             self.dropbox_flow = self.dropbox_flow = self.env['ir.attachment'].create(dict(
                 datas=base64.b64encode(pickle.dumps(gauth)),
                 name='dropbox_flow',
-                datas_fname='dropbox_flow',
+                # datas_fname='dropbox_flow',
                 description='Automatic Backup File'
             )).id
 
@@ -436,7 +436,7 @@ class Cron(models.Model):
                 tmp_attachment = self.env['ir.attachment'].create({
                     'datas': base64.b64encode(backup_binary.read()),
                     'name': 'doc.dump',
-                    'datas_fname': 'doc.dump'
+                    # 'datas_fname': 'doc.dump'
                 })
                 file1.SetContentFile(tmp_attachment._filestore() + os.sep + tmp_attachment.store_fname)
                 file1.Upload()
