@@ -12,6 +12,8 @@ from . import attribute_value_mapping
 from . import category_mapping
 from . import order_mapping
 from . import partner_mapping
+from . import type_mapping
+from . import brand_mapping
 from . import pricelist_mapping
 from . import product_template_mapping
 from . import product_variant_mapping

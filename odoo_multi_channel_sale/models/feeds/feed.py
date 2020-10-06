@@ -182,6 +182,49 @@ class WkFeed(models.Model):
 		)
 
 	@api.model
+	def get_extra_type_ids(self,store_type_ids,channel_id):
+		message = ''
+		categ_ids = []
+		for store_type_id in store_type_ids.strip(',').split(','):
+			res = self.get_type_id(store_type_id,channel_id)
+			message += res.get('message','')
+			categ_id = res.get('categ_id')
+			if categ_id:
+				categ_ids += [categ_id]
+		return dict(
+			categ_ids=categ_ids,
+			message=message
+		)
+
+	@api.model
+	def get_type_id(self,store_type_id,channel_id):
+		message = ''
+		categ_id = None
+		context = self._context.copy() or {}
+		match = self._context.get('type_mappings').get(channel_id.id,{}).get(store_type_id)
+		if match:
+			match = self.env['channel.type.mappings'].browse(match)
+			categ_id = match.odoo_type_id
+		else:
+			match = self._context.get('type_feeds').get(channel_id.id,{}).get(store_type_id)
+			if match:
+				feed = self.env['type.feed'].browse(match)
+				res = feed.with_context(**context).import_type(channel_id)
+				message += res.get('message','')
+				mapping_id = res.get('update_id') or res.get('create_id')
+				if mapping_id:
+					categ_id = mapping_id.odoo_type_id
+					context.get('type_mappings', {}).setdefault(channel_id.id, {})[
+                        mapping_id.store_type_id] = mapping_id.id
+			else:
+				message += '<br/>Category Feed Error: No mapping as well category feed found for %s .' % (
+					store_type_id)
+		return dict(
+			categ_id=categ_id,
+			message=message
+		)
+
+	@api.model
 	def get_extra_categ_ids(self,store_categ_ids,channel_id):
 		message = ''
 		categ_ids = []

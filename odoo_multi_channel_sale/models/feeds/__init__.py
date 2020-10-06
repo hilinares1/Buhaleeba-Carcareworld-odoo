@@ -8,6 +8,7 @@
 
 from . import feed
 from . import category_feed
+from . import type_feed
 from . import partner_feed
 from . import variant_feed
 from . import product_feed

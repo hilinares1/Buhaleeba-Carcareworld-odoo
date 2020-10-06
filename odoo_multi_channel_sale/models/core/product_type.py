@@ -7,25 +7,25 @@
 from odoo import fields,models
 
 
-class ProductCategory(models.Model):
-	_inherit = 'product.categories'
+class ProductType(models.Model):
+	_inherit = 'product.type'
 
 	channel_mapping_ids = fields.One2many(
 		string       = 'Mappings',
-		comodel_name = 'channel.category.mappings',
+		comodel_name = 'channel.type.mappings',
 		inverse_name = 'category_name',
 		copy         = False
 	)
 
-	channel_category_ids = fields.One2many(
-		string       = 'Channel Categories',
-		comodel_name = 'extra.categories',
-		inverse_name = 'category_id',
+	channel_type_ids = fields.One2many(
+		string       = 'Channel Types',
+		comodel_name = 'extra.type',
+		inverse_name = 'type_id',
 		copy         = False
 	)
 
 	def write(self, vals):
 		for record in self:
 			record.channel_mapping_ids.write({'need_sync': 'yes'})
-			res = super(ProductCategory, record).write(vals)
+			res = super(ProductType, record).write(vals)
 		return res
