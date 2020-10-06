@@ -8,14 +8,6 @@ manager_extra_categ_synchronization,extra.categories,model_extra_categories,odoo
 user_extra_categ_synchronization,extra.categories,model_extra_categories,odoo_multi_channel_sale.group_multi_channel_user,1,1,1,0
 user_extra_categ_synchronization_user,extra.categories,model_extra_categories,,1,0,0,0
 
-manager_extra_type_synchronization,extra.type,model_extra_type,odoo_multi_channel_sale.group_multi_channel_admin,1,1,1,1
-user_extra_type_synchronization,extra.type,model_extra_type,odoo_multi_channel_sale.group_multi_channel_user,1,1,1,0
-user_extra_type_synchronization_user,extra.type,model_extra_type,,1,0,0,0
-
-manager_extra_brand_synchronization,extra.brand,model_extra_brand,odoo_multi_channel_sale.group_multi_channel_admin,1,1,1,1
-user_extra_brand_synchronization,extra.brand,model_extra_brand,odoo_multi_channel_sale.group_multi_channel_user,1,1,1,0
-user_extra_brand_synchronization_user,extra.brand,model_extra_brand,,1,0,0,0
-
 all_multi_channel_sale,multi.channel.sale,model_multi_channel_sale,,1,0,0,0
 user_multi_channel_sale,multi.channel.sale,model_multi_channel_sale,odoo_multi_channel_sale.group_multi_channel_user,1,1,1,0
 manager_multi_channel_sale,multi.channel.sale,model_multi_channel_sale,odoo_multi_channel_sale.group_multi_channel_admin,1,1,1,1
@@ -44,15 +36,6 @@ manager_account_journal_mappings,channel.account.journal.mappings,model_channel_
 all_category_mappings,channel.category.mappings,model_channel_category_mappings,,1,0,0,0
 user_category_mappings,channel.category.mappings,model_channel_category_mappings,odoo_multi_channel_sale.group_multi_channel_user,1,1,1,0
 manager_category_mappings,channel.category.mappings,model_channel_category_mappings,odoo_multi_channel_sale.group_multi_channel_admin,1,1,1,1
-
-all_type_mappings,channel.type.mappings,model_channel_type_mappings,,1,0,0,0
-user_type_mappings,channel.type.mappings,model_channel_type_mappings,odoo_multi_channel_sale.group_multi_channel_user,1,1,1,0
-manager_type_mappings,channel.type.mappings,model_channel_type_mappings,odoo_multi_channel_sale.group_multi_channel_admin,1,1,1,1
-
-all_brand_mappings,channel.brand.mappings,model_channel_brand_mappings,,1,0,0,0
-user_brand_mappings,channel.brand.mappings,model_channel_brand_mappings,odoo_multi_channel_sale.group_multi_channel_user,1,1,1,0
-manager_brand_mappings,channel.brand.mappings,model_channel_brand_mappings,odoo_multi_channel_sale.group_multi_channel_admin,1,1,1,1
-
 
 all_partner_mappings,channel.partner.mappings,model_channel_partner_mappings,,1,0,0,0
 user_partner_mappings,channel.partner.mappings,model_channel_partner_mappings,odoo_multi_channel_sale.group_multi_channel_user,1,1,1,0
@@ -91,10 +74,6 @@ access_wk_feed,access_wk_feed,model_wk_feed,base.group_user,1,0,0,0
 all_category_feed,category.feed,model_category_feed,,1,0,0,0
 user_category_feed,category.feed,model_category_feed,odoo_multi_channel_sale.group_multi_channel_user,1,1,1,0
 manager_category_feed,category.feed,model_category_feed,odoo_multi_channel_sale.group_multi_channel_admin,1,1,1,1
-
-all_type_feed,type.feed,model_type_feed,,1,0,0,0
-user_type_feed,type.feed,model_type_feed,odoo_multi_channel_sale.group_multi_channel_user,1,1,1,0
-manager_type_feed,type.feed,model_type_feed,odoo_multi_channel_sale.group_multi_channel_admin,1,1,1,1
 
 all_product_feed,product.feed,model_product_feed,,1,0,0,0
 user_product_feed,product.feed,model_product_feed,odoo_multi_channel_sale.group_multi_channel_user,1,1,1,0

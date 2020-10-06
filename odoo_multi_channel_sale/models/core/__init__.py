@@ -11,8 +11,6 @@ from . import product_attribute
 from . import product_category
 from . import product_product
 from . import product_template
-from . import product_type
-from . import product_brand
 from . import res_partner
 from . import sale_order
 from . import stock_move

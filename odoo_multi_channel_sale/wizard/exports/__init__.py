@@ -12,4 +12,3 @@ from . import export_order
 from . import export_partner
 from . import export_template
 from . import export_product
-from . import export_type

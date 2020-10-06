@@ -35,9 +35,9 @@ class MultiChannelSale(models.Model):
 		# 	if self._context['active_ids'] and self._context['active_model'] == 'product.category':
 		# 		category_records=self.env['product.category'].browse(self._context['active_ids'])
 		# elif not parent_id:
-		category_records = self.env['product.categories'].search([])
+		category_records = self.env['product.category'].search([])
 		if parent_id:
-			category_records = self.env['product.categories'].browse(parent_id)
+			category_records = self.env['product.category'].browse(parent_id)
 		for category in category_records:
 			mapping_rec = self.env['channel.category.mappings'].search([('odoo_category_id','=',category.id),('channel_id.id','=',self.id)])
 			if mapping_rec and parent_id:

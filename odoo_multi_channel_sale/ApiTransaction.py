@@ -10,20 +10,10 @@ from logging import getLogger
 _logger = getLogger(__name__)
 
 METAMAP = {
-	'product.categories': {
+	'product.category': {
 		'model'       : 'channel.category.mappings',
 		'local_field' : 'odoo_category_id',
 		'remote_field': 'store_category_id'
-	},
-	'product.type': {
-		'model'       : 'channel.type.mappings',
-		'local_field' : 'odoo_type_id',
-		'remote_field': 'store_type_id'
-	},
-	'product.brand': {
-		'model'       : 'channel.brand.mappings',
-		'local_field' : 'odoo_brand_id',
-		'remote_field': 'store_brand_id'
 	},
 	'product.template': {
 		'model'       : 'channel.template.mappings',
@@ -221,7 +211,7 @@ class Transaction:
 		return getattr(mapping,METAMAP.get(record._name).get('remote_field'))
 
 	def create_mapping(self,local_record,remote_object):
-		if local_record._name == 'product.categories':
+		if local_record._name == 'product.category':
 			self.env['channel.category.mappings'].create(
 				{
 					'channel_id'       : self.instance.id,
@@ -229,29 +219,6 @@ class Transaction:
 					'category_name'    : local_record.id,
 					'odoo_category_id' : local_record.id,
 					'store_category_id': remote_object.get('id') if isinstance(remote_object,dict) else remote_object.id,
-					'operation'        : 'export',
-				}
-			)
-		elif local_record._name == 'product.type':
-    			self.env['channel.type.mappings'].create(
-				{
-					'channel_id'       : self.instance.id,
-					'ecom_store'       : self.instance.channel,
-					'category_name'    : local_record.id,
-					'odoo_type_id' 	   : local_record.id,
-					'store_type_id'    : remote_object.get('id') if isinstance(remote_object,dict) else remote_object.id,
-					'operation'        : 'export',
-				}
-			)
-
-		elif local_record._name == 'product.brand':
-    			self.env['channel.brand.mappings'].create(
-				{
-					'channel_id'       : self.instance.id,
-					'ecom_store'       : self.instance.channel,
-					'category_name'    : local_record.id,
-					'odoo_brand_id'    : local_record.id,
-					'store_brand_id'   : remote_object.get('id') if isinstance(remote_object,dict) else remote_object.id,
 					'operation'        : 'export',
 				}
 			)

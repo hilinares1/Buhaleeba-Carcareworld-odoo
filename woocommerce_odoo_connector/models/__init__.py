@@ -7,6 +7,3 @@
 
 from . import woc_config
 from . import inherits
-from . import export_types
-from . import export_update_type
-from . import import_type

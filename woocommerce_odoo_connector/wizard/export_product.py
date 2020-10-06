@@ -47,7 +47,7 @@ class ExportWoocommerceTemplates(models.TransientModel):
 
     def woocommerce_export_template(self, woocommerce, channel, template_record):
         data_list = []
-        if template_record.pr_brand:
+        if template_record.attribute_line_ids:
             return_list = self.create_woocommerce_variable_product(
                 woocommerce, channel, template_record)
             data_list = return_list
@@ -90,16 +90,16 @@ class ExportWoocommerceTemplates(models.TransientModel):
     def get_woocommerce_attribute_dict(self, woocommerce, channel, variant):
         if variant:
             attribute_dict = []
-            if variant.pr_brand:
-                # for attribute_line in variant.product_template_attribute_value_ids:
-                attr_name, attr_id = self.get_woocommerce_attribute(
-                    woocommerce, channel,variant.pr_brand)
-                value_name = variant.pr_brand.name
-                attribute_dict.append({
-                    'id'	: 3,
-                    'name'	: 'brand',
-                    'option': value_name,
-                })
+            if variant.product_template_attribute_value_ids:
+                for attribute_line in variant.product_template_attribute_value_ids:
+                    attr_name, attr_id = self.get_woocommerce_attribute(
+                        woocommerce, channel, attribute_line.attribute_id,attribute_line.product_attribute_value_id)
+                    value_name = attribute_line.product_attribute_value_id.name
+                    attribute_dict.append({
+                        'id'	: attr_id,
+                        'name'	: attr_name,
+                        'option': value_name,
+                    })
                 return attribute_dict
 
     def get_woocommerce_attribute_value(self, attribute_line):
@@ -109,13 +109,13 @@ class ExportWoocommerceTemplates(models.TransientModel):
                 value_list.append(value.name)
         return value_list
 
-    def get_woocommerce_attribute(self, woocommerce, channel, attribute_id):
+    def get_woocommerce_attribute(self, woocommerce, channel, attribute_id,attribute_value_ids):
         if attribute_id:
             vals_list = [attribute_id.name,""]
-            exported = self.env["export.woocommerce.brand"].with_context({
+            exported = self.env["export.woocommerce.attributes"].with_context({
                 "channel_id":channel,
                 "woocommerce":woocommerce,
-                }).export_brand(attribute_id)
+                }).export_attribute(attribute_id,attribute_value_ids)
             if exported[0]:
                 vals_list[1] = exported[1]
             return vals_list
@@ -123,22 +123,21 @@ class ExportWoocommerceTemplates(models.TransientModel):
     def set_woocommerce_attribute_line(self, woocommerce, channel, template):
         attribute_list = []
         attribute_count = 0
-        if template.pr_brand:
-            # for attribute_line in template.attribute_line_ids:
-            attr_name, attr_id = self.get_woocommerce_attribute(
-                woocommerce, channel,template.pr_brand)
-            value_list = []
-            values = value_list.append(template.pr_brand.name)
-            attribute_dict = {
-                'name'	: 'brand',
-                'id'    	: 3,
-                'variation'	: "true",
-                'visible'	: "true",
-                'position'	: attribute_count,
-                'options'	: values,
-            }
-            attribute_count += 1
-            attribute_list.append(attribute_dict)
+        if template.attribute_line_ids:
+            for attribute_line in template.attribute_line_ids:
+                attr_name, attr_id = self.get_woocommerce_attribute(
+                    woocommerce, channel, attribute_line.attribute_id,attribute_line.value_ids)
+                values = self.get_woocommerce_attribute_value(attribute_line)
+                attribute_dict = {
+                    'name'	: attr_name,
+                    'id'    	: attr_id,
+                    'variation'	: "true",
+                    'visible'	: "true",
+                    'position'	: attribute_count,
+                    'options'	: values,
+                }
+                attribute_count += 1
+                attribute_list.append(attribute_dict)
         return attribute_list
 
     def create_woocommerce_variation(self, woocommerce, channel, store_product_id, template,
@@ -193,41 +192,6 @@ class ExportWoocommerceTemplates(models.TransientModel):
             raise UserError(
                 _('Error in creating Product Variant with id (%s)' ))% variant.id
 
-    def set_woocommerce_attribute_linenew(self,woocommerce, channel, template):
-        attribute_list = []
-        attribute_count = 0
-        if template.pr_brand:
-            # for attribute_line in template.attribute_line_ids:
-            rec  =  self.env['channel.brand.mappings'].search([('odoo_brand_id','=',template.pr_brand.id),('channel_id.id','=',channel.id)])
-            # attr_name = self.get_woocommerce_attribute(template.pr_brand)
-            # values = self.get_woocommerce_attribute_value(attribute_line)
-            value_list = []
-            if rec:
-                attribute_list.append({'id':rec.store_brand_id})
-                name = "%s" %(rec.category_name.name)
-                value_list.append(name)
-            else:
-                raise UserError('Add the brand type to the woo-commerce, because this brand is not there')
-			# if attribute_line:
-			# for value in attribute_line.value_ids:
-			# values = value_list.append(attr_name.name)
-            attribute_dict = {
-							"name"		: "brand",
-							"id"		: 3,
-							"visible": True,
-							"variation": False,
-							# "options": [
-							# "Arexons"
-							# ]
-							# 'variation'	: True,
-							# 'visible'	: True,
-							"position"	: 0,
-							"options"	: value_list,
-			}
-            attribute_count += 1
-            attribute_list.append(attribute_dict)
-        return attribute_list
-
     def create_woocommerce_variable_product(self, woocommerce, channel, template):
         if template:
             product_dict = {
@@ -236,13 +200,11 @@ class ExportWoocommerceTemplates(models.TransientModel):
                 'images'			: self.create_woocommerce_product_image(template,True),
                 'type'				: 'variable',
                 'categories'		: self.set_woocommerce_product_categories(woocommerce, channel, template),
-                'ysg_product_type'	: self.set_woocommerce_product_types(woocommerce, channel, template),
-                'status'			: 'draft',
+                'status'			: 'publish',
                 'manage_stock'		: False,
-                'attributes'		: self.set_woocommerce_attribute_linenew(woocommerce, channel, template),
-                # 'attributes'		: self.set_woocommerce_attribute_line(woocommerce, channel, template),
-                # 'default_attributes'    : self.get_woocommerce_attribute_dict(
-                #     woocommerce, channel, template.product_variant_ids[0]),
+                'attributes'		: self.set_woocommerce_attribute_line(woocommerce, channel, template),
+                'default_attributes'    : self.get_woocommerce_attribute_dict(
+                    woocommerce, channel, template.product_variant_ids[0]),
                 'short_description'	: template.description_sale or "",
                 'description'		: template.description or "",
             }
@@ -258,7 +220,6 @@ class ExportWoocommerceTemplates(models.TransientModel):
                 product_dict['weight'] = str(template.weight) or ""
             if woocommerce:
                 return_dict = woocommerce.post('products', product_dict).json()
-                
                 image_ids = []
                 if 'images' in return_dict:
                     for image in return_dict['images']:
@@ -276,8 +237,6 @@ class ExportWoocommerceTemplates(models.TransientModel):
                         return (store_template_id, return_list)
                 else:
                     raise UserError(
-                        _(return_dict))
-                    raise UserError(
                         _("Error in Creating Product Template in Woocommerce."))
 
     def create_woocommerce_simple_product(self, woocommerce, channel, template):
@@ -288,12 +247,10 @@ class ExportWoocommerceTemplates(models.TransientModel):
             'regular_price'		: str(template.with_context(pricelist=channel.pricelist_name.id).price) or "",
             'type'				: 'simple',
             'categories'		: self.set_woocommerce_product_categories(woocommerce, channel, template),
-            'ysg_product_type'	: self.set_woocommerce_product_types(woocommerce, channel, template),
-            'status'			: 'draft',
+            'status'			: 'publish',
             'short_description'	: template.description_sale or "",
             'description'		: template.description or "",
-            # 'attributes'		: self.set_woocommerce_attribute_line(woocommerce, channel, template),
-            'attributes'		: self.set_woocommerce_attribute_linenew(woocommerce, channel, template),
+            'attributes'		: self.set_woocommerce_attribute_line(woocommerce, channel, template),
             'price'				: template.with_context(pricelist=channel.pricelist_name.id).price,
             'manage_stock'		: True,
             'stock_quantity'	 : quantity,
@@ -321,14 +278,9 @@ class ExportWoocommerceTemplates(models.TransientModel):
 
     def set_woocommerce_product_categories(self, woocommerce, channel, template):
         categ_list = []
-        if template.pr_category:
+        if template.categ_id:
             cat_id = self.export_woocommerce_categories_id(
-                woocommerce, channel, template.pr_category)
-            if cat_id:
-                categ_list.append({'id': cat_id})
-        if template.sub_pr_category:
-            cat_id = self.export_woocommerce_categories_id(
-                woocommerce, channel, template.sub_pr_category)
+                woocommerce, channel, template.categ_id)
             if cat_id:
                 categ_list.append({'id': cat_id})
         if template.channel_category_ids:
@@ -338,40 +290,6 @@ class ExportWoocommerceTemplates(models.TransientModel):
                         extra_categ_id = self.export_woocommerce_categories_id(
                             woocommerce, channel, category_id)
                         categ_list.append({'id': extra_categ_id})
-        return categ_list
-
-    def set_woocommerce_product_types(self,woocommerce, channel, template):
-        categ_list = []
-        if template.pr_type:
-            rec  =  self.env['channel.type.mappings'].search([('odoo_type_id','=',template.pr_type.id),('channel_id.id','=',channel.id)])
-            if rec:
-                categ_list.append({'id':rec.store_type_id})
-            else:
-                raise UserError('This type did not moved to woocommerce yet')
-        if template.sub_pr_type:
-            rec  =  self.env['channel.type.mappings'].search([('odoo_type_id','=',template.sub_pr_type.id),('channel_id.id','=',channel.id)])
-            if rec:
-                categ_list.append({'id':rec.store_type_id})
-            else:
-                raise UserError('This type did not moved to woocommerce yet')
-		# if template.channel_category_ids:
-		# 	for category_channel in template.channel_category_ids:
-		# 		if category_channel.instance_id.id == self.id:
-		# 			for category in category_channel.extra_category_ids:
-		# 				record = self.env['channel.category.mappings'].search([('odoo_category_id','=',category.id),('channel_id.id','=',self.id)])
-		# 				if record:
-		# 					categ_list.append({'id':record.store_category_id})
-		# 				else:
-		# 					cat_id = self.export_woocommerce_categories_id(template.pr_category)
-		# 					categ_list.append({'id':cat_id})
-		# else:	
-		# 	if template.categ_id.channel_category_ids:
-		# 		for category_channel in template.categ_id.channel_category_ids:
-		# 			if category_channel.instance_id.id == self.id:
-		# 				for category in category_channel.extra_category_ids:
-		# 					record = self.env['channel.category.mappings'].search([('odoo_category_id','=',category.id),('channel_id.id','=',self.id)])
-		# 					if record:
-		# 						categ_list.append({'id':record.store_category_id})
         return categ_list
 
     def export_woocommerce_categories_id(self, woocommerce, channel, cat_record):

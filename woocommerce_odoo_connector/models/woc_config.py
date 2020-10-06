@@ -67,14 +67,14 @@ class MultiChannelSale(models.Model):
             message = "Connection Successful!!"
         return True, message
 
-    def get_woocommerce_connection(self,version = "wc/v2"):
+    def get_woocommerce_connection(self):
         try:
             woocommerce = API(
                 url=self.woocommerce_url,
                 consumer_key=self.woocommerce_consumer_key,
                 consumer_secret=self.woocommerce_secret_key,
                 wp_api=True,
-                version=version,
+                version="wc/v2",
                 timeout=40,
                 query_string_auth=True,
                 # verify_ssl        =    False,
@@ -82,8 +82,6 @@ class MultiChannelSale(models.Model):
         except ImportError:
             raise UserError("**Please Install Woocommerce Python Api=>(cmd: pip3 install woocommerce)")
         return woocommerce
-    
-    
 
 #---------------------------------------Import Process ---------------------------------------------------------
 
@@ -130,17 +128,6 @@ class MultiChannelSale(models.Model):
             "channel_id": self,
         }).import_now(**kwargs)
 
-    # def import_woocommerce_types(self, woocommerce, **kwargs):
-    #     vals = dict(
-    #         channel_id=self.id,
-    #         operation='import',
-    #     )
-    #     obj = self.env['import.woocommerce.categories'].create(vals)
-    #     return obj.with_context({
-    #         "woocommerce": woocommerce,
-    #         "channel_id": self,
-    #     }).import_now(**kwargs)
-
     def import_woocommerce_customers(self, woocommerce, **kwargs):
         vals = dict(
             channel_id=self.id,
@@ -183,14 +170,10 @@ class MultiChannelSale(models.Model):
         woocommerce = self.get_woocommerce_connection()
         data_list = []
         if woocommerce:
-            if record._name == 'product.categories':
+            if record._name == 'product.category':
                 initial_record_id = record.id
                 data_list = self.export_woocommerce_categories(
                     woocommerce, record, initial_record_id)
-            elif record._name == 'product.type':
-                initial_record_id = record.id
-                data_list = self.export_woocommerce_types(
-                    woocommerce, record)
             elif record._name == 'product.template':
                 data_list = self.export_woocommerce_product(
                     woocommerce, record)
@@ -206,17 +189,6 @@ class MultiChannelSale(models.Model):
             'woocommerce': woocommerce,
             'channel_id': self,
         }).woocommerce_export_now(record, initial_record_id)
-
-    def export_woocommerce_types(self, woocommerce, record):
-        vals = dict(
-            channel_id=self.id,
-            operation='export',
-        )
-        obj = self.env['export.type'].create(vals)
-        return obj.with_context({
-            'woocommerce': woocommerce,
-            'channel_id': self,
-        }).woocommerce_export_now(record)
 
     def export_woocommerce_product(self, woocommerce, record):
         vals = dict(
@@ -252,18 +224,6 @@ class MultiChannelSale(models.Model):
             operation='export',
         )
         obj = self.env['export.categories'].create(vals)
-        return obj.with_context({
-            'woocommerce': woocommerce,
-            'channel_id': self,
-        }).woocommerce_update_now(record, initial_record_id, remote_id)
-
-    def update_woocommerce_type(self, woocommerce, 
-        record, initial_record_id, remote_id):
-        vals = dict(
-            channel_id=self.id,
-            operation='export',
-        )
-        obj = self.env['export.type'].create(vals)
         return obj.with_context({
             'woocommerce': woocommerce,
             'channel_id': self,

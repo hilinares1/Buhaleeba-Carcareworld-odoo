@@ -6,8 +6,6 @@
 ##############################################################################
 
 from . import extra_categories
-from . import extra_types
-from . import extra_brand
 from . import multi_channel_sale
 from . import multi_channel_skeleton
 from . import channel_order_states

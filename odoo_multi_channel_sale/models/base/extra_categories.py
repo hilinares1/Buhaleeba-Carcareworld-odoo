@@ -28,16 +28,16 @@ class ExtraCategories(models.Model):
 
 	instance_id = fields.Many2one('multi.channel.sale','Instance')
 	product_id  = fields.Many2one('product.template','Template')
-	category_id = fields.Many2one('product.categories','Internal Category')
+	category_id = fields.Many2one('product.category','Internal Category')
 
 	extra_category_ids = fields.Many2many(
-		comodel_name = 'product.categories',
+		comodel_name = 'product.category',
 		string       = 'Extra Categories',
 		domain       = '[("id","in",extra_category_domain_ids)]',
 	)
 
 	extra_category_domain_ids = fields.Many2many(
-		comodel_name = 'product.categories',
+		comodel_name = 'product.category',
 		relation     = 'extra_categ_ref',
 		column1      = 'product_categ_ref',
 		column2      = 'table_ref',

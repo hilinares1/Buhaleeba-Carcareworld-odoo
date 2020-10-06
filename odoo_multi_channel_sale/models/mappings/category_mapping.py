@@ -14,7 +14,7 @@ class ChannelCategoryMappings(models.Model):
 	_description = 'Category Mapping'
 
 	store_category_id = fields.Char('Store Category ID',required=True)
-	category_name     = fields.Many2one('product.categories','Category')
+	category_name     = fields.Many2one('product.category','Category')
 	odoo_category_id  = fields.Integer('Odoo Category ID',required=True)
 	leaf_category     = fields.Boolean('Leaf Category')
 

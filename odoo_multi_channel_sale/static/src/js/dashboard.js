@@ -197,12 +197,6 @@ odoo.define('odoo_multi_channel_sale.backend.dashboard',function (require) {
 					case 'category':
 						res_model = 'channel.category.mappings'
 						break
-					case 'type':
-						res_model = 'channel.type.mappings'
-						break
-					case 'brand':
-						res_model = 'channel.brand.mappings'
-						break
 					case 'customer':
 						res_model = 'channel.partner.mappings'
 						break
@@ -438,21 +432,9 @@ odoo.define('odoo_multi_channel_sale.backend.dashboard',function (require) {
 						break
 					case 'category':
 						name = 'Category'
-						res_model = 'product.categories'
+						res_model = 'product.category'
 						mapping_model = 'channel.category.mappings'
 						odoo_mapping_field = 'odoo_category_id'
-						break
-					case 'type':
-						name = 'Type'
-						res_model = 'product.type'
-						mapping_model = 'channel.type.mappings'
-						odoo_mapping_field = 'odoo_type_id'
-						break
-					case 'brand':
-						name = 'Brand'
-						res_model = 'product.brand'
-						mapping_model = 'channel.brand.mappings'
-						odoo_mapping_field = 'odoo_brand_id'
 						break
 					case 'customer':
 						name = 'Customer'
