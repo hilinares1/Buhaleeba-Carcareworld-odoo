@@ -6,19 +6,19 @@
 ##############################################################################
 from odoo import api,fields,models
 
-class ExportCategory(models.TransientModel):
-	_name = 'export.categories'
-	_description = 'Export Category'
+class ExportType(models.TransientModel):
+	_name = 'export.type'
+	_description = 'Export Type'
 	_inherit = 'export.operation'
 
-	category_ids = fields.Many2many(
-		comodel_name = 'product.categories',
-		string       = 'Category'
+	type_ids = fields.Many2many(
+		comodel_name = 'product.type',
+		string       = 'Type'
 	)
 
 	@api.model
 	def default_get(self,fields):
-		res = super(ExportCategory,self).default_get(fields)
-		if not res.get('category_ids') and self._context.get('active_model')=='product.categories':
-			res['category_ids'] = self._context.get('active_ids')
+		res = super(ExportType,self).default_get(fields)
+		if not res.get('type_ids') and self._context.get('active_model')=='product.type':
+			res['type_ids'] = self._context.get('active_ids')
 		return res
