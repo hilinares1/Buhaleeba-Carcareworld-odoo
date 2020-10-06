@@ -89,7 +89,7 @@ class ExportOperation(models.TransientModel):
 				# no_auth=False,
 				# version=version,
 				wp_user="admin",
-				wp_pass="admin",
+				wp_pass="appsgate@2020",
 				# timeout=40,
 				# query_string_auth=False,
 				# verify_ssl        =    False,
