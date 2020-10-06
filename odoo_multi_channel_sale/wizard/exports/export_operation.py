@@ -195,7 +195,7 @@ class ExportOperation(models.TransientModel):
 				woocommerce = connect.get_woocommerce_connection()
 				category_dict = {
 							'name'  : category.name,
-							'description' 		: category.description,
+							# 'description' 		: category.description,
 				}
 				# if parent:
 				# 	category_dict.update({'parent': parent,})
@@ -234,7 +234,7 @@ class ExportOperation(models.TransientModel):
 				# 		store_type_id = parent_category.store_type_id
 				category_dict = {
 					'name' 		: category.name,
-					'description' 		: category.description,
+					# 'description' 		: category.description,
 					# 'parent_id'	: store_brand_id,
 				}
 				woocommerce = connect.get_woocommerce_connection()
