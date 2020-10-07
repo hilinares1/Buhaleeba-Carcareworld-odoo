@@ -20,5 +20,25 @@
             </field>
         </record>
 
+
+        <record id="account_move_inh_form_dis" model="ir.ui.view">
+            <field name="name">account.move.inh.form.dis</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='tax_ids']" position="before">
+                    <field name="discount" />
+                    <field name="is_percentage" />
+                </xpath>
+                <!-- <xpath expr="//form/sheet/notebook/page[1]/group" position="after">
+                    <div class="ks_container">
+                        <label for="total_discount" string="Discount Amount:" />
+                        <field name="total_discount" class="oe_inline" attrs="{'readonly':[('state','not in',['draft','confirm','approve'])]}"/>
+                        <button name="compute_discount" string="Apply" class="oe_highlight" type="object" attrs="{'invisible': [('state','not in',['draft','confirm','approve'])]}"/>
+                    </div>
+                </xpath> -->
+            </field>
+        </record>
+
     </data>
 </odoo>
