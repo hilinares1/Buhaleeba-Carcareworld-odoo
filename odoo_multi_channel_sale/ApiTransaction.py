@@ -68,7 +68,7 @@ class Transaction:
 					data_list = [] if data_list == None else data_list[0]
 					if data_list:
 						kw['last_id'] = data_list[-1].get('store_id')
-					if object == 'product.category':
+					if object == 'product.categories':
 						s_ids,e_ids,feeds = self.env['category.feed'].with_context(
 							channel_id=self.instance
 						)._create_feeds(data_list)

@@ -1326,7 +1326,8 @@ class MultiChannelSale(models.Model):
 
 	@api.model
 	def cron_feed_evaluation(self):
-		for object_model in  ["product.feed","order.feed","category.feed","partner.feed"]:
+		for object_model in  ["product.feed","order.feed","partner.feed"]:
+    		# for object_model in  ["product.feed","order.feed","category.feed","partner.feed"]:
 			records = self.env[object_model].search([
 				("state","!=","done"),
 				("channel_id.state","=","validate")
