@@ -27,18 +27,159 @@
             <field name="inherit_id" ref="account.view_move_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='tax_ids']" position="before">
+                    <field name="discount_value" invisible="1"/>
                     <field name="discount" />
-                    <field name="is_percentage" />
+                    <field name="is_percentage" force_save="1"/>
+                    <field name="is_sale" invisible="1" />
+                </xpath>
+                <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='price_unit']" position="replace">
+                    <field name="price_unit" force_save="1"/>
+                </xpath>
+                <xpath expr="//field[@name='line_ids']/tree//field[@name='price_unit']" position="replace">
+                    <field name="price_unit" force_save="1" />
+                </xpath>
+                <xpath expr="//field[@name='line_ids']/tree//field[@name='account_id']" position="before">
+                    <field name="is_percentage" invisible="1" />
+                    <field name="discount_value" invisible="1" />
+                    <field name="is_sale" invisible="1" />
+                </xpath>
+                <xpath expr="//field[@name='amount_by_group']" position="after">
+                    <field name="amount_discount" attrs="{'invisible':[('amount_discount','=',0)]}" />
                 </xpath>
                 <!-- <xpath expr="//form/sheet/notebook/page[1]/group" position="after">
                     <div class="ks_container">
                         <label for="total_discount" string="Discount Amount:" />
-                        <field name="total_discount" class="oe_inline" attrs="{'readonly':[('state','not in',['draft','confirm','approve'])]}"/>
+                        <field name="is_percentage" widget="many2many_tags" class="oe_inline" attrs="{'readonly':[('state','not in',['draft','confirm','approve'])]}"/>
                         <button name="compute_discount" string="Apply" class="oe_highlight" type="object" attrs="{'invisible': [('state','not in',['draft','confirm','approve'])]}"/>
                     </div>
                 </xpath> -->
             </field>
         </record>
 
+        <record id="discount_type_form" model="ir.ui.view">
+            <field name="name">discount.type.form</field>
+            <field name="model">discount.type</field>
+            <field name="arch" type="xml">
+                <form string="Discount Type">
+                    <sheet>
+                        <label for="name" /><br />
+                        <field name="name" /><br />
+                        <group>
+                            <group>
+                                <field name="so_id" />
+                                <field name="value" />
+                            </group>
+                            <group>
+                                <field name="order_id" />
+                            <field name="product_id" />
+                            </group>
+                        </group>
+                        
+                        
+                        
+
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="discount_type_tree" model="ir.ui.view">
+            <field name="name">discount.type.tree</field>
+            <field name="model">discount.type</field>
+            <field name="arch" type="xml">
+                <tree string="Discount Type">
+                    <field name="name" />
+                    <field name="product_id" />
+                    <field name="order_id" />
+                    <field name="so_id" />
+                    <field name="value" />
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_discount_type_form">
+            <field name="name">Discount Type</field>
+            <field name="res_model">discount.type</field>
+            <field name="view_mode">tree,form</field>
+            <!-- <field name="view_type">form</field> -->
+        </record>
+
+        <menuitem parent="sale.menu_sale_config" 
+                id="menu_action_discount_type_form" 
+                action="action_discount_type_form"
+                name="Discount Types"
+                sequence="101" />
+
+        <record id="sale_order_inherits_form_dis" model="ir.ui.view">
+            <field name="name">sale.order.inherits.form.dis</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+
+                <label for="discount" position="replace" />
+                <xpath expr="//div[@name='discount']" position="replace" />
+                <xpath expr="//field[@name='order_line']/tree//field[@name='tax_id']" position="before">
+                    <field name="discount_value" />
+                    <field name="discount_type" widget="many2many_tags"/>
+                    <field name="is_percentage" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='amount_tax']" position="after">
+                    <field name="amount_discount" attrs="{'invisible':[('amount_discount','=',0)]}"/>
+                </xpath>
+                <!-- <xpath expr="//form/sheet/notebook/page[1]/group" position="after">
+                    <div class="ks_container">
+                        <label for="total_discount" string="Discount Amount:" />
+                        <field name="total_discount" class="oe_inline" attrs="{'readonly':[('state','not in',['draft','sent'])]}"/>
+                        <button name="compute_discount" string="Apply" class="oe_highlight" type="object" attrs="{'invisible': [('state','not in',['draft','sent'])]}"/>
+                    </div>
+                </xpath> -->
+            </field>
+        </record>
+
+        <record id="ks_res_config_settings_view_form" model="ir.ui.view">
+            <field name="name">ks.res.config.settings.view.form.inherit.account.discount</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="50"/>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='has_accounting_entries']" position="after">
+
+                    <!-- <h2 attrs="{'invisible': [('has_chart_of_accounts','==',False)]}">Universal Discount</h2> -->
+                    <div class="row mt16 o_settings_container"
+                         attrs="{'invisible': [('has_chart_of_accounts','==',False)]}">
+                        <!-- <div class="col-xs-12 col-md-6 o_setting_box">
+                            <div class="o_setting_left_pane">
+                                <field name="ks_enable_discount"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for ='ks_enable_discount'/>
+                                <div class="text-muted">
+                                    Activate Universal discount on all modules.
+                                </div>
+
+                            </div>
+                        </div> -->
+                        <div class="col-xs-12 col-md-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Accounts</span>
+                                <div class="text-muted">
+                                        Set default discount account for sale order.
+                                </div>
+                                <div class="content-group">
+                                    <div class="row mt16" >
+                                        <label for="sales_discount_account"
+                                               class="col-md-3 o_light_label"/>
+                                        <field name="sales_discount_account" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </xpath>
+            </field>
+        </record>
     </data>
 </odoo>

@@ -14,6 +14,8 @@ class OrderLineFeed(models.Model):
 	line_name                 = fields.Char('Product Name')
 	line_product_uom_qty      = fields.Char('Quantity')
 	line_price_unit           = fields.Char('Price')
+	line_discount           = fields.Char('Discount')
+	line_discount_type           = fields.Many2many('discount.type',string="Discount Type")
 	line_product_id           = fields.Char('Product ID')
 	line_product_default_code = fields.Char('Default Code')
 	line_product_barcode      = fields.Char('Barcode')

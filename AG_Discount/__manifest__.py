@@ -21,7 +21,7 @@
     'name': 'Discount',
     'category': 'Purchase',
     'summary': "Discount for the line level (fixed amount/percentage) and total level",
-    'depends': ['purchase','account'],
+    'depends': ['purchase','account','sale'],
     'data': [
         'views/dis_view.xml',
         'data/dis_data.xml',

@@ -123,7 +123,7 @@ class ExportOperation(models.TransientModel):
 				woocommerce = self.get_wordpress_connection(version)
 				category_dict = {
 							'name'  		: category.name,
-							# 'description'   : str(category.description),
+							'description'   : str(category.description),
 							
 				}
 				if parent:
@@ -163,7 +163,7 @@ class ExportOperation(models.TransientModel):
 				# 		store_type_id = parent_category.store_type_id
 				category_dict = {
 					'name' 		: category.name,
-					# 'description' 		: str(category.description),
+					'description' 		: str(category.description),
 					'parent_id'	: store_brand_id,
 				}
 				version = "wp/v2"

@@ -8,7 +8,7 @@ from itertools import groupby
 from operator import itemgetter
 import time
 import dateutil.parser
-
+from functools import partial
 from odoo.osv import expression
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.tools.float_utils import float_compare, float_is_zero, float_round
@@ -75,35 +75,36 @@ class PurchaseOrderLine(models.Model):
         res['price_unit'] = price
         return res
 
-    # def _get_stock_move_price_unit(self):
-    #     """Get correct price with discount replacing current price_unit
-    #     value before calling super and restoring it later for assuring
-    #     maximum inheritability.
+    def _get_stock_move_price_unit(self):
+        """Get correct price with discount replacing current price_unit
+        value before calling super and restoring it later for assuring
+        maximum inheritability.
 
-    #     HACK: This is needed while https://github.com/odoo/odoo/pull/29983
-    #     is not merged.
-    #     """
-    #     price_unit = False
-    #     if self.discount :
-    #         if self.is_percentage == True:
-    #             price = self.price_unit - (self.price_unit * (self.discount/100))
-    #         else:
-    #             price = self.price_unit - self.discount/self.product_qty
-    #     else:
-    #         price = self.price_unit
-    #     # price = self.price_subtotal
-    #     if price != self.price_unit:
-    #         # Only change value if it's different
-    #         price_unit = self.price_unit
-    #         self.price_unit = price
-    #     price = super()._get_stock_move_price_unit()
-    #     if price_unit:
-    #         self.price_unit = price_unit
-    #     return price
+        HACK: This is needed while https://github.com/odoo/odoo/pull/29983
+        is not merged.
+        """
+        price_unit = False
+        if self.discount :
+            if self.is_percentage == True:
+                price = self.price_unit - (self.price_unit * (self.discount/100))
+            else:
+                price = self.price_unit - self.discount/self.product_qty
+        else:
+            price = self.price_unit
+        # price = self.price_subtotal
+        if price != self.price_unit:
+            # Only change value if it's different
+            price_unit = self.price_unit
+            self.price_unit = price
+        price = super()._get_stock_move_price_unit()
+        if price_unit:
+            self.price_unit = price_unit
+        return price
 
 
     def _prepare_account_move_line(self, move):
         vals = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
+        vals['price_unit'] = self.price_unit
         vals['discount'] = self.discount
         vals['is_percentage'] = self.is_percentage
         return vals
@@ -134,77 +135,279 @@ class StockMove(models.Model):
 
         return res
 
-    # def _get_price_unit(self):
-    #     """Get correct price with discount replacing current price_unit
-    #     value before calling super and restoring it later for assuring
-    #     maximum inheritability.
+    def _get_price_unit(self):
+        """Get correct price with discount replacing current price_unit
+        value before calling super and restoring it later for assuring
+        maximum inheritability.
 
-    #     HACK: This is needed while https://github.com/odoo/odoo/pull/29983
-    #     is not merged.
-    #     """
-    #     price_unit = False
-    #     po_line = self.purchase_line_id
-    #     if po_line and self.product_id == po_line.product_id:
-    #         if self.discount :
-    #             if po_line.is_percentage == True:
-    #                 price = po_line.price_unit - (po_line.price_unit * (po_line.discount/100))
-    #             else:
-    #                 price = po_line.price_unit - po_line.discount/po_line.product_qty
-    #         else:
-    #             price = po_line.price_unit
-    #         # price = po_line.price_subtotal
-    #         if price != po_line.price_unit:
-    #             # Only change value if it's different
-    #             price_unit = po_line.price_unit
-    #             po_line.price_unit = price
-    #     res = super()._get_price_unit()
-    #     if price_unit:
-    #         po_line.price_unit = price_unit
-    #     return res
+        HACK: This is needed while https://github.com/odoo/odoo/pull/29983
+        is not merged.
+        """
+        price_unit = False
+        po_line = self.purchase_line_id
+        if po_line and self.product_id == po_line.product_id:
+            if self.discount :
+                if po_line.is_percentage == True:
+                    price = po_line.price_unit - (po_line.price_unit * (po_line.discount/100))
+                else:
+                    price = po_line.price_unit - po_line.discount/po_line.product_qty
+            else:
+                price = po_line.price_unit
+            # price = po_line.price_subtotal
+            if price != po_line.price_unit:
+                # Only change value if it's different
+                price_unit = po_line.price_unit
+                po_line.price_unit = price
+        res = super()._get_price_unit()
+        if price_unit:
+            po_line.price_unit = price_unit
+        return res
 
 
 # accounts invoice discount
 
-# class AccountMove(models.Model):
-#     _inherit = "account.move"
+class AccountMove(models.Model):
+    _inherit = "account.move"
 
-#     total_discount = fields.Float('Discount')
+    amount_discount = fields.Monetary(string='Discount',
+                                         readonly=True,
+                                         store=True, track_visibility='always')
+    sales_discount_account_id = fields.Integer(compute='verify_discount')
 
-#     def compute_discount(self):
-#         for rec in self:
-#             length = len(rec.invoice_line_ids)
-#             discount = rec.total_discount / length
-#             for line in rec.invoice_line_ids:
-#                 line.update({'discount': discount})
-#                 line.update({'is_percentage': False})
+    @api.depends('amount_discount')
+    def verify_discount(self):
+        for rec in self:
+            rec.sales_discount_account_id = rec.company_id.sales_discount_account.id
 
+    @api.depends(
+        'line_ids.debit',
+        'line_ids.credit',
+        'line_ids.currency_id',
+        'line_ids.amount_currency',
+        'line_ids.amount_residual',
+        'line_ids.amount_residual_currency',
+        'line_ids.payment_id.state',
+        'amount_discount')
+    def _compute_amount(self):
+        super(AccountMove, self)._compute_amount()
+        for rec in self:
+            if rec.amount_discount:
+                rec.ks_calculate_discount()
+            sign = rec.type in ['in_refund', 'out_refund'] and -1 or 1
+            rec.amount_total_company_signed = rec.amount_total * sign
+            rec.amount_total_signed = rec.amount_total * sign
+
+    def ks_calculate_discount(self):
+        for rec in self:
+            if rec.amount_discount:
+                rec.amount_total = rec.amount_tax + rec.amount_untaxed - rec.amount_discount
+                rec.ks_update_universal_discount()
+
+    def ks_update_universal_discount(self):
+        """This Function Updates the Universal Discount through Sale Order"""
+        for rec in self:
+            already_exists = self.line_ids.filtered(
+                lambda line: line.name and line.name.find('Discount') == 0)
+            terms_lines = self.line_ids.filtered(
+                lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
+            other_lines = self.line_ids.filtered(
+                lambda line: line.account_id.user_type_id.type not in ('receivable', 'payable'))
+            if already_exists:
+                for lines in rec.invoice_line_ids:
+                    amount = lines.discount
+                    if rec.sales_discount_account_id \
+                            and (rec.type == "out_invoice"
+                                or rec.type == "out_refund")\
+                            and amount > 0:
+                        if rec.type == "out_invoice":
+                            already_exists.update({
+                                'debit': amount > 0.0 and amount or 0.0,
+                                'credit': amount < 0.0 and -amount or 0.0,
+                            })
+                        else:
+                            already_exists.update({
+                                'debit': amount < 0.0 and -amount or 0.0,
+                                'credit': amount > 0.0 and amount or 0.0,
+                            })
+                    total_balance = sum(other_lines.mapped('balance'))
+                    total_amount_currency = sum(other_lines.mapped('amount_currency'))
+                    terms_lines.update({
+                        'amount_currency': -total_amount_currency,
+                        'debit': total_balance < 0.0 and -total_balance or 0.0,
+                        'credit': total_balance > 0.0 and total_balance or 0.0,
+                    })
+            if not already_exists and rec.amount_discount > 0:
+                in_draft_mode = self != self._origin
+                if not in_draft_mode and rec.type == 'out_invoice':
+                    rec._recompute_universal_discount_lines()
+                print()
+
+
+    @api.onchange('amount_discount','line_ids')
+    def _recompute_universal_discount_lines(self):
+        """This Function Create The General Entries for Universal Discount"""
+        for rec in self:
+            type_list = ['out_invoice', 'out_refund', 'in_invoice', 'in_refund']
+            for lines in rec.invoice_line_ids:
+                if lines.discount > 0 and rec.type in type_list:
+                    if rec.is_invoice(include_receipts=True):
+                        in_draft_mode = self != self._origin
+                        
+                        ks_name = "Discount "
+                        if lines.discount:
+                            ks_value = "of %s amount #" %(lines.product_id.name) + str(lines.discount)
+                        else:
+                            ks_value = ''
+                        ks_name = ks_name + ks_value
+                        #           ("Invoice No: " + str(self.ids)
+                        #            if self._origin.id
+                        #            else (self.display_name))
+                        terms_lines = self.line_ids.filtered(
+                            lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
+                        already_exists = self.line_ids.filtered(
+                                        lambda line: line.name and line.name.find(str(lines.product_id.name)) == 0)
+                        if already_exists:
+                            amount = lines.discount
+                            if self.sales_discount_account_id \
+                                    and (self.type == "out_invoice"
+                                        or self.type == "out_refund"):
+                                if self.type == "out_invoice":
+                                    already_exists.update({
+                                        'name': ks_name,
+                                        'debit': amount > 0.0 and amount or 0.0,
+                                        'credit': amount < 0.0 and -amount or 0.0,
+                                    })
+                                else:
+                                    already_exists.update({
+                                        'name': ks_name,
+                                        'debit': amount < 0.0 and -amount or 0.0,
+                                        'credit': amount > 0.0 and amount or 0.0,
+                                    })
+                        else:
+                            new_tax_line = self.env['account.move.line']
+                            create_method = in_draft_mode and \
+                                            self.env['account.move.line'].new or\
+                                            self.env['account.move.line'].create
+
+                            if self.sales_discount_account_id \
+                                    and (self.type == "out_invoice"
+                                        or self.type == "out_refund"):
+                                amount = lines.discount
+                                dict = {
+                                        'move_name': self.name,
+                                        'name': ks_name,
+                                        'price_unit': lines.discount,
+                                        'product_id': lines.product_id.id,
+                                        'quantity': 1,
+                                        'debit': amount < 0.0 and -amount or 0.0,
+                                        'credit': amount > 0.0 and amount or 0.0,
+                                        'account_id': self.sales_discount_account_id,
+                                        'move_id': self._origin,
+                                        'date': self.date,
+                                        'exclude_from_invoice_tab': True,
+                                        'partner_id': terms_lines.partner_id.id,
+                                        'company_id': terms_lines.company_id.id,
+                                        'company_currency_id': terms_lines.company_currency_id.id,
+                                        }
+                                if self.type == "out_invoice":
+                                    dict.update({
+                                        'debit': amount > 0.0 and amount or 0.0,
+                                        'credit': amount < 0.0 and -amount or 0.0,
+                                    })
+                                else:
+                                    dict.update({
+                                        'debit': amount < 0.0 and -amount or 0.0,
+                                        'credit': amount > 0.0 and amount or 0.0,
+                                    })
+                                if in_draft_mode:
+                                    self.line_ids += create_method(dict)
+                                    # Updation of Invoice Line Id
+                                    duplicate_id = self.invoice_line_ids.filtered(
+                                        lambda line: line.name and line.name.find('Discount') == 0)
+                                    self.invoice_line_ids = self.invoice_line_ids - duplicate_id
+                                else:
+                                    dict.update({
+                                        'price_unit': 0.0,
+                                        'debit': 0.0,
+                                        'credit': 0.0,
+                                    })
+                                    self.line_ids = [(0, 0, dict)]
+
+                            
+                        if in_draft_mode:
+                            # Update the payement account amount
+                            terms_lines = self.line_ids.filtered(
+                                lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
+                            other_lines = self.line_ids.filtered(
+                                lambda line: line.account_id.user_type_id.type not in ('receivable', 'payable'))
+                            total_balance = sum(other_lines.mapped('balance'))
+                            total_amount_currency = sum(other_lines.mapped('amount_currency'))
+                            terms_lines.update({
+                                        'amount_currency': -total_amount_currency,
+                                        'debit': total_balance < 0.0 and -total_balance or 0.0,
+                                        'credit': total_balance > 0.0 and total_balance or 0.0,
+                                    })
+                        else:
+                            terms_lines = self.line_ids.filtered(
+                                lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
+                            other_lines = self.line_ids.filtered(
+                                lambda line: line.account_id.user_type_id.type not in ('receivable', 'payable'))
+                            already_exists = self.line_ids.filtered(
+                                lambda line: line.name and line.name.find(str(lines.product_id.name)) == 0)
+                            total_balance = sum(other_lines.mapped('balance')) + amount
+                            total_amount_currency = sum(other_lines.mapped('amount_currency'))
+                            dict1 = {
+                                        'debit': amount > 0.0 and amount or 0.0,
+                                        'credit': amount < 0.0 and -amount or 0.0,
+                            }
+                            dict2 = {
+                                    'debit': total_balance < 0.0 and -total_balance or 0.0,
+                                    'credit': total_balance > 0.0 and total_balance or 0.0,
+                                    }
+                            self.line_ids = [(1, already_exists.id, dict1), (1, terms_lines.id, dict2)]
+                            print()
+
+                elif lines.discount <= 0:
+                    already_exists = self.line_ids.filtered(
+                        lambda line: line.name and line.name.find(str(lines.product_id.name)) == 0)
+                    if already_exists:
+                        self.line_ids -= already_exists
+                        terms_lines = self.line_ids.filtered(
+                            lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
+                        other_lines = self.line_ids.filtered(
+                            lambda line: line.account_id.user_type_id.type not in ('receivable', 'payable'))
+                        total_balance = sum(other_lines.mapped('balance'))
+                        total_amount_currency = sum(other_lines.mapped('amount_currency'))
+                        terms_lines.update({
+                            'amount_currency': -total_amount_currency,
+                            'debit': total_balance < 0.0 and -total_balance or 0.0,
+                            'credit': total_balance > 0.0 and total_balance or 0.0,
+                        })
+
+    
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
-    is_percentage = fields.Boolean('Is Discount (%)',store=True)
+    is_percentage = fields.Boolean('Is Discount (%)',index=True,store=True)
     discount = fields.Float('Discount',store=True)
+    discount_value = fields.Float(string='Discount', digits='Discount', default=0.0,)
+    is_sale = fields.Boolean('From sale',default=False)
 
 
-    @api.onchange('is_percentage')
-    def percentage_onchange(self):
-        for line in self:
-            line.update(line._get_price_total_and_subtotal())
-        # return self._get_price_total_and_subtotal()['price_subtotal']
-
-    # @api.onchange('quantity', 'discount','discount_value','is_percentage','price_unit', 'tax_ids')
-    # def _onchange_price_subtotal(self):
+    # @api.onchange('is_percentage')
+    # def percentage_onchange(self):
     #     for line in self:
-    #         if not line.move_id.is_invoice(include_receipts=True):
-    #             continue
-    #         # raise UserError('DDdd')
-    #         line.update(line._get_price_total_and_subtotal())
-    #         line.update(line._get_fields_onchange_subtotal())
-    #         if line.discount_value:
-    #             line.update({'discount_value':line.discount_value})
-    #         if line.is_percentage:
-    #             line.update({'is_percentage':line.is_percentage})
+    #         line.update(line._get_price_total_and_subtotal(price_unit=self.price_unit, is_percentage=self.is_percentage))
+            # if line.move_id:
+                # perc = self.env['is.percentage'].create({'name':line.id,'perc':line.is_percentage})
+                # line.move_id.write({'is_percentage' : [(6, 0, [perc.id])]})
 
-    def _get_price_total_and_subtotal(self, price_unit=None,quantity=None, discount=None, currency=None, product=None, partner=None, taxes=None, move_type=None):
+    @api.onchange('quantity', 'discount', 'price_unit','is_percentage', 'tax_ids')
+    def _onchange_price_subtotal(self):
+        res = super(AccountMoveLine,self)._onchange_price_subtotal()
+        return res
+
+    def _get_price_total_and_subtotal(self, price_unit=None,quantity=None, discount=None, currency=None, product=None, partner=None, taxes=None, move_type=None,is_percentage=None):
         self.ensure_one()
         return self._get_price_total_and_subtotal_model(
             price_unit=price_unit or self.price_unit,
@@ -215,15 +418,18 @@ class AccountMoveLine(models.Model):
             partner=partner or self.partner_id,
             taxes=taxes or self.tax_ids,
             move_type=move_type or self.move_id.type,
+            is_percentage=is_percentage or self.is_percentage,
         )
   
+    
     @api.model
-    def _get_price_total_and_subtotal_model(self, price_unit, quantity, discount, currency, product, partner, taxes, move_type):
+    def _get_price_total_and_subtotal_model(self, price_unit, quantity, discount, currency, product, partner, taxes, move_type,is_percentage=None):
         ''' This method is used to compute 'price_total' & 'price_subtotal'.
 
         :param price_unit:  The current price unit.
         :param quantity:    The current quantity.
         :param discount:    The current discount.
+        :param is_percentage:    The current discount type.
         :param currency:    The line's currency.
         :param product:     The line's product.
         :param partner:     The line's partner.
@@ -239,14 +445,18 @@ class AccountMoveLine(models.Model):
         # subtotal = quantity * price_unit_wo_discount
         # price = 0.0
         # if self.discount :
+        # raise UserError(move_type)
         if discount:
-            if self.is_percentage == True:
+            if is_percentage == True:
                 price_unit_wo_discount = price_unit * (1 -(discount/100))
             else:
-                
+                # raise UserError(self.is_percentage)
                 price_unit_wo_discount = price_unit - discount/quantity
         else:
             price_unit_wo_discount = price_unit
+        # price_unit_wo_discount2 = 0.0
+        # if self.discount_value:
+        #     price_unit_wo_discount2 = price_unit - self.discount_value/quantity
         # else:
             # price_unit_wo_discount = self.price_unit
         
@@ -254,112 +464,276 @@ class AccountMoveLine(models.Model):
         # self.update({'price_subtotal':subtotal})
         # Compute 'price_total'.
         if taxes:
-            taxes_res = taxes._origin.compute_all(price_unit_wo_discount,
-                quantity=quantity, currency=currency, product=product, partner=partner, is_refund=move_type in ('out_refund', 'in_refund'))
-            res['price_subtotal'] = taxes_res['total_excluded']
-            res['price_total'] = taxes_res['total_included']
+            if move_type == 'out_invoice':
+                taxes_res = taxes._origin.compute_all(price_unit_wo_discount,
+                    quantity=quantity, currency=currency, product=product, partner=partner, is_refund=move_type in ('out_refund', 'in_refund'))
+                res['price_subtotal'] = taxes_res['total_excluded'] + discount
+                res['price_total'] = taxes_res['total_included'] + discount
+            else:
+                taxes_res = taxes._origin.compute_all(price_unit_wo_discount,
+                    quantity=quantity, currency=currency, product=product, partner=partner, is_refund=move_type in ('out_refund', 'in_refund'))
+                res['price_subtotal'] = taxes_res['total_excluded'] 
+                res['price_total'] = taxes_res['total_included'] 
         else:
-            res['price_total'] = res['price_subtotal'] = subtotal
+            if move_type == 'out_invoice':
+                res['price_total'] = res['price_subtotal'] = subtotal + discount
+            else:
+                res['price_total'] = res['price_subtotal'] = subtotal
         #In case of multi currency, round before it's use for computing debit credit
         if currency:
             res = {k: currency.round(v) for k, v in res.items()}
         return res
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        # OVERRIDE
+        ACCOUNTING_FIELDS = ('debit', 'credit', 'amount_currency')
+        BUSINESS_FIELDS = ('price_unit', 'quantity', 'discount','is_percentage', 'tax_ids')
 
-    # @api.model_create_multi
-    # def create(self, vals_list):
-    #     # OVERRIDE
-    #     ACCOUNTING_FIELDS = ('debit', 'credit', 'amount_currency')
-    #     BUSINESS_FIELDS = ('price_unit', 'quantity', 'discount','discount_value','is_percentage', 'tax_ids')
+        for vals in vals_list:
+            move = self.env['account.move'].browse(vals['move_id'])
+            vals.setdefault('company_currency_id', move.company_id.currency_id.id) # important to bypass the ORM limitation where monetary fields are not rounded; more info in the commit message
 
-    #     for vals in vals_list:
-    #         move = self.env['account.move'].browse(vals['move_id'])
-    #         vals.setdefault('company_currency_id', move.company_id.currency_id.id) # important to bypass the ORM limitation where monetary fields are not rounded; more info in the commit message
+            if move.is_invoice(include_receipts=True):
+                currency = move.currency_id
+                partner = self.env['res.partner'].browse(vals.get('partner_id'))
+                taxes = self.resolve_2many_commands('tax_ids', vals.get('tax_ids', []), fields=['id'])
+                tax_ids = set(tax['id'] for tax in taxes)
+                taxes = self.env['account.tax'].browse(tax_ids)
 
-    #         if move.is_invoice(include_receipts=True):
-    #             currency = move.currency_id
-    #             partner = self.env['res.partner'].browse(vals.get('partner_id'))
-    #             taxes = self.resolve_2many_commands('tax_ids', vals.get('tax_ids', []), fields=['id'])
-    #             tax_ids = set(tax['id'] for tax in taxes)
-    #             taxes = self.env['account.tax'].browse(tax_ids)
+                # Ensure consistency between accounting & business fields.
+                # As we can't express such synchronization as computed fields without cycling, we need to do it both
+                # in onchange and in create/write. So, if something changed in accounting [resp. business] fields,
+                # business [resp. accounting] fields are recomputed.
+                if any(vals.get(field) for field in ACCOUNTING_FIELDS):
+                    if vals.get('currency_id'):
+                        balance = vals.get('amount_currency', 0.0)
+                    else:
+                        balance = vals.get('debit', 0.0) - vals.get('credit', 0.0)
+                    price_subtotal = self._get_price_total_and_subtotal_model(
+                        vals.get('price_unit', 0.0),
+                        vals.get('quantity', 0.0),
+                        vals.get('discount', 0.0),
+                        currency,
+                        self.env['product.product'].browse(vals.get('product_id')),
+                        partner,
+                        taxes,
+                        move.type,
+                        # vals.get('is_percentage', False),
+                    ).get('price_subtotal', 0.0)
+                    vals.update(self._get_fields_onchange_balance_model(
+                        vals.get('quantity', 0.0),
+                        vals.get('discount', 0.0),
+                        balance,
+                        move.type,
+                        currency,
+                        taxes,
+                        price_subtotal
+                    ))
+                    vals.update(self._get_price_total_and_subtotal_model(
+                        vals.get('price_unit', 0.0),
+                        vals.get('quantity', 0.0),
+                        vals.get('discount', 0.0),
+                        currency,
+                        self.env['product.product'].browse(vals.get('product_id')),
+                        partner,
+                        taxes,
+                        move.type,
+                        vals.get('is_percentage', False),
+                    ))
+                elif any(vals.get(field) for field in BUSINESS_FIELDS):
+                    vals.update(self._get_price_total_and_subtotal_model(
+                        vals.get('price_unit', 0.0),
+                        vals.get('quantity', 0.0),
+                        vals.get('discount', 0.0),
+                        currency,
+                        self.env['product.product'].browse(vals.get('product_id')),
+                        partner,
+                        taxes,
+                        move.type,
+                        vals.get('is_percentage', False),
+                    ))
+                    vals.update(self._get_fields_onchange_subtotal_model(
+                        vals['price_subtotal'],
+                        move.type,
+                        currency,
+                        move.company_id,
+                        move.date,
+                    ))
 
-    #             # Ensure consistency between accounting & business fields.
-    #             # As we can't express such synchronization as computed fields without cycling, we need to do it both
-    #             # in onchange and in create/write. So, if something changed in accounting [resp. business] fields,
-    #             # business [resp. accounting] fields are recomputed.
-    #             if any(vals.get(field) for field in ACCOUNTING_FIELDS):
-    #                 if vals.get('currency_id'):
-    #                     balance = vals.get('amount_currency', 0.0)
-    #                 else:
-    #                     balance = vals.get('debit', 0.0) - vals.get('credit', 0.0)
-    #                 price_subtotal = self._get_price_total_and_subtotal_model(
-    #                     vals.get('price_unit', 0.0),
-    #                     vals.get('quantity', 0.0),
-    #                     vals.get('discount', 0.0),
-    #                     currency,
-    #                     self.env['product.product'].browse(vals.get('product_id')),
-    #                     partner,
-    #                     taxes,
-    #                     move.type,
-    #                 ).get('price_subtotal', 0.0)
-    #                 vals.update(self._get_fields_onchange_balance_model(
-    #                     vals.get('quantity', 0.0),
-    #                     vals.get('discount', 0.0),
-    #                     balance,
-    #                     move.type,
-    #                     currency,
-    #                     taxes,
-    #                     price_subtotal
-    #                 ))
-    #                 vals.update(self._get_price_total_and_subtotal_model(
-    #                     vals.get('price_unit', 0.0),
-    #                     vals.get('quantity', 0.0),
-    #                     vals.get('discount', 0.0),
-    #                     currency,
-    #                     self.env['product.product'].browse(vals.get('product_id')),
-    #                     partner,
-    #                     taxes,
-    #                     move.type,
-    #                 ))
-    #             elif any(vals.get(field) for field in BUSINESS_FIELDS):
-    #                 vals.update(self._get_price_total_and_subtotal_model(
-    #                     vals.get('price_unit', 0.0),
-    #                     vals.get('quantity', 0.0),
-    #                     vals.get('discount', 0.0),
-    #                     currency,
-    #                     self.env['product.product'].browse(vals.get('product_id')),
-    #                     partner,
-    #                     taxes,
-    #                     move.type,
-    #                     vals.get('discount_value', 0.0),
-    #                     vals.get('is_percentage', False),
-    #                 ))
-    #                 vals.update(self._get_fields_onchange_subtotal_model(
-    #                     vals['price_subtotal'],
-    #                     move.type,
-    #                     currency,
-    #                     move.company_id,
-    #                     move.date,
-    #                 ))
+            # Ensure consistency between taxes & tax exigibility fields.
+            if 'tax_exigible' in vals:
+                continue
+            if vals.get('tax_repartition_line_id'):
+                repartition_line = self.env['account.tax.repartition.line'].browse(vals['tax_repartition_line_id'])
+                tax = repartition_line.invoice_tax_id or repartition_line.refund_tax_id
+                vals['tax_exigible'] = tax.tax_exigibility == 'on_invoice'
+            elif vals.get('tax_ids'):
+                tax_ids = [v['id'] for v in self.resolve_2many_commands('tax_ids', vals['tax_ids'], fields=['id'])]
+                taxes = self.env['account.tax'].browse(tax_ids).flatten_taxes_hierarchy()
+                vals['tax_exigible'] = not any(tax.tax_exigibility == 'on_payment' for tax in taxes)
 
-    #         # Ensure consistency between taxes & tax exigibility fields.
-    #         if 'tax_exigible' in vals:
-    #             continue
-    #         if vals.get('tax_repartition_line_id'):
-    #             repartition_line = self.env['account.tax.repartition.line'].browse(vals['tax_repartition_line_id'])
-    #             tax = repartition_line.invoice_tax_id or repartition_line.refund_tax_id
-    #             vals['tax_exigible'] = tax.tax_exigibility == 'on_invoice'
-    #         elif vals.get('tax_ids'):
-    #             tax_ids = [v['id'] for v in self.resolve_2many_commands('tax_ids', vals['tax_ids'], fields=['id'])]
-    #             taxes = self.env['account.tax'].browse(tax_ids).flatten_taxes_hierarchy()
-    #             vals['tax_exigible'] = not any(tax.tax_exigibility == 'on_payment' for tax in taxes)
+        lines = super(AccountMoveLine, self).create(vals_list)
 
-    #     lines = super(AccountMoveLine, self).create(vals_list)
+        moves = lines.mapped('move_id')
+        if self._context.get('check_move_validity', True):
+            moves._check_balanced()
+        moves._check_fiscalyear_lock_date()
+        lines._check_tax_lock_date()
 
-    #     moves = lines.mapped('move_id')
-    #     if self._context.get('check_move_validity', True):
-    #         moves._check_balanced()
-    #     moves._check_fiscalyear_lock_date()
-    #     lines._check_tax_lock_date()
+        return lines
 
-    #     return lines
+class DiscountType(models.Model):
+    _name = "discount.type"
+
+    name = fields.Char('Discount Name')
+    so_id = fields.Char(string="SO # Woo-commerce")
+    order_id = fields.Many2one('sale.order',string="SO # ODOO")
+    product_id = fields.Many2one('product.product',string="Product")
+    value = fields.Float('Discount Value')
+
+class SaleOrder(models.Model):
+    _inherit = "sale.order"
+
+    amount_discount = fields.Float('Discount',compute="_amount_all")
+
+    @api.depends('order_line.price_total','order_line.discount','order_line.is_percentage')
+    def _amount_all(self):
+        """
+        Compute the total amounts of the SO.
+        """
+        for order in self:
+            amount_untaxed = amount_tax = amount_discount = 0.0
+            for line in order.order_line:
+                if line.discount_value :
+                    if line.is_percentage == True:
+                        amount_discount += line.price_unit * (line.discount_value/100)
+                    else:
+                        amount_discount += line.discount_value
+                amount_untaxed += line.price_subtotal
+                amount_tax += line.price_tax
+            order.update({
+                'amount_untaxed': amount_untaxed,
+                'amount_tax': amount_tax,
+                'amount_discount':amount_discount,
+                'amount_total': amount_untaxed + amount_tax - amount_discount,
+            })
+
+    def _prepare_invoice(self):
+        res = super(SaleOrder, self)._prepare_invoice()
+        for rec in self:
+            res['amount_discount'] = rec.amount_discount
+        return res
+
+    # def _compute_amount_undiscounted(self):
+    #     for order in self:
+    #         total = 0.0
+    #         for line in order.order_line:
+    #             # if line.discount :
+    #             #     if line.is_percentage == True:
+    #             #         discount = line.price_unit * (line.discount/100)
+    #             #     else:
+    #             #         discount = line.price_unit - line.discount/line.product_uom_qty
+    #             # else:
+    #             #     discount = 0
+    #             # total += line.price_subtotal + discount * line.product_uom_qty  # why is there a discount in a field named amount_undiscounted ??
+    #             total += line.price_subtotal
+    #         order.amount_undiscounted = total
+
+    # def _amount_by_group(self):
+    #     for order in self:
+    #         currency = order.currency_id or order.company_id.currency_id
+    #         fmt = partial(formatLang, self.with_context(lang=order.partner_id.lang).env, currency_obj=currency)
+    #         res = {}
+    #         for line in order.order_line:
+    #             price_reduce = line.price_unit 
+    #             # if line.discount :
+    #             #     if line.is_percentage == True:
+    #             #         price_reduce = line.price_unit * (1.0 - line.discount/100)
+    #             #     else:
+    #             #         price_reduce = line.price_unit - line.discount/line.product_uom_qty
+    #             # else:
+    #             #     price_reduce = line.price_unit
+    #             taxes = line.tax_id.compute_all(price_reduce, quantity=line.product_uom_qty, product=line.product_id, partner=order.partner_shipping_id)['taxes']
+    #             for tax in line.tax_id:
+    #                 group = tax.tax_group_id
+    #                 res.setdefault(group, {'amount': 0.0, 'base': 0.0})
+    #                 for t in taxes:
+    #                     if t['id'] == tax.id or t['id'] in tax.children_tax_ids.ids:
+    #                         res[group]['amount'] += t['amount']
+    #                         res[group]['base'] += t['base']
+    #         res = sorted(res.items(), key=lambda l: l[0].sequence)
+    #         order.amount_by_group = [(
+    #             l[0].name, l[1]['amount'], l[1]['base'],
+    #             fmt(l[1]['amount']), fmt(l[1]['base']),
+    #             len(res),
+    #         ) for l in res]
+
+
+class SaleOrderLine(models.Model):
+    _inherit = "sale.order.line"
+
+    discount_type = fields.Many2many('discount.type',string="Discount Type")
+    is_percentage = fields.Boolean('Is Discount (%)',index=True,store=True)
+    discount_value = fields.Float(string='Discount', digits='Discount', default=0.0)
+
+    @api.depends('product_uom_qty', 'discount','discount_value', 'price_unit', 'tax_id')
+    def _compute_amount(self):
+        """
+        Compute the amounts of the SO line.
+        """
+        for line in self:
+            if line.discount_value :
+                price = line.price_unit - line.discount_value/line.product_uom_qty
+            else:
+                price = line.price_unit
+            # price = line.price_unit 
+            taxes = line.tax_id.compute_all(price, line.order_id.currency_id, line.product_uom_qty, product=line.product_id, partner=line.order_id.partner_shipping_id)
+            line.update({
+                'price_tax': sum(t.get('amount', 0.0) for t in taxes.get('taxes', [])),
+                'price_total': taxes['total_included'] +line.discount_value,
+                'price_subtotal': taxes['total_excluded'] +line.discount_value,
+            })
+            if self.env.context.get('import_file', False) and not self.env.user.user_has_groups('account.group_account_manager'):
+                line.tax_id.invalidate_cache(['invoice_repartition_line_ids'], [line.tax_id.id])
+
+    @api.onchange('product_uom')
+    def product_uom_change(self):
+        res = super(SaleOrderLine,self).product_uom_change()
+        return res
+
+    def _prepare_invoice_line(self):
+        """
+        Prepare the dict of values to create the new invoice line for a sales order line.
+
+        :param qty: float quantity to invoice
+        """
+        res = super(SaleOrderLine,self)._prepare_invoice_line()
+        res['is_sale'] = True
+        res['discount'] = self.discount_value
+        return res
+
+    # @api.depends('price_unit', 'discount')
+    # def _get_price_reduce(self):
+    #     for line in self:
+    #         # if line.discount :
+    #         #     if line.is_percentage == True:
+    #         #         line.price_reduce = line.price_unit * (1.0  - (line.discount/100))
+    #         #     else:
+    #         #         line.price_reduce = line.price_unit - line.discount/line.product_uom_qty
+    #         # else:
+    #         #     line.price_reduce = line.price_unit
+    #         line.price_reduce = line.price_unit 
+
+
+class Company(models.Model):
+    _inherit = "res.company"
+
+    sales_discount_account = fields.Many2one('account.account', string="Sales Discount Account")
+
+
+class KSResConfigSettings(models.TransientModel):
+    _inherit = 'res.config.settings'
+
+    sales_discount_account = fields.Many2one('account.account', string="Sales Discount Account", related='company_id.sales_discount_account', readonly=False)
+    
