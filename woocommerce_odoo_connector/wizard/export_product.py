@@ -47,7 +47,7 @@ class ExportWoocommerceTemplates(models.TransientModel):
 
     def woocommerce_export_template(self, woocommerce, channel, template_record):
         data_list = []
-        if template_record.pr_brand:
+        if template_record.attribute_line_ids:
             return_list = self.create_woocommerce_variable_product(
                 woocommerce, channel, template_record)
             data_list = return_list
