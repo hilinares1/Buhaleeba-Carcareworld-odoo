@@ -299,6 +299,7 @@ class MultiChannelSale(models.Model):
 				product_dict['dimensions']=dimensions
 			if template.weight:
 				product_dict['weight']= str(template.weight)  or  ""
+			raise UserError(product_dict)
 			if woocommerce:
 				return_dict  = woocommerce.post('products',product_dict).json()
 				image_ids = []
@@ -360,6 +361,7 @@ class MultiChannelSale(models.Model):
 				product_dict['dimensions']=dimensions
 			if template.weight:
 				product_dict['weight']=str(template.weight)
+			raise UserError(product_dict)
 			if woocommerce:
 				return_dict  = woocommerce.post('products',product_dict).json()
 			if 	'id' in return_dict:

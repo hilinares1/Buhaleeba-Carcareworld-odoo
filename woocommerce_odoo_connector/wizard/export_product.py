@@ -315,7 +315,7 @@ class ExportWoocommerceTemplates(models.TransientModel):
             return_dict = woocommerce.post('products', product_dict).json()
         if 'message' in return_dict:
             _logger.info('Error :- %r',return_dict["message"])
-            raise UserError(_('Simple Product Creation Failed'))
+            raise UserError(_(return_dict["message"]))
         else:
             return return_dict['id']
 
