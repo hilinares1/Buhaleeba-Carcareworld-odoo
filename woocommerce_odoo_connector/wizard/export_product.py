@@ -275,7 +275,7 @@ class ExportWoocommerceTemplates(models.TransientModel):
                     if len(return_list):
                         return (store_template_id, return_list)
                 else:
-                    raise UserError(product_dict.values())
+                    # raise UserError(product_dict.values())
                     raise UserError(
                         _(return_dict))
                     raise UserError(
@@ -315,7 +315,7 @@ class ExportWoocommerceTemplates(models.TransientModel):
         if woocommerce:
             return_dict = woocommerce.post('products', product_dict).json()
         if 'message' in return_dict:
-            raise UserError(product_dict.values())
+            # raise UserError(product_dict.values())
             _logger.info('Error :- %r',return_dict["message"])
             raise UserError(_(return_dict["message"]))
         else:
