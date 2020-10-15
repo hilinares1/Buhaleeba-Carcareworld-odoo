@@ -257,6 +257,7 @@ class ExportWoocommerceTemplates(models.TransientModel):
             if template.weight:
                 product_dict['weight'] = str(template.weight) or ""
             if woocommerce:
+                # raise UserError(product_dict.values())
                 return_dict = woocommerce.post('products', product_dict).json()
                 
                 image_ids = []
@@ -313,6 +314,7 @@ class ExportWoocommerceTemplates(models.TransientModel):
         if template.weight:
             product_dict['weight'] = str(template.weight)
         if woocommerce:
+            # raise UserError(product_dict.values())
             return_dict = woocommerce.post('products', product_dict).json()
         if 'message' in return_dict:
             # raise UserError(product_dict.values())

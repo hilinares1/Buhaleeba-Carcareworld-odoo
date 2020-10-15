@@ -249,7 +249,7 @@ class MultiChannelSale(models.Model):
 				name = "%s" %(rec.category_name.name)
 				value_list.append(name)
 			else:
-    			raise UserError('Add the brand type to the woo-commerce, because this brand is not there')
+				raise UserError('Add the brand type to the woo-commerce, because this brand is not there')
 			# if attribute_line:
 			# for value in attribute_line.value_ids:
 			# values = value_list.append(attr_name.name)
@@ -301,6 +301,7 @@ class MultiChannelSale(models.Model):
 				product_dict['weight']= str(template.weight)  or  ""
 			# raise UserError(product_dict.values())
 			if woocommerce:
+				# raise UserError(product_dict.values())
 				return_dict  = woocommerce.post('products',product_dict).json()
 				image_ids = []
 				if 'images' in return_dict:
@@ -363,6 +364,7 @@ class MultiChannelSale(models.Model):
 				product_dict['weight']=str(template.weight)
 			# raise UserError(product_dict.values())
 			if woocommerce:
+				# raise UserError(product_dict.values())
 				return_dict  = woocommerce.post('products',product_dict).json()
 			if 	'id' in return_dict:
 				mapping_dict = {

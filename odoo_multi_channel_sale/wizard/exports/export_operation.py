@@ -127,7 +127,9 @@ class ExportOperation(models.TransientModel):
 							
 				}
 				if parent:
+    					
 					category_dict.update({'parent': parent,})
+				# raise UserError(category_dict.values())
 				return_dict = woocommerce.post('ysg_product_type',category_dict).json()
 				if 'message' in return_dict:
 					raise UserError(_('Error in Creating Types : '+str(return_dict['message'])))

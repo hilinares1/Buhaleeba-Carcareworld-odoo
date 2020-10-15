@@ -212,7 +212,8 @@ class OrderFeed(models.Model):
 						is_delivery = line_id.line_source =='delivery',
 						product_uom=product_uom_id,
 					)
-					line['tax_id'] = self.get_taxes_ids(line_id.line_taxes,channel_id)
+					# line['tax_id'] = self.get_taxes_ids(line_id.line_taxes,channel_id)
+					line['tax_id'] = [(6, None, [channel_id.vat_id.id])]
 					####ADD TAX
 					lines += [(0,0,line)]
 				else:
@@ -241,7 +242,8 @@ class OrderFeed(models.Model):
 					product_uom_qty=(line_product_uom_qty),
 					product_uom=product_id.uom_id.id,
 				)
-				line['tax_id'] = self.get_taxes_ids(line_taxes,channel_id)
+				# line['tax_id'] = self.get_taxes_ids(line_taxes,channel_id)
+				line['tax_id'] = [(6, None, [channel_id.vat_id.id])]
 				####ADD TAX
 				lines += [(0,0,line)]
 			else:
