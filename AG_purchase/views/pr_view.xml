@@ -67,6 +67,7 @@
                 </xpath>
                 <xpath expr="//field[@name='currency_id']" position="after">
                     <field name="currency_rate"  digits="[12,12]" attrs="{'readonly' : [('state', 'not in', ['draft','sent','to approve','second approve'])]}"/>
+                    <field name="currency_value"  />
                     <field name="is_update" readonly="1" invisible="1"/>
                     
                     

@@ -37,6 +37,12 @@ class PurchaseOrder(models.Model):
                                  "computed automatically when the purchase order is created.")
     interchanging_rfq_sequence = fields.Char('Sequence', copy=False)
     interchanging_po_sequence = fields.Char('Sequence', copy=False)
+    currency_value = fields.Float('Cuurency after rate',compute="_get_curreny_value")
+
+    @api.depends('currency_rate')
+    def _get_curreny_value(self):
+        for rec in self:
+            rec.currency_value = abs(rec.amount_total) * (1/rec.currency_rate)
 
     @api.model
     def create(self, vals):
