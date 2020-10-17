@@ -24,10 +24,13 @@ class PurchaseOrder(models.Model):
 
     def compute_discount(self):
         for rec in self:
-            length = len(rec.order_line)
-            discount = rec.total_discount / length
+            # length = len(rec.order_line)
+            # discount = rec.total_discount / length
+            GT = 0.0
             for line in rec.order_line:
-                line.discount = discount
+                GT += line.product_qty * line.price_unit
+            for line in rec.order_line:
+                line.discount = (line.product_qty * line.price_unit * rec.total_discount) / GT
                 line.is_percentage = False
 
 
