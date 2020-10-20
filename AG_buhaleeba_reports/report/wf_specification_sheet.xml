@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- <template id="report_assets_common_custom_fonts" name="qweb_fonts less backend assets" inherit_id="web.report_assets_common">
+    <xpath expr="." position="inside">
+      <link href="/wf_updates/static/src/less/fonts.less" rel="stylesheet" type="text/less"/>
+    </xpath>
+</template> -->
+
+
+<template id="report_specification_sheet_document">
+    <t t-call="web.external_layout">
+        <div class="page" style="font-size: 14px;">
+          <style type="text/css">
+            
+              /* United */
+              @font-face {
+                font-family: 'Calibri';
+                font-style: heavy;
+                font-weight: 400;
+                src: url(/home/ubuntu/.fonts/calibrii.ttf) format('truetype');
+              }
+              @font-face {
+                font-family: 'PWSignaturetwo';
+                font-style: heavy;
+                font-weight: 400;
+                src: url(wf_updates/static/src/fonts/PWSignaturetwo.ttf) format('truetype');
+              }
+      
+            
+          </style>
+            <div class="oe_structure"/>
+                  <b><span style="margin-left:70%;font-family: Calibri;white-space: nowrap;">Date: </span></b><span t-field="doc.specification_date" style="white-space: nowrap;" t-options-widget="&quot;date&quot;"/>
+                  <b><span style="margin-left:70%;font-family: Calibri;white-space: nowrap;">Ref No:  </span></b><span style="white-space: nowrap;" t-field="doc.name"/>
+                  
+                      <h3 class="text-center" style="color:black;">SPECIFICATION SHEET</h3>
+        
+                    <table style="width:100%;border: 1px solid black;">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Client Name:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:80%;border: 1px solid black;"><span t-field="doc.partner_id.name"/></td>
+                        </tr></table><br/>
+                    <table style="width:100%;border: 1px solid black;">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Project Name:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:80%;border: 1px solid black;"><span t-field="doc.project_name"/></td>
+                        </tr></table><br/>
+                    <table style="width:100%;">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Location:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.project_loc"/></td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:5%;border:0;"/>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Country of Destination:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.country"/></td>
+                        </tr></table><br/>
+                    <table style="width:100%;">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Quotation Reference:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.name"/></td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:5%;border:0;"/>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Submittal Reference:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.submittal_ref"/></td>
+                        </tr></table><br/>
+                    <table style="width:100%;">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">P.O. Reference:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.client_order_ref"/></td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:5%;border:0;"/>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">P.O. Date:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.cus_date"/></td>
+                        </tr></table><br/>
+                    <table style="width:100%;">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Delivery Date:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.commitment_date"/></td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:5%;border:0;"/>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Sales Person:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.user_id.name"/></td>
+                        </tr></table><br/>
+                    <table style="width:100%;">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Pump Capacity:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.pump_capacity"/></td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:5%;border:0;"/>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Pressure (Bar)</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.pressure_bar"/></td>
+                        </tr></table><br/>
+                    <table style="width:100%;">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Listing:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.listing"/></td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:5%;border:0;"/>
+                            <td class="text-left" style="margin-left:10px;;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Type:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><span t-field="doc.ttype"/></td>
+                        </tr></table><br/>
+            
+                <!--<div>-->
+                <!--    <span t-if="o.use_as_is == True" style="font-size: 16px;">-->
+                <!--        <img t-att-src="'/wf_updates/static/src/img/yes.png'" width="25" height="25"/> USE AS IS -->
+                <!--    </span>-->
+                <!--    <span t-if="o.use_as_is == False" style="font-size: 16px;">-->
+                <!--        <img t-att-src="'/wf_updates/static/src/img/no.png'" width="25" height="25"/> USE AS IS -->
+                <!--    </span>-->
+                <!--    <span t-if="o.use_as_is == True" style="font-size: 16px;">-->
+                <!--        <img t-att-src="'/wf_updates/static/src/img/yes.png'" width="25" height="25"/> USE AS IS -->
+                <!--    </span>-->
+                <!--    <span t-if="o.use_as_is == False" style="font-size: 16px;">-->
+                <!--        <img t-att-src="'/wf_updates/static/src/img/no.png'" width="25" height="25"/> USE AS IS -->
+                <!--    </span>-->
+                <!--    <span t-if="o.use_as_is == True" style="font-size: 16px;">-->
+                <!--        <img t-att-src="'/wf_updates/static/src/img/yes.png'" width="25" height="25"/> USE AS IS -->
+                <!--    </span>-->
+                <!--    <span t-if="o.use_as_is == False" style="font-size: 16px;">-->
+                <!--        <img t-att-src="'/wf_updates/static/src/img/no.png'" width="25" height="25"/> USE AS IS -->
+                <!--    </span>-->
+                <!--</div>-->
+
+            <t t-set="j" t-value="1"/>
+            <t t-foreach="doc.sale_order_option_ids" t-as="line">
+                <t t-if="line.bom_ok == True">
+                <t t-if="line.check == 1">
+                  
+            <!-- <div class="page"> -->
+                <table style="width:100%;border: 1px solid black;">
+                    <tr>
+                        <td class="text-center" style="padding: 2px;width:100%;background-color:#d2d4d6;border: 1px solid black;text-transform:uppercase;"><span t-field="line.bom_nam"/></td>
+                    </tr></table><br/>
+                <div>
+                <div style="float:left;width:48%;">
+                <t t-if="line.Pro_type">
+
+                    <table style="width:100%;border: 1px solid black;" class="mb0">
+                        <tr>
+                            <td class="text-center" colspan="99" style="padding: 2px;width:100%;background-color:#d2d4d6;border: 1px solid black;">PUMP DETAILS</td>
+                        </tr>
+                        <t t-if="line.model">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Model:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.model"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.speed">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Rated Speed:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-esc="int(line.speed)"/>&amp;nbsp;<t t-esc="line.speed_uom_id.name" style="font-family: Calibri;"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.no_of_stages">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">No. of Stages:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.no_of_stages"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.quantity">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Qty:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-esc="int(line.quantity)"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.material_spec">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Add'l Material Spec:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.material_spec"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.spare_part">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Spare Parts:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.spare_part"/> </td>
+                        </tr>
+                        </t>
+                    </table>
+                </t>
+                <t t-if="line.Pro_type_dr">
+                    <table style="width:100%;border: 1px solid black;" class="mt0">
+                        <tr>
+                            <td class="text-center" colspan="99" style="padding: 2px;width:100%;background-color:#d2d4d6;border: 1px solid black;">DRIVER DETAILS</td>
+                        </tr>
+                        <t t-if="line.manu_dr">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Brand:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.manu_dr"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.rate_dr">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">HP Rating:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.rate_dr"/>&amp;nbsp;<t t-esc="line.rate_uom_id_dr.name" style="font-family: Calibri;"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.supply_dr">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Voltage:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.supply_dr"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.speed_dr">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Speed:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-esc="int(line.speed_dr)"/>&amp;nbsp;<t t-esc="line.speed_uom_id_dr.name" style="font-family: Calibri;"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.enc_dr">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Enclosure Rating:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.enc_dr"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.fuel_tank">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Fuel Tank Capacity:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.fuel_tank"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.prv">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">PRV:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.prv"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.silencer_type">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Silencer Type:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.silencer_type"/> </td>
+                        </tr>
+                        </t>
+                        <t t-if="line.derating">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Derating:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.derating"/> </td>
+                        </tr>
+                        </t>
+                    </table><br/>
+                </t>
+                </div>
+                <div style="margin-left:53%;">
+    
+                    <t t-if="line.Pro_type_ger">
+                        <table style="width:100%;border: 1px solid black;" class="mb0">
+                            <tr>
+                                <td class="text-center" colspan="99" style="padding: 2px;width:100%;background-color:#d2d4d6;border: 1px solid black;">ADDITIONAL DETAILS FOR VT</td>
+                            </tr>
+                            <t t-if="line.manu_gear">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Gear Drive Brand:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.manu_gear"/> </td>
+                            </tr>
+                            </t>
+                            <t t-if="line.model_gear">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Gear Drive Model:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.model_gear"/> </td>
+                            </tr>
+                            </t>
+                            <t t-if="line.ratio_gear">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Gear Ratio:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.ratio_gear"/> </td>
+                            </tr>
+                            </t>
+                            <t t-if="line.watertank">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Watertank Depth:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.watertank"/> </td>
+                            </tr>
+                            </t>
+                        </table>
+                    </t>
+    
+    
+    
+    
+    
+    
+                    <t t-if="line.Pro_type_con">
+                        <table style="width:100%;border: 1px solid black;" class="mt0">
+                            <tr>
+                                <td class="text-center" colspan="99" style="padding: 2px;width:100%;background-color:#d2d4d6;border: 1px solid black;">CONTROLLER DETAILS</td>
+                            </tr>
+                            <t t-if="line.watertank">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Brand:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.manu_con"/> </td>
+                            </tr>
+                            </t>
+                            <t t-if="line.rate_con">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">HP Rating:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.rate_con"/>&amp;nbsp;<t t-esc="line.rate_uom_id_con.name" style="font-family: Calibri;"/> </td>
+                            </tr>
+                            </t>
+                            <t t-if="line.Type_con">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Starting Method:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.Type_con"/> </td>
+                            </tr>
+                            </t>
+                            <t t-if="line.site_voltage">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Site Voltage:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.site_voltage"/> </td>
+                            </tr>
+                            </t>
+                            <t t-if="line.charger_voltage">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Charger Voltage:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.charger_voltage"/> </td>
+                            </tr>
+                            </t>
+                            <t t-if="line.enc_con">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Enclosure Rating:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.enc_con"/> </td>
+                            </tr>
+                            </t>
+                            <t t-if="line.with_ats">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">With ATS:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.with_ats"/> </td>
+                            </tr>
+                            </t>
+                            <t t-if="line.special_options">
+                            <tr>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:40%;background-color:#d2d4d6;border: 1px solid black;">Special Options:</td>
+                                <td class="text-left" style="margin-left:10px;padding: 2px;width:60%;border: 1px solid black;"><span t-field="line.special_options"/> </td>
+                            </tr>
+                            </t>
+                        </table><br/>
+                        
+                    </t>
+                    </div>
+                    </div>
+                    <br/>
+                    <t t-if="j == 1">
+                  <p style="page-break-after:always"/>
+                  <b><span style="margin-left:70%;font-family: Calibri;white-space: nowrap;">Date: </span></b><span t-field="doc.specification_date" style="white-space: nowrap;" t-options-widget="&quot;date&quot;"/>
+                  <b><span style="margin-left:70%;font-family: Calibri;white-space: nowrap;">Ref No:  </span></b><span style="white-space: nowrap;" t-field="doc.name"/>
+                  
+                      <h3 class="text-center" style="color:black;">SPECIFICATION SHEET</h3></t>
+                    
+            <t t-set="j" t-value="j+1"/>
+            </t>
+            </t>
+            </t>
+
+            <t t-foreach="doc.order_line" t-as="line">
+                <t t-if="line.product_id.pressuge_gauge or line.product_id.remote_alarm or line.product_id.waste_cone or line.product_id.flame_arrester">
+                    <table style="width:100%;border: 1px solid black;">
+                        <tr>
+                            <td class="text-center" style="padding: 2px;width:100%;background-color:#d2d4d6;border: 1px solid black;">SPECIAL OPTIONS</td>
+                        </tr></table><br/>
+
+                    <table style="width:100%;">
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Pressuge Gauge:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><t t-if="line.product_id.pressuge_gauge"><span t-field="line.product_id.pressuge_gauge"/></t><t t-else=""><span>None</span></t> </td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:5%;border:0;"/>
+                            <td class="text-left" style="margin-left:10px;;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Remote Alarm:</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><t t-if="line.product_id.remote_alarm"><span t-field="line.product_id.remote_alarm"/></t><t t-else=""><span>None</span></t> </td>
+                        </tr>
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Waste Cone</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><t t-if="line.product_id.waste_cone"><span t-field="line.product_id.waste_cone"/></t><t t-else=""><span>None</span></t> </td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:5%;border:0;"/>
+                            <td class="text-left" style="margin-left:10px;;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;"/>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"/>
+                        </tr>
+                        <tr>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;">Flame Arrester</td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"><t t-if="line.product_id.flame_arrester"><span t-field="line.product_id.flame_arrester"/></t><t t-else=""><span>None</span></t> </td>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:5%;border:0;"/>
+                            <td class="text-left" style="margin-left:10px;;padding: 2px;width:20%;background-color:#d2d4d6;border: 1px solid black;"/>
+                            <td class="text-left" style="margin-left:10px;padding: 2px;width:27.5%;border: 1px solid black;"/>
+                        </tr>
+                    </table><br/>
+                </t>
+            </t>
+            
+            <table style="width:100%;border: 1px solid black;">
+                <tr>
+                    <td class="text-center" style="padding: 2px;width:100%;background-color:#d2d4d6;border: 1px solid black;">GENERAL REMARKS</td>
+                </tr>
+                <tr>
+                    <td class="text-left" roespan="3" style="margin-left:10px;padding: 2px;width:100%;border: 1px solid black;"><span t-field="doc.sp_remark"/></td>
+                </tr>
+                </table><br/>
+                
+
+            
+            <div class="oe_structure"/>
+        </div>
+    </t>
+    
+</template>
+
+
+<template id="report_specification_sheet">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="doc">
+            <t t-call="wf_new_reports.report_specification_sheet_document" t-lang="doc.partner_id.lang"/>
+        </t>
+    </t>
+</template>
+</odoo>
