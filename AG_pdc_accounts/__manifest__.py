@@ -27,7 +27,7 @@
 		multiple payment,
      """,
 
-    'depends': ['account','account_check_printing'],
+    'depends': ['account','account_check_printing','base_accounting_kit'],
     
     'data': [
            'views/account_payment_inehrit.xml',
