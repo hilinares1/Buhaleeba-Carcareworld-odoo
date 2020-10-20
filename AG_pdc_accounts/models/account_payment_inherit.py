@@ -711,7 +711,7 @@ class account_payment(models.Model):
             else:
                 destination_account_id = payment.destination_account_id.id
             move_vals = {
-                'date': payment.payment_date,
+                'date': payment.effective_date,
                 'ref': payment.communication,
                 'journal_id': payment.journal_id.id,
                 'currency_id': payment.journal_id.currency_id.id or payment.company_id.currency_id.id,
@@ -765,7 +765,7 @@ class account_payment(models.Model):
                     transfer_amount = counterpart_amount
 
                 transfer_move_vals = {
-                    'date': payment.payment_date,
+                    'date': payment.effective_date,
                     'ref': payment.communication,
                     'partner_id': payment.partner_id.id,
                     'journal_id': payment.destination_journal_id.id,
