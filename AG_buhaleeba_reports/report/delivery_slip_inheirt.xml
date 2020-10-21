@@ -29,8 +29,8 @@
                 <br/>
                 <br/>
                 <div style="margin-left : 5%">
-                    <div><strong>Payment Terms:</strong><p t-field="o.sale_id.payment_term_id"/></div>
-                    <div><strong>Delivery Mothod:</strong><p t-field="o.sale_id.picking_policy"/></div>
+                    <div class="text-nowrap"><strong>Payment Terms:</strong><p t-field="o.sale_id.payment_term_id"/></div>
+                    <div class="text-nowrap"><strong>Delivery Mothod:</strong><p t-field="o.sale_id.picking_policy"/></div>
                 </div>
             </div>
 
