@@ -7,8 +7,8 @@
     'depends': ['sale'],
     'data': [
         
-        'report/delivery_slip_inheirt.xml',
         'report/cridet_note_inheirt.xml',
+        'report/delivery_slip_inheirt.xml',
         'report/purchase_quotation.xml',
         'report/purchase_order_inheirt.xml',
        

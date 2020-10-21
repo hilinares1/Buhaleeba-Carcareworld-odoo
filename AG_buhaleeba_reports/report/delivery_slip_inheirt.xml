@@ -11,39 +11,7 @@
 
     <template id="report_assets_common_custom_fonts" inherit_id="stock.report_delivery_document">
         	
-        <!-- <xpath expr="//t[@t-set='address']" position="inside">
-
-        <div  style="margin-right : 60% important ; " > 
-
-            <span t-field="o.partner_id.email"/>
-            <span t-field="o.partner_id.address"/>
-            <span t-field="o.partner_id.name"/>
-            <span t-field="o.partner_id.phone"/>
-            <span t-field="o.partner_id.website_id.name"/>
-             <br></br>
-        </div>
-          </xpath> -->
-        <!-- <div>
-            <span t-field="o.partner_id.email"/>
-            <span t-field="o.partner_id.address"/>
-            <span t-field="o.partner_id.name"/>
-            <span t-field="o.partner_id.phone"/>
-            <span t-field="o.partner_id.website_id.name"/>
-             <br></br>
-           
-        </div> -->
-      
-
-
-        <!-- <xpath expr="//div[@t-esc='partner']" position="attributes">
-
-            <attribute name="style">margin-right : 60%; position: relative;</attribute>
-
-         </xpath> -->
-
-            <!-- <div t-esc="partner"    style="margin-right : 60% ;  position: relative;"
-            t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True , "no_tag_br": true }'  /> -->
-
+        
           
         <xpath expr="//div[@class='page'] /h2"  position="replace">
 
@@ -58,27 +26,30 @@
                     <span t-field="o.name"/>
 
                 </h2>
-                <!-- <div style="margin-left : 5%">
+                <br/>
+                <br/>
+                <div style="margin-left : 5%">
                     <div><strong>Payment Terms:</strong><p t-field="o.sale_id.payment_term_id"/></div>
                     <div><strong>Delivery Mothod:</strong><p t-field="o.sale_id.picking_policy"/></div>
-                </div> -->
+                </div>
             </div>
 
 
 
             <div style="width: 50%;  float: left;" >
 
-            <span t-field="o.partner_id.name"/><br></br>
-            <span t-field="o.partner_id.street"/><br></br>
-            <span t-field="o.partner_id.city"/><br></br>
-            <span t-field="o.partner_id.country_id"/><br></br>
-            <span t-field="o.partner_id.phone"/><br></br>      
-            <span t-field="o.partner_id.email"/><br></br>
-            <span>VAT:<span t-field="o.partner_id.vat"/></span><br></br>
-            <span t-field="o.partner_id.website"/><br></br>
-            <br></br>
-            <br></br>
-            <!-- <span t-field="o.partner_id.address"/> -->
+                <span t-field="o.partner_id.name"/><br></br>
+                <span t-field="o.partner_id.street"/><br></br>
+                <span t-field="o.partner_id.city"/><br></br>
+                <span t-field="o.partner_id.country_id"/><br></br>
+                <span t-field="o.partner_id.phone"/><br></br>      
+                <span t-field="o.partner_id.email"/><br></br>
+                <div t-if="o.partner_id.vat" class="mt16">
+                            <t t-if="o.company_id.country_id.vat_label" t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
+                            <t t-else="">VAT</t>: <span t-field="o.partner_id.vat"/></div>
+                <span t-field="o.partner_id.website"/><br></br>
+                <br></br>
+                <br></br>
             </div>
 
         </xpath>
@@ -96,26 +67,6 @@
 
          </xpath>
 
-
-<!-- 
-        <xpath expr="//t[@t-esc='partner']" position="attributes">
-            <attribute name="style">margin-right : 60%;</attribute>
-        </xpath> -->
-
-        
-
-
-        
-
-
-        <!-- <xpath expr="//div[@class='row mt32 mb32']" position="before">
-            <div style="margin-left : 60%" >
-                    
-                    <div><strong>Payment Terms:</strong><p t-field="o.sale_id.payment_term_id"/></div>
-                    <div><strong>Delivery Mothod:</strong><p t-field="o.sale_id.picking_policy"/></div>
-            </div>
-
-        </xpath> -->
 
 
         <xpath expr="//div[@class='row mt32 mb32']" position="inside">

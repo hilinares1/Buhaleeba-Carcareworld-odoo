@@ -39,17 +39,20 @@
                 <span t-field="o.partner_id.street"/><br></br>
                 <span t-field="o.partner_id.city"/><br></br>
                 <span t-field="o.partner_id.country_id"/><br></br>
-                <span t-field="o.partner_id.phone"/><br></br>      
+                <span t-field="o.partner_id.phone"/><br></br>  
+                <div t-if="o.partner_id.vat" class="mt16">
+                        <t t-if="o.company_id.country_id.vat_label" t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
+                        <t t-else="">VAT</t>: <span t-field="o.partner_id.vat"/></div>     
                 
-                <span>VAT:<span t-field="o.partner_id.vat"/></span><br></br>
+                <br/>
+                <br/>
+                
+                <!-- <span>VAT:<span t-field="o.partner_id.vat"/></span><br></br> -->
 
                 <span>Payment Terms:<span t-field="o.payment_term_id"/></span><br></br>
-                <!-- <span>Payment Method:<span t-field="o.payment_term_id"/></span><br></br> -->
                 
-                <div t-if="o.partner_id.vat" class="mt16">
-                            <t t-if="o.company_id.country_id.vat_label" t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
-                            <t t-else="">Tax ID</t>: <span t-field="o.partner_id.vat"/></div>
-                <!-- <span t-field="o.partner_id.address"/> -->
+               
+                <br></br>
                 <br></br>
                 <br></br>
 
