@@ -8,7 +8,7 @@ from odoo import fields,models
 
 
 class ProductCategory(models.Model):
-	_inherit = 'product.category'
+	_inherit = 'product.categories'
 
 	channel_mapping_ids = fields.One2many(
 		string       = 'Mappings',

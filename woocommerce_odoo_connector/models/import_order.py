@@ -90,7 +90,7 @@ class MultiChannelSale(models.Model):
 							l.append({'id':taxes['id']})
 		return l
 
-	def get_woocommerce_order_line(self, data):
+	def get_woocommerce_order_line(self, data,sid=None):
 		order_lines = []
 		variant = 0
 		for line in data:
@@ -101,14 +101,30 @@ class MultiChannelSale(models.Model):
 				product_template_id = self.env['channel.product.mappings'].search([('store_product_id','=',line['product_id']),('channel_id.id','=',self.id)])
 			order_line_dict = {
 					'line_name'				:line['name'],
-					'line_price_unit'		:line['price'],
-					'line_product_uom_qty'	:line['quantity'],
+					'line_price_unit'		:line['item_unit_price'],
+					'line_discount'         :line['total_discount_amount'],
+					'line_discount_type'    :self.get_woocommerce_discount_types(line['discount_type'],sid),
 					'line_product_id'		:product_template_id.store_product_id,
 					'line_variant_ids'		:product_template_id.store_variant_id,
 					'line_taxes'			:self.get_woocommerce_taxes(line['taxes'])
 			}
 			order_lines.append((0,0,order_line_dict))
 		return order_lines
+
+	def get_woocommerce_discount_types(self,data,sid):
+		l = []
+		dis = self.env['discount.type']
+		if data:
+			for type in data:
+				voucher_line = {
+								'name'		  		: type['type'],
+								'value' 		: type['order_item_value'],
+								'so_id'  : "%s"%(sid),
+				}
+				discount = dis.create(voucher_line)
+				l.append(discount.id)
+		return [(6, None, l)]
+
 
 	def import_woocommerce_orders(self):
 		self.import_woocommerce_attribute()
@@ -141,7 +157,7 @@ class MultiChannelSale(models.Model):
 									if woocommerce2:
 										order_data = woocommerce2.get("orders/"+str(order['id'])).json()
 										data = order_data['line_items']
-										order_lines = self.get_woocommerce_order_line(data)
+										order_lines = self.get_woocommerce_order_line(data,order_data['id'])
 										if order['shipping_lines']:
 											order_lines += self.create_or_get_woocommerce_shipping(order_data['shipping_lines'])
 								customer ={}
@@ -245,7 +261,7 @@ class MultiChannelSale(models.Model):
 									if woocommerce2:
 										order_data = woocommerce2.get("orders/"+str(order['id'])).json()
 										data = order_data['line_items']
-										order_lines = self.get_woocommerce_order_line(data)
+										order_lines = self.get_woocommerce_order_line(data,order_data['line_items'])
 										if order['shipping_lines']:
 											order_lines += self.create_or_get_woocommerce_shipping(order_data['shipping_lines'])
 								customer ={}

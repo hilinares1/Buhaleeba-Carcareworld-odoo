@@ -287,16 +287,16 @@ class MaterialRequisition(models.Model):
 											'origin':res.sequence,
 											})
 		#raise Warning(_('You cant received the product,because picking is not completed'))
-		# for line in self.requisition_line_ids.filtered(lambda r: r.available_qty < r.qty):
-		req_line_vals = purchase_req_line_obj.create({
-			'product_id':line.product_id.id,
-			'display_name':line.description, 
-			# 'account_analytic_id':res.analytic_id.id,
-			'product_qty':line.qty,
-			'product_uom_id':line.uom_id.id,
-			'requisition_id':req_vals.id,
+		for line in self.requisition_line_ids:
+			req_line_vals = purchase_req_line_obj.create({
+				'product_id':line.product_id.id,
+				'display_name':line.description, 
+				# 'account_analytic_id':res.analytic_id.id,
+				'product_qty':line.qty,
+				'product_uom_id':line.uom_id.id,
+				'requisition_id':req_vals.id,
 
-			})
+				})
 		# self.sudo().create_picking_new()
 		res = self.write({
 							'state':'po_created',

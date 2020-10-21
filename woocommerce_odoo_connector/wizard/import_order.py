@@ -66,7 +66,9 @@ class ImportWoocommerceOrders(models.TransientModel):
             store_variant_id = line['variation_id']
             order_line_dict = {
                 'line_name': line['name'],
-                'line_price_unit': line['price'],
+                'line_price_unit': line['item_unit_price'],
+                'line_discount'         :line['total_discount_amount'],
+                'line_discount_type'    :self.get_woocommerce_discount_types(line['discount_type'],data["id"]),
                 'line_product_uom_qty': line['quantity'],
                 'line_product_id': product_id,
                 'line_taxes': self.env["import.woocommerce.taxes"].create({
@@ -81,6 +83,20 @@ class ImportWoocommerceOrders(models.TransientModel):
             discount_line = self.get_woocommerce_discount_lines(woocommerce,data["coupon_lines"])
             order_lines.append((0,0,discount_line))
         return order_lines
+
+    def get_woocommerce_discount_types(self,data,sid):
+        l = []
+        dis = self.env['discount.type']
+        if data:
+            for type in data:
+                voucher_line = {
+								'name'		  		: type['type'],
+								'value' 		: type['order_item_value'],
+								'so_id'  : "%s"%(sid),
+				}
+                discount = dis.create(voucher_line)
+                l.append(discount.id)
+        return [(6, None, l)]
 
     def get_order_all(self, woocommerce, channel, **kwargs):
         vals_list = []

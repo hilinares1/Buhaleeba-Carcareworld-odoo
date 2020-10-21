@@ -286,8 +286,18 @@ class AccountMoveLine(models.Model):
 
     price_tax = fields.Float('Vat Amount',compute="get_price_tax")
 
-    @api.onchange('quantity','price_unit','tax_ids')
+    @api.onchange('quantity','discount','discount_value','is_percentage','price_unit','tax_ids')
     def get_price_tax(self):
         for rec in self:
-            taxes = rec.tax_ids.compute_all(rec.price_unit, rec.move_id.currency_id, rec.quantity, product=rec.product_id, partner=rec.move_id.partner_shipping_id)
+            # raise UserError(rec.price_unit)
+            if rec.discount :
+                if rec.is_percentage == True:
+                    price_unit_wo_discount = rec.price_unit * (1 - (rec.discount or 0.0) / 100.0)
+                else:
+                    price_unit_wo_discount = rec.price_unit  - rec.discount/rec.quantity
+            elif rec.discount_value:
+                price_unit_wo_discount = rec.price_unit  - rec.discount_value/rec.quantity
+            else:
+                price_unit_wo_discount = rec.price_unit
+            taxes = rec.tax_ids.compute_all(price_unit_wo_discount, rec.move_id.currency_id, rec.quantity, product=rec.product_id, partner=rec.move_id.partner_shipping_id)
             rec.price_tax = sum(t.get('amount', 0.0) for t in taxes.get('taxes', []))

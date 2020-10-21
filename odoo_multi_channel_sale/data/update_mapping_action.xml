@@ -30,6 +30,22 @@
 			view_mode    ="form"
 			target       ="new"
 		/>
+		<act_window
+			id           ="update_type_mappings"
+			name         ="Update Type Mapping"
+			binding_model="channel.type.mappings"
+			res_model    ="update.mapping.wizard"
+			view_mode    ="form"
+			target       ="new"
+		/>
+		<act_window
+			id           ="update_brand_mappings"
+			name         ="Update Brand Mapping"
+			binding_model="channel.brand.mappings"
+			res_model    ="update.mapping.wizard"
+			view_mode    ="form"
+			target       ="new"
+		/>
 
 		<act_window
 			id           ="update_order_mappings"

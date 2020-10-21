@@ -24,8 +24,8 @@ class MultiChannelSale(models.Model):
 
 	
 	def action_export_woocommerce_products(self):
-		self.sudo().export_woocommerce_attributes_values()
-		self.sudo().export_woocommerce_categories(0)
+		# self.sudo().export_woocommerce_attributes_values()
+		# self.sudo().export_woocommerce_categories(0)
 		woocommerce = self.get_woocommerce_connection()
 		count = 0
 		template_ids = []
@@ -46,13 +46,13 @@ class MultiChannelSale(models.Model):
 				# 	count += self.create_woocommerce_variable_product(template, woocommerce)
 				# else:
 				# 	count += self.create_woocommerce_simple_product(template, woocommerce)
-				variable = 0
-				if len(template.product_variant_ids)>1:
-					variable = 1
-				elif len(template.product_variant_ids) == 1:
-					if template.product_variant_ids[0].product_template_attribute_value_ids:
-						variable = 1
-				if variable:
+				# variable = 0
+				# if len(template.product_variant_ids)>1:
+				# 	variable = 1
+				# elif len(template.product_variant_ids) == 1:
+				# 	if template.product_variant_ids[0].product_template_attribute_value_ids:
+				# 		variable = 1
+				if template.pr_brand:
 					count += self.create_woocommerce_variable_product(template, woocommerce)
 				else:
 					count += self.create_woocommerce_simple_product(template, woocommerce)
@@ -121,29 +121,35 @@ class MultiChannelSale(models.Model):
 	
 	def get_woocommerce_attribute(self, attribute_id):
 		if  attribute_id:
-			record  =  self.env['channel.attribute.mappings'].search([('odoo_attribute_id','=',attribute_id.id),('channel_id.id','=',self.id)])
+			record  =  self.env['channel.brand.mappings'].search([('odoo_brand_id','=',attribute_id.id),('channel_id.id','=',self.id)])
 			if record:
-				return attribute_id.name,record.store_attribute_id
+				# return attribute_id.name,record.store_brand_id
+				return record.category_name
 			else:
-				return self.export_woocommerce_attribute_values_by_id(attribute_id)
+				# return self.export_woocommerce_attribute_values_by_id(attribute_id)
+				raise UserError('This brand is not in the woocommerce yet please export it to woocommerce')
 	
 	def set_woocommerce_attribute_line(self, template):
 		attribute_list = []
 		attribute_count = 0
-		if template.attribute_line_ids:
-			for attribute_line in template.attribute_line_ids:
-				attr_name,attr_id = self.get_woocommerce_attribute(attribute_line.attribute_id)
-				values = self.get_woocommerce_attribute_value(attribute_line)
-				attribute_dict = {
-								'name'		: attr_name,
-								'id'		: attr_id,
-								'variation'	: True,
-								'visible'	: True,
-								'position'	: attribute_count,
-								'options'	: values,
-				}
-				attribute_count += 1
-				attribute_list.append(attribute_dict)
+		if template.pr_brand:
+			# for attribute_line in template.attribute_line_ids:
+			attr_name = self.get_woocommerce_attribute(template.pr_brand)
+			# values = self.get_woocommerce_attribute_value(attribute_line)
+			value_list = []
+			# if attribute_line:
+			# for value in attribute_line.value_ids:
+			values = value_list.append(attr_name.name)
+			attribute_dict = {
+							'name'		: 'brand',
+							'id'		: 3,
+							'variation'	: True,
+							'visible'	: True,
+							'position'	: attribute_count,
+							'options'	: values,
+			}
+			attribute_count += 1
+			attribute_list.append(attribute_dict)
 		return attribute_list
 
 	def create_woocommerce_variation(self, woo_product_id, template, woocommerce, image_ids = False):
@@ -199,18 +205,87 @@ class MultiChannelSale(models.Model):
 		else:
 			raise UserError(_('Error in creating variant'))
 
+
+	# def set_woocommerce_product_categoriesnew(self, template):
+    # 		categ_list = []
+	# 	if template.pr_category:
+	# 		rec  =  self.env['channel.category.mappings'].search([('odoo_category_id','=',template.pr_category.id),('channel_id.id','=',self.id)])
+	# 		if rec:
+	# 			categ_list.append({'id':rec.store_category_id})
+	# 		else:
+	# 			cat_id = self.export_woocommerce_categories_id(template.pr_category)
+	# 			categ_list.append({'id':cat_id})
+	# 	if template.channel_category_ids:
+	# 		for category_channel in template.channel_category_ids:
+	# 			if category_channel.instance_id.id == self.id:
+	# 				for category in category_channel.extra_category_ids:
+	# 					record = self.env['channel.category.mappings'].search([('odoo_category_id','=',category.id),('channel_id.id','=',self.id)])
+	# 					if record:
+	# 						categ_list.append({'id':record.store_category_id})
+	# 					else:
+	# 						cat_id = self.export_woocommerce_categories_id(template.pr_category)
+	# 						categ_list.append({'id':cat_id})
+	# 	# else:	
+	# 	# 	if template.categ_id.channel_category_ids:
+	# 	# 		for category_channel in template.categ_id.channel_category_ids:
+	# 	# 			if category_channel.instance_id.id == self.id:
+	# 	# 				for category in category_channel.extra_category_ids:
+	# 	# 					record = self.env['channel.category.mappings'].search([('odoo_category_id','=',category.id),('channel_id.id','=',self.id)])
+	# 	# 					if record:
+	# 	# 						categ_list.append({'id':record.store_category_id})
+	# 	return categ_list
+
+	def set_woocommerce_attribute_linenew(self, template):
+		attribute_list = []
+		attribute_count = 0
+		if template.pr_brand:
+			# for attribute_line in template.attribute_line_ids:
+			rec  =  self.env['channel.brand.mappings'].search([('odoo_brand_id','=',template.pr_brand.id),('channel_id.id','=',self.id)])
+			# attr_name = self.get_woocommerce_attribute(template.pr_brand)
+			# values = self.get_woocommerce_attribute_value(attribute_line)
+			value_list = []
+			if rec:
+				attribute_list.append({'id':rec.store_brand_id})
+				name = "%s" %(rec.category_name.name)
+				value_list.append(name)
+			else:
+				raise UserError('Add the brand type to the woo-commerce, because this brand is not there')
+			# if attribute_line:
+			# for value in attribute_line.value_ids:
+			# values = value_list.append(attr_name.name)
+			attribute_dict = {
+							"name"		: "brand",
+							"id"		: 3,
+							"visible": True,
+							"variation": False,
+							# "options": [
+							# "Arexons"
+							# ]
+							# 'variation'	: True,
+							# 'visible'	: True,
+							"position"	: 0,
+							"options"	: value_list,
+			}
+			attribute_count += 1
+			attribute_list.append(attribute_dict)
+		return attribute_list
+
 	def create_woocommerce_variable_product(self, template, woocommerce):
 		if template:
 			product_dict = {
 						'name'				: template.name,
 						'sku' 				: "",
-						'images'			: self.create_woocommerce_product_image(template,True),
+						# 'images'			: self.create_woocommerce_product_image(template,True),
 						'type'				: 'variable',
 						'categories'		: self.set_woocommerce_product_categories(template),
-						'status'			: 'publish',
+						'ysg_product_type'	: self.set_woocommerce_product_types(template),
+						# 'categories'		: self.set_woocommerce_product_categoriesnew(template),
+						'status'			: 'draft',
 						'manage_stock'		: False,
-						'attributes'		: self.set_woocommerce_attribute_line(template),
+						# 'attributes'		: self.set_woocommerce_attribute_line(template),
+						'attributes'		: self.set_woocommerce_attribute_linenew(template),
 						'default_attributes': self.get_woocommerce_attribute_dict(template.product_variant_ids[0]),
+						'price'				: template.with_context(pricelist=self.pricelist_name.id).price,
 						'short_description'	: template.description_sale  or "",
 						'description'		: template.description  or "",
 			}
@@ -224,7 +299,9 @@ class MultiChannelSale(models.Model):
 				product_dict['dimensions']=dimensions
 			if template.weight:
 				product_dict['weight']= str(template.weight)  or  ""
+			# raise UserError(product_dict.values())
 			if woocommerce:
+				# raise UserError(product_dict.values())
 				return_dict  = woocommerce.post('products',product_dict).json()
 				image_ids = []
 				if 'images' in return_dict:
@@ -242,10 +319,10 @@ class MultiChannelSale(models.Model):
 					}
 					obj = self.env['channel.template.mappings']
 					self._create_mapping(obj, mapping_dict)
-					if image_ids:
-						count = self.create_woocommerce_variation(return_dict['id'], template, woocommerce, image_ids)
-					else:
-						count = self.create_woocommerce_variation(return_dict['id'], template, woocommerce)
+					# if image_ids:
+					# 	count = self.create_woocommerce_variation(return_dict['id'], template, woocommerce, image_ids)
+					# else:
+					# 	count = self.create_woocommerce_variation(return_dict['id'], template, woocommerce)
 					if count:
 						return count
 				else:
@@ -262,10 +339,12 @@ class MultiChannelSale(models.Model):
 						'regular_price'		: str(template.with_context(pricelist=self.pricelist_name.id).price) or "",
 						'type'				: 'simple',
 						'categories'		: self.set_woocommerce_product_categories(template),
-						'status'			: 'publish',
+						'ysg_product_type'	: self.set_woocommerce_product_types(template),
+						'status'			: 'draft',
 						'short_description'	: template.description_sale  or "" ,
 						'description'		: template.description or "",
-						'attributes'		: self.set_woocommerce_attribute_line(template),
+						# 'attributes'		: self.set_woocommerce_attribute_line(template),
+						'attributes'		: self.set_woocommerce_attribute_linenew(template),
 						'price'				: template.with_context(pricelist=self.pricelist_name.id).price,
 						'manage_stock'		: True,
 						'stock_quantity'	: quantity,
@@ -283,7 +362,9 @@ class MultiChannelSale(models.Model):
 				product_dict['dimensions']=dimensions
 			if template.weight:
 				product_dict['weight']=str(template.weight)
+			# raise UserError(product_dict.values())
 			if woocommerce:
+				# raise UserError(product_dict.values())
 				return_dict  = woocommerce.post('products',product_dict).json()
 			if 	'id' in return_dict:
 				mapping_dict = {
@@ -314,12 +395,19 @@ class MultiChannelSale(models.Model):
 
 	def set_woocommerce_product_categories(self, template):
 		categ_list = []
-		if template.categ_id:
-			rec  =  self.env['channel.category.mappings'].search([('odoo_category_id','=',template.categ_id.id),('channel_id.id','=',self.id)])
+		if template.pr_category:
+			rec  =  self.env['channel.category.mappings'].search([('odoo_category_id','=',template.pr_category.id),('channel_id.id','=',self.id)])
 			if rec:
 				categ_list.append({'id':rec.store_category_id})
 			else:
-				cat_id = self.export_woocommerce_categories_id(template.categ_id)
+				cat_id = self.export_woocommerce_categories_id(template.pr_category)
+				categ_list.append({'id':cat_id})
+		if template.sub_pr_category:
+			rec  =  self.env['channel.category.mappings'].search([('odoo_category_id','=',template.sub_pr_category.id),('channel_id.id','=',self.id)])
+			if rec:
+				categ_list.append({'id':rec.store_category_id})
+			else:
+				cat_id = self.export_woocommerce_categories_id(template.sub_pr_category)
 				categ_list.append({'id':cat_id})
 		if template.channel_category_ids:
 			for category_channel in template.channel_category_ids:
@@ -329,8 +417,42 @@ class MultiChannelSale(models.Model):
 						if record:
 							categ_list.append({'id':record.store_category_id})
 						else:
-							cat_id = self.export_woocommerce_categories_id(template.categ_id)
+							cat_id = self.export_woocommerce_categories_id(template.pr_category)
 							categ_list.append({'id':cat_id})
+		# else:	
+		# 	if template.categ_id.channel_category_ids:
+		# 		for category_channel in template.categ_id.channel_category_ids:
+		# 			if category_channel.instance_id.id == self.id:
+		# 				for category in category_channel.extra_category_ids:
+		# 					record = self.env['channel.category.mappings'].search([('odoo_category_id','=',category.id),('channel_id.id','=',self.id)])
+		# 					if record:
+		# 						categ_list.append({'id':record.store_category_id})
+		return categ_list
+
+	def set_woocommerce_product_types(self, template):
+		categ_list = []
+		if template.pr_type:
+			rec  =  self.env['channel.type.mappings'].search([('odoo_type_id','=',template.pr_type.id),('channel_id.id','=',self.id)])
+			if rec:
+				categ_list.append({'id':rec.store_type_id})
+			else:
+				raise UserError('This type did not moved to woocommerce yet')
+		if template.sub_pr_type:
+			rec  =  self.env['channel.type.mappings'].search([('odoo_type_id','=',template.sub_pr_type.id),('channel_id.id','=',self.id)])
+			if rec:
+				categ_list.append({'id':rec.store_type_id})
+			else:
+				raise UserError('This type did not moved to woocommerce yet')
+		# if template.channel_category_ids:
+		# 	for category_channel in template.channel_category_ids:
+		# 		if category_channel.instance_id.id == self.id:
+		# 			for category in category_channel.extra_category_ids:
+		# 				record = self.env['channel.category.mappings'].search([('odoo_category_id','=',category.id),('channel_id.id','=',self.id)])
+		# 				if record:
+		# 					categ_list.append({'id':record.store_category_id})
+		# 				else:
+		# 					cat_id = self.export_woocommerce_categories_id(template.pr_category)
+		# 					categ_list.append({'id':cat_id})
 		# else:	
 		# 	if template.categ_id.channel_category_ids:
 		# 		for category_channel in template.categ_id.channel_category_ids:
@@ -352,13 +474,13 @@ class MultiChannelSale(models.Model):
 		for template in template_records:
 			mapping_record = self.env['channel.template.mappings'].search([('odoo_template_id','=',template.id),('channel_id.id','=',self.id)])
 			if not mapping_record:
-				variable = 0
-				if len(template.product_variant_ids)>1:
-					variable = 1
-				elif len(template.product_variant_ids) == 1:
-					if template.product_variant_ids[0].product_template_attribute_value_ids:
-						variable = 1
-				if variable:
+				# variable = 0
+				# if len(template.product_variant_ids)>1:
+				# 	variable = 1
+				# elif len(template.product_variant_ids) == 1:
+				# 	if template.product_variant_ids[0].product_template_attribute_value_ids:
+				# 		variable = 1
+				if template.pr_brand:
 					count += self.create_woocommerce_variable_product(template, woocommerce)
 				else:
 					count += self.create_woocommerce_simple_product(template, woocommerce)

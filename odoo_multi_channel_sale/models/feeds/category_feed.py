@@ -112,7 +112,7 @@ class CategoryFeed(models.Model):
         else:
             if state == 'done':
                 try:
-                    erp_id = self.env['product.category'].create(vals)
+                    erp_id = self.env['product.categories'].create(vals)
                     create_id = channel_id.create_category_mapping(
                         erp_id, store_id, self.leaf_category
                     )

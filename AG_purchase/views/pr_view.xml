@@ -53,6 +53,7 @@
                     <button name="button_operation_approve" type="object" states="second approve" string="Approve Order" class="oe_highlight" groups="purchase.group_purchase_manager"/>
 
                 </xpath>
+                
                 <xpath expr="//field[@name='partner_id']" position="attributes">
                     <attribute name="domain">[('is_confirm','=',True)]</attribute>
                     <attribute name="options">{'no_create':True}</attribute>
@@ -66,7 +67,9 @@
                 </xpath>
                 <xpath expr="//field[@name='currency_id']" position="after">
                     <field name="currency_rate"  digits="[12,12]" attrs="{'readonly' : [('state', 'not in', ['draft','sent','to approve','second approve'])]}"/>
+                    <field name="currency_value"  />
                     <field name="is_update" readonly="1" invisible="1"/>
+                    
                     
                 </xpath>
             </field>
@@ -79,24 +82,56 @@
             <field name="arch" type="xml">
                 <xpath expr="//header" position="inside"> 
                     <button name="action_approve" type="object" string="Approve" attrs="{'invisible': [('status','!=','approve')]}"  groups="account.group_account_manager"/>
-                    <button name="action_reject" type="object" string="Reject" attrs="{'invisible': [('status','!=','approve')]}" groups="account.group_account_manager"/>
-                    <button name="set_to_draft" type="object" string="Set to Draft" attrs="{'invisible': ['|',('status','!=','reject')]}" />
+                    <button name="action_approve_land" type="object" string="Create Landed Cost" attrs="{'invisible': [('status','!=','land')]}"  groups="stock.group_stock_user"/>
+                    <!-- <button name="action_reject" type="object" string="Reject" attrs="{'invisible': [('status','!=','approve')]}" groups="account.group_account_manager"/> -->
+                    <!-- <button name="set_to_draft" type="object" string="Set to Draft" attrs="{'invisible': ['|',('status','!=','reject')]}" /> -->
                 </xpath>
+                <button name="action_picking_move_tree" position="after">
+                    <button name="action_landed_cost_tree" class="oe_stat_button" icon="fa-signal" type="object" groups="account.group_account_manager" attrs="{'invisible': [ ('land_count', '=', 0)]}">
+                        <div class="o_field_widget o_stat_info"> 
+                            <span class="o_stat_value">
+                                <field name="land_count" widget="statinfo" nolabel="1" class="mr4"/>
+                            </span>
+                            <span class="o_stat_text">Landed Cost</span>
+                        </div>
+                    </button>
+                </button>
                 <xpath expr="//field[@name='state']" position="before"> 
-                    <field name="status" widget="statusbar" statusbar_visible="approve,done,reject"/>
+                    <field name="status" widget="statusbar" statusbar_visible="approve,done"/>
                 </xpath>
                 <xpath expr="//button[@name='button_validate'][1]" position="attributes"> 
-                    <attribute name="attrs">{'invisible': ['|', ('state', 'in', ('waiting','confirmed')),'|',('is_approve','in',[1,2]), ('show_validate', '=', False)]}</attribute>
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'in', ('waiting','confirmed')),'|',('is_approve','in',[1,2,4]), ('show_validate', '=', False)]}</attribute>
                 </xpath>
                 <xpath expr="//button[@name='button_validate'][2]" position="attributes"> 
-                    <attribute name="attrs">{'invisible': ['|', ('state', 'not in', ('waiting', 'confirmed')),'|',('is_approve','in',[1,2]), ('show_validate', '=', False)]}</attribute>
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'not in', ('waiting', 'confirmed')),'|',('is_approve','in',[1,2,4]), ('show_validate', '=', False)]}</attribute>
                 </xpath>
                 <xpath expr="//field[@name='partner_id']" position="after"> 
                     <field name="classification" />
                     <field name="is_approve" invisible="1"/>
                     <field name="currency_rate" digits="[12,12]" invisible="1"/>
                     <field name="currency_id" invisible="1"/>
+                    <field name="land_count" invisible="1"/>
                 </xpath>
+            </field>
+        </record>
+
+
+        <record id="stock_landed_cost_inherits_form" model="ir.ui.view">
+            <field name="name">stock.landed.cost.inherits.form</field>
+            <field name="model">stock.landed.cost</field>
+            <field name="inherit_id" ref="stock_landed_costs.view_stock_landed_cost_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='date']" position="after">
+                    <field name="flag" readonly="1"/>
+                    <field name="pick" invisible="1"/>
+                </xpath>
+                <xpath expr="//button[@name='button_validate']" position="replace">
+                    <button name="button_validate" string="Validate"  attrs="{'invisible': ['|', ('state', 'not in', ['draft']),('flag','=',1)]}" class="oe_highlight" type="object"/>
+                </xpath>
+                <xpath expr="//button[@name='compute_landed_cost']" position="replace">
+                    <button colspan="2" name="compute_landed_cost" string="Compute" type="object" class="oe_right btn-secondary" attrs="{'invisible': ['|', ('state', 'not in', ['draft']),('flag','=',1)]}" />
+                </xpath>
+                
             </field>
         </record>
 

@@ -56,7 +56,9 @@ MAPPINGMODEL = {
 	'product.product' : 'channel.product.mappings',
 	'product.template': 'channel.template.mappings',
 	'res.partner'     : 'channel.partner.mappings',
-	'product.category': 'channel.category.mappings',
+	'product.categories': 'channel.category.mappings',
+	'product.type': 'channel.type.mappings',
+	'product.brand': 'channel.brand.mappings',
 	'sale.order'      : 'channel.order.mappings',
 }
 
@@ -70,6 +72,7 @@ class MultiChannelSale(models.Model):
 	import_product_cron = fields.Boolean("Import Products")
 	import_partner_cron = fields.Boolean("Import Customers")
 	import_category_cron = fields.Boolean("Import Categories")
+	vat_id = fields.Many2one('account.tax',string='VAT %')
 
 	channel_stock_action = fields.Selection([
         ('qoh', 'Quantity on hand'),
@@ -258,9 +261,15 @@ class MultiChannelSale(models.Model):
 		help="""Select the same currency of pricelist used  over e-commerce store/marketplace.""",
 	)
 	default_category_id = fields.Many2one(
-		comodel_name='product.category',
+		comodel_name='product.categories',
 		string='Category',
-		default=lambda self: self.env['product.category'].search([], limit=1),
+		default=lambda self: self.env['product.categories'].search([], limit=1),
+		help="""Default category used as product internal category for imported products.""",
+	)
+	default_type_id = fields.Many2one(
+		comodel_name='product.type',
+		string='Type',
+		default=lambda self: self.env['product.type'].search([], limit=1),
 		help="""Default category used as product internal category for imported products.""",
 	)
 	delivery_product_id = fields.Many2one(
@@ -770,6 +779,23 @@ class MultiChannelSale(models.Model):
 			map_domain += [('odoo_category_id', '=', odoo_category_id)]
 		return self.env['channel.category.mappings'].search(map_domain, limit=limit)
 
+	@api.model
+	def match_type_mappings(self, store_category_id=None,odoo_category_id=None, domain=None, limit=1):
+		map_domain = self.get_channel_domain(domain)
+		if store_category_id:
+			map_domain += [('store_type_id', '=', store_category_id)]
+		if odoo_category_id:
+			map_domain += [('odoo_type_id', '=', odoo_category_id)]
+		return self.env['channel.type.mappings'].search(map_domain, limit=limit)
+
+	@api.model
+	def match_type_mappings(self, store_category_id=None,odoo_category_id=None, domain=None, limit=1):
+		map_domain = self.get_channel_domain(domain)
+		if store_category_id:
+			map_domain += [('store_brand_id', '=', store_category_id)]
+		if odoo_category_id:
+			map_domain += [('odoo_brand_id', '=', odoo_category_id)]
+		return self.env['channel.brand.mappings'].search(map_domain, limit=limit)
 
 	@api.model
 	def match_category_feeds(self, store_id=None,domain=None,limit=1):
@@ -778,6 +804,12 @@ class MultiChannelSale(models.Model):
 			map_domain  += [('store_id', '=', store_id)]
 		return self.env['category.feed'].search(map_domain, limit=limit)
 
+	@api.model
+	def match_type_feeds(self, store_id=None,domain=None,limit=1):
+		map_domain = self.get_channel_domain(domain)
+		if store_id:
+			map_domain  += [('store_id', '=', store_id)]
+		return self.env['type.feed'].search(map_domain, limit=limit)
 
 	@api.model
 	def match_product_feeds(self, store_id=None,domain=None,limit=1):
@@ -825,6 +857,21 @@ class MultiChannelSale(models.Model):
 			vals.update(channel_vals)
 			return self.env['channel.attribute.mappings'].create(vals)
 		return self.env['channel.attribute.mappings']
+
+	@api.model
+	def create_brand_mapping(self, erp_id, store_id,store_attribute_name=''):
+		self.ensure_one()
+		if store_id and store_id not in ['0', -1]:
+			vals = dict(
+				store_brand_id=store_id,
+				# store_brand_name=store_attribute_name,
+				odoo_brand_id=erp_id.id,
+				category_name=erp_id.id,
+			)
+			channel_vals = self.get_channel_vals()
+			vals.update(channel_vals)
+			return self.env['channel.brand.mappings'].create(vals)
+		return self.env['channel.brand.mappings']
 
 	@api.model
 	def create_attribute_value_mapping(self, erp_id, store_id,store_attribute_value_name=''):
@@ -1101,6 +1148,21 @@ class MultiChannelSale(models.Model):
 			message = message
 		)
 
+	# def sync_type_feeds(self, vals, **kwargs):
+    # 	self.ensure_one()
+	# 	channel_vals = kwargs.get('channel_vals') or self.get_channel_vals()
+	# 	res= self.create_model_objects('type.feed', vals, extra_val = channel_vals)
+	# 	message = res.get('message','')
+	# 	data = res.get('data')
+	# 	if data:
+	# 		for data_item in data:
+	# 			import_res = data_item.import_type(self)
+	# 			message += import_res.get('message', '')
+	# 	return dict(
+	# 		message = message
+	# 	)
+
+
 	def sync_product_feeds(self, vals, **kwargs):
 		self.ensure_one()
 		channel_vals = kwargs.get('channel_vals') or self.get_channel_vals()
@@ -1204,6 +1266,34 @@ class MultiChannelSale(models.Model):
 		return channel_id.match_category_mappings(domain=domain,limit=limit).mapped('store_category_id')
 
 	@api.model
+	def get_channel_type_id(self,template_id,channel_id,limit=1):
+		mapping_obj = self.env['channel.type.mappings']
+		channel_category_ids = (template_id.channel_type_ids or
+		template_id.type_id.channel_type_ids)
+		channel_categ = channel_category_ids.filtered(
+			lambda cat:cat.instance_id==channel_id
+		)
+		extra_category_ids = channel_categ.mapped('extra_type_ids')
+		domain = []
+		if extra_category_ids:
+			domain = [('odoo_type_id', 'in',extra_category_ids.ids)]
+		return channel_id.match_category_mappings(domain=domain,limit=limit).mapped('store_type_id')
+
+	@api.model
+	def get_channel_brand_id(self,template_id,channel_id,limit=1):
+		mapping_obj = self.env['channel.brand.mappings']
+		channel_category_ids = (template_id.channel_brand_ids or
+		template_id.brand_id.channel_brand_ids)
+		channel_categ = channel_category_ids.filtered(
+			lambda cat:cat.instance_id==channel_id
+		)
+		extra_category_ids = channel_categ.mapped('extra_brand_ids')
+		domain = []
+		if extra_category_ids:
+			domain = [('odoo_brand_id', 'in',extra_category_ids.ids)]
+		return channel_id.match_category_mappings(domain=domain,limit=limit).mapped('store_brand_id')
+
+	@api.model
 	def set_order_by_status(self,channel_id,store_id,
 			status,order_state_ids,default_order_state,
 			payment_method = None):
@@ -1237,7 +1327,8 @@ class MultiChannelSale(models.Model):
 
 	@api.model
 	def cron_feed_evaluation(self):
-		for object_model in  ["product.feed","order.feed","category.feed","partner.feed"]:
+		for object_model in  ["product.feed","order.feed","partner.feed"]:
+    		# for object_model in  ["product.feed","order.feed","category.feed","partner.feed"]:
 			records = self.env[object_model].search([
 				("state","!=","done"),
 				("channel_id.state","=","validate")

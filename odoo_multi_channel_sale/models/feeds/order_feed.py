@@ -26,6 +26,8 @@ OrderFields = [
 	'line_ids',
 	'line_name',
 	'line_price_unit',
+	'line_discount',
+	'line_discount_type',
 	'line_product_id',
 	'line_product_default_code',
 	'line_product_barcode',
@@ -97,7 +99,7 @@ class OrderFeed(models.Model):
 		string    = 'Line Type',
 	)
 	line_ids = fields.One2many('order.line.feed','order_feed_id',string='Line Ids')
-
+	discount_type = []
 	@api.model
 	def _create_feeds(self,order_data_list):
 		success_ids,error_ids = [],[]
@@ -139,7 +141,7 @@ class OrderFeed(models.Model):
 			)
 		else:
 			return feed
-
+	
 	@api.model
 	def _get_order_line_vals(self,vals,carrier_id,channel_id):
 		message = ''
@@ -148,8 +150,15 @@ class OrderFeed(models.Model):
 		line_ids = vals.pop('line_ids')
 		line_name = vals.pop('line_name')
 		line_price_unit = vals.pop('line_price_unit')
+		line_discount = vals.pop('line_discount')
+		line_discount_type = vals.pop('line_discount_type')
+		dis_type = []
+		for type in line_discount_type:
+			dis_type.append(type.id)
 		if line_price_unit:
 			line_price_unit = parse_float(line_price_unit)
+		if line_discount:
+			line_discount = parse_float(line_discount)
 		line_product_id = vals.pop('line_product_id')
 		line_variant_ids = vals.pop('line_variant_ids')
 		line_product_uom_qty = vals.pop('line_product_uom_qty')
@@ -162,6 +171,13 @@ class OrderFeed(models.Model):
 				line_price_unit = line_id.line_price_unit
 				if line_price_unit:
 					line_price_unit = parse_float(line_price_unit)
+				line_discount = line_id.line_discount
+				if line_discount:
+					line_discount = parse_float(line_discount)
+				dis_type = []
+				line_discount_type = line_id.line_discount_type
+				for type in line_discount_type:
+					dis_type.append(type.id)
 				if line_id.line_source =='delivery':
 					product_id = carrier_id.product_id
 				elif line_id.line_source =='discount':
@@ -188,13 +204,16 @@ class OrderFeed(models.Model):
 					line = dict(
 						name=line_id.line_name,
 						price_unit=line_price_unit,
+						discount_value=line_discount,
+						discount_type=[(6, None, dis_type)],
 						product_id=product_id.id,
 						customer_lead=product_id.sale_delay,
 						product_uom_qty=line_id.line_product_uom_qty,
 						is_delivery = line_id.line_source =='delivery',
 						product_uom=product_uom_id,
 					)
-					line['tax_id'] = self.get_taxes_ids(line_id.line_taxes,channel_id)
+					# line['tax_id'] = self.get_taxes_ids(line_id.line_taxes,channel_id)
+					line['tax_id'] = [(6, None, [channel_id.vat_id.id])]
 					####ADD TAX
 					lines += [(0,0,line)]
 				else:
@@ -215,19 +234,23 @@ class OrderFeed(models.Model):
 				line = dict(
 					name=line_name or '',
 					price_unit=(line_price_unit),
+					discount_value=line_discount,
+					discount_type=[(6, None, dis_type)],
 					product_id=product_id.id,
 					customer_lead=product_id.sale_delay,
 					is_delivery = line_source =='delivery',
 					product_uom_qty=(line_product_uom_qty),
 					product_uom=product_id.uom_id.id,
 				)
-				line['tax_id'] = self.get_taxes_ids(line_taxes,channel_id)
+				# line['tax_id'] = self.get_taxes_ids(line_taxes,channel_id)
+				line['tax_id'] = [(6, None, [channel_id.vat_id.id])]
 				####ADD TAX
 				lines += [(0,0,line)]
 			else:
 				_logger.error("OrderLineError2 %r"%product_res)
 				message += product_res.get('message')
 				status=False
+		discount_type = dis_type
 		return dict(
 			message=message,
 			order_line=lines,
@@ -419,6 +442,11 @@ class OrderFeed(models.Model):
 				try:
 					order_state = vals.pop('order_state')
 					erp_id = self.env['sale.order'].create(vals)
+					for i in erp_id:
+						for ty in i.order_line:
+							for type in ty.discount_type:
+								res = self.env['discount.type'].browse(type.id)
+								res.write({'order_id':i.id,'product_id':ty.product_id.id})
 					message += self.env['multi.channel.skeleton']._SetOdooOrderState(erp_id,channel_id,order_state,self.payment_method,date_invoice=date_invoice,confirmation_date=confirmation_date)
 					message  += '<br/> Order %s successfully evaluated'%(self.store_id)
 					create_id =  channel_id.create_order_mapping(erp_id,store_id,store_source)

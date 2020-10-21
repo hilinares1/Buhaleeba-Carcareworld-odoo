@@ -22,6 +22,8 @@
 							</group>
 							<group>
 								<field name="line_price_unit"/>
+								<field name="line_discount"/>
+								<field name="line_discount_type" widget="many2many_tags"/>
 								<field name="line_product_id"/>
 								<field name="line_product_default_code"/>
 								<field name='line_variant_ids'/>
@@ -42,6 +44,8 @@
 					<field name="line_name"/>
 					<field name="line_product_uom_qty"/>
 					<field name="line_price_unit"/>
+					<field name="line_discount"/>
+					<field name="line_discount_type" widget="many2many_tags"/>
 					<field name="line_product_id"/>
 					<field name="line_product_default_code"/>
 					<field name="line_source"/>

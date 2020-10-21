@@ -18,7 +18,7 @@ class ImportOperation(models.TransientModel):
 	object = fields.Selection(selection=[
 		('product.template', 'Product'),
 		('sale.order', 'Order'),
-		('product.category', 'Category'),
+		('product.categories', 'Category'),
 		('res.partner', 'Customer'),
 		('delivery.carrier', 'Shipping Method'),
 	])

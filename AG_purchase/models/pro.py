@@ -32,6 +32,25 @@ class PurchaseOrder(models.Model):
     ], string='Status', readonly=True, index=True, copy=False, default='draft', tracking=True)
     currency_rate = fields.Float('Rate')
     is_update = fields.Integer('Is Updated')
+    rfq_name = fields.Char('Rfq Reference', required=True, select=True, copy=False,
+                            help="Unique number of the purchase order, "
+                                 "computed automatically when the purchase order is created.")
+    interchanging_rfq_sequence = fields.Char('Sequence', copy=False)
+    interchanging_po_sequence = fields.Char('Sequence', copy=False)
+    currency_value = fields.Float('Cuurency after rate',compute="_get_curreny_value")
+
+    @api.depends('currency_rate')
+    def _get_curreny_value(self):
+        for rec in self:
+            rec.currency_value = abs(rec.amount_total) * (1/rec.currency_rate)
+
+    @api.model
+    def create(self, vals):
+        if vals.get('name','New') == 'New':
+            name = self.env['ir.sequence'].next_by_code('purchase.order.quot') or 'New'
+            vals['rfq_name'] = vals['name'] = name
+            
+        return super(PurchaseOrder, self).create(vals)
 
     @api.model
     def _prepare_picking(self):
@@ -70,10 +89,18 @@ class PurchaseOrder(models.Model):
         result['context']['default_is_purchase'] = 1
         return result
 
+    def button_draft(self):
+        res = super(PurchaseOrder, self).button_draft()
+        if self.interchanging_rfq_sequence:
+            self.write({'interchanging_po_sequence':self.name})
+            self.write({'name':self.interchanging_rfq_sequence})
+        
+        return res
+
     def button_confirm(self):
         for order in self:
-            orderdate = "%s" %(self.date_order)
-            if dateutil.parser.parse(orderdate).date() <= self.company_id.fiscalyear_lock_date:
+            orderdate = "%s" %(order.date_order)
+            if dateutil.parser.parse(orderdate).date() <= order.company_id.fiscalyear_lock_date:
                 lock_date = self.company_id.fiscalyear_lock_date
                 if self.user_has_groups('account.group_account_manager'):
                     message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s.") % format_date(self.env, lock_date)
@@ -92,6 +119,17 @@ class PurchaseOrder(models.Model):
                 order.write({'state': 'to approve'})
             else:
                 order.write({'state': 'second approve'})
+
+            if order.interchanging_rfq_sequence:
+                order.write({'name': order.interchanging_po_sequence})
+            else:
+                new_name = self.env['ir.sequence'].next_by_code('purchase.order') or '/'
+                order.write({'interchanging_rfq_sequence':order.name})
+                order.write({'name': new_name})
+            order.picking_ids.write({'origin': order.interchanging_po_sequence})
+            if order.picking_ids:
+                for pick in order.picking_ids:
+                    pick.move_lines.write({'origin': order.interchanging_po_sequence})
         return True
 
     def button_operation_approve(self):
@@ -238,6 +276,7 @@ class StockPicking(models.Model):
     classification = fields.Selection(related="partner_id.classification",store=True,string='Classification', copy=False)
     is_approve = fields.Integer('Is approve',compute='_is_approve',store=True)
     status = fields.Selection([
+        ('land', 'Create Landed cost'),
         ('approve', 'In Approval'),
         ('no', 'No Approval Needed'),
         ('done', 'Done'),
@@ -246,7 +285,15 @@ class StockPicking(models.Model):
         copy=False, index=True, readonly=True, store=True, tracking=True,)
     currency_rate = fields.Float('Currency Rate')
     currency_id = fields.Many2one('res.currency',string="Currency")
+    land_count = fields.Float('Land Count',compute="_land_count")
 
+    def _land_count(self):
+        for each in self:
+            land = self.env['stock.landed.cost'].search([('picking_ids','in',self.id)])
+            if land:
+                each.land_count = len(land)
+            else:
+                each.land_count = 0
 
     def button_validate(self):
         res = super(StockPicking,self).button_validate()
@@ -270,12 +317,12 @@ class StockPicking(models.Model):
                     if rec.classification == 'local vendor':
                         rec.is_approve = 0
                     else:
-                        rec.is_approve = 1
+                        rec.is_approve = 4
     
     @api.depends('is_approve')
     def _get_status(self):
         for rec in self:
-            if rec.picking_type_id.id == 1:
+            if rec.picking_type_id.id == 1 and rec.partner_id:
                 if rec.state == 'cancel':
                     rec.status = 'no'
                     rec.is_approve = False
@@ -287,6 +334,8 @@ class StockPicking(models.Model):
                     rec.status = 'reject'
                 if rec.is_approve == 3:
                     rec.status = 'done'
+                if rec.is_approve == 4:
+                    rec.status = 'land'
                 
             else:
                 rec.status = 'no'
@@ -313,43 +362,55 @@ class StockPicking(models.Model):
     #            return res
 
 
-    # def write(self,vals):
-    #     super(StockPicking, self).write(vals)
-    #     if self.picking_type_id.id == 1:
-    #         if self.state == 'done':
-    #            self.view_landed_cost()
-        # return temp
+    def write(self,vals):
+        result = super(StockPicking, self).write(vals)
+        for res in self:
+            if res.picking_type_id.id == 1 and res.classification == 'overseas':
+                # raise UserError(vals.get('state'))
+                if res.state == 'done':
+                    land = self.env['stock.landed.cost'].search([('picking_ids','in',self.id)])
+                    # raise UserError('test')
+                    land.button_validate()
+        return result
 
     def action_approve(self):
         # res = self.button_validate()
         self.write({'is_approve':3})
+
+    def action_approve_land(self):
+        # res = self.button_validate()
+        self.write({'is_approve':4})
         # self.env['stock.landed.cost'].create({'picking_ids':[(6,0, [self.id])]})
         # res = self.view_landed_cost()
         return {
         #'name': self.order_id,
         'res_model': 'stock.landed.cost',
         'type': 'ir.actions.act_window',
-        'context': {'default_picking_ids':[(6,0, [self.id])]},
+        'context': {'default_picking_ids':[(6,0, [self.id])],'default_flag':1,'default_pick':self.id},
         'view_mode': 'form',
         'view_type': 'form',
         'view_id': self.env.ref("stock_landed_costs.view_stock_landed_cost_form").id,
         'target': 'new'
     }
-    #     return {
-    #     #'name': self.order_id,
-    #     'res_model': 'landed.cost.generator',
-    #     'type': 'ir.actions.act_window',
-    #     'context': dict(self._context, active_ids=self.ids),
-    #     'view_mode': 'form',
-    #     'view_type': 'form',
-    #     'view_id': self.env.ref("AG_purchase.Land_cost_generator_view_form").id,
-    #     'target': 'new',
-    #     # 'res_id': self.id,
-    # } 
 
-    
-
-    
+    def action_landed_cost_tree(self):
+        self.ensure_one()
+        domain = [
+            ('picking_ids','in',self.id)]
+        return {
+            'name': _('Landed Cost'),
+            'domain': domain,
+            'res_model': 'stock.landed.cost',
+            'type': 'ir.actions.act_window',
+            'view_id': False,
+            'view_mode': 'tree,form',
+            'view_type': 'form',
+            'help': _('''<p class="oe_view_nocontent_create">
+                           Click to Create for New Landed Cost
+                        </p>'''),
+            'limit': 80,
+            'context': {'default_picking_ids':[(6,0, [self.id])],'default_flag':1,'default_pick':self.id},
+        }
 
     def set_to_draft(self):
         self.write({'is_approve':False})
@@ -360,75 +421,46 @@ class StockPicking(models.Model):
 class StockLandCost(models.Model):
     _inherit = "stock.landed.cost"
 
+    flag = fields.Integer('Falg',default=0)
+    pick = fields.Many2one('stock.picking',string="picking")
 
-    def button_validate(self):
-        if any(cost.state != 'draft' for cost in self):
-            raise UserError(_('Only draft landed costs can be validated'))
-        if not all(cost.picking_ids for cost in self):
-            raise UserError(_('Please define the transfers on which those additional costs should apply.'))
-        cost_without_adjusment_lines = self.filtered(lambda c: not c.valuation_adjustment_lines)
-        if cost_without_adjusment_lines:
-            cost_without_adjusment_lines.compute_landed_cost()
-        if not self._check_sum():
-            raise UserError(_('Cost and adjustments lines do not match. You should maybe recompute the landed costs.'))
 
-        for cost in self:
-            for pick in cost.picking_ids:
-                pick.button_validate()
-            move = self.env['account.move']
-            move_vals = {
-                'journal_id': cost.account_journal_id.id,
-                'date': cost.date,
-                'ref': cost.name,
-                'line_ids': [],
-                'type': 'entry',
-            }
-            valuation_layer_ids = []
-            for line in cost.valuation_adjustment_lines.filtered(lambda line: line.move_id):
-                remaining_qty = sum(line.move_id.stock_valuation_layer_ids.mapped('remaining_qty'))
-                linked_layer = line.move_id.stock_valuation_layer_ids[:1]
+    # @api.onchange('name')
+    # def _change_name(self):
+    #     for rec in self:
+    #         if rec.flag == 1:
+    #             # raise UserError('dddd')
+    #             land = self.env['stock.picking'].search([('id','in',rec.picking_ids.ids)])
+    #             land.write({'is_approve':3})
 
-                # Prorate the value at what's still in stock
-                cost_to_add = (remaining_qty / line.move_id.product_qty) * line.additional_landed_cost
-                if not cost.company_id.currency_id.is_zero(cost_to_add):
-                    valuation_layer = self.env['stock.valuation.layer'].create({
-                        'value': cost_to_add,
-                        'unit_cost': 0,
-                        'quantity': 0,
-                        'remaining_qty': 0,
-                        'stock_valuation_layer_id': linked_layer.id,
-                        'description': cost.name,
-                        'stock_move_id': line.move_id.id,
-                        'product_id': line.move_id.product_id.id,
-                        'stock_landed_cost_id': cost.id,
-                        'company_id': cost.company_id.id,
-                    })
-                    linked_layer.remaining_value += cost_to_add
-                    valuation_layer_ids.append(valuation_layer.id)
-                # Update the AVCO
-                product = line.move_id.product_id
-                if product.cost_method == 'average' and not float_is_zero(product.quantity_svl, precision_rounding=product.uom_id.rounding):
-                    product.with_context(force_company=self.company_id.id).sudo().standard_price += cost_to_add / product.quantity_svl
-                # `remaining_qty` is negative if the move is out and delivered proudcts that were not
-                # in stock.
-                qty_out = 0
-                if line.move_id._is_in():
-                    qty_out = line.move_id.product_qty - remaining_qty
-                elif line.move_id._is_out():
-                    qty_out = line.move_id.product_qty
-                move_vals['line_ids'] += line._create_accounting_entries(move, qty_out)
+    @api.model
+    def create(self, vals):
+        res = super(StockLandCost, self).create(vals)
+        if res.flag == 1:
+            # raise UserError(self.picking_ids)
+            land = self.env['stock.picking'].search([('id','=',res.pick.id)])
+            # raise UserError(land)
+            land.write({'is_approve':1})
+        else:
+            land = self.env['stock.picking'].search([('id','=',res.pick.id)])
+            # raise UserError(land)
+            if land:
+                land.write({'is_approve':4})
+        return res
 
-            move_vals['stock_valuation_layer_ids'] = [(6, None, valuation_layer_ids)]
-            move = move.create(move_vals)
-            cost.write({'state': 'done', 'account_move_id': move.id})
-            move.post()
+    # @api.model
+    # def create(self, vals):
+    #     if vals.get('name', _('New')) == _('New'):
+    #         vals['name'] = self.env['ir.sequence'].next_by_code('stock.landed.cost')
 
-            if cost.vendor_bill_id and cost.vendor_bill_id.state == 'posted' and cost.company_id.anglo_saxon_accounting:
-                all_amls = cost.vendor_bill_id.line_ids | cost.account_move_id.line_ids
-                for product in cost.cost_lines.product_id:
-                    accounts = product.product_tmpl_id.get_product_accounts()
-                    input_account = accounts['stock_input']
-                    all_amls.filtered(lambda aml: aml.account_id == input_account and not aml.full_reconcile_id).reconcile()
-        return True
+    #     if vals.get('flag') == 1:
+    #         # raise UserError(self.picking_ids)
+    #         land = self.env['stock.picking'].search([('id','=',vals.get('pick'))])
+    #         raise UserError(land)
+    #         land.write({'is_approve':3})
+    #     return super(StockLandCost, self).create(vals)
+
+
+
     
 

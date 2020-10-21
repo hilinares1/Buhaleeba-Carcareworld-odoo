@@ -26,6 +26,16 @@ MappingModelData=dict(
 		mapped_name='category_name',
 		mapped_id='odoo_category_id'
 	),
+	type=dict(
+		model='channel.type.mappings',
+		mapped_name='category_name',
+		mapped_id='odoo_type_id'
+	),
+	brand=dict(
+		model='channel.brand.mappings',
+		mapped_name='category_name',
+		mapped_id='odoo_brand_id'
+	),
 	attribute=dict(
 		model='channel.attribute.mappings',
 		mapped_name='attribute_name',

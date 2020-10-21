@@ -25,8 +25,17 @@
 		<act_window
 			id           ="export_odoo_products_category"
 			name         ="Export/Update Categories"
-			binding_model="product.category"
+			binding_model="product.categories"
 			res_model    ="export.categories"
+			view_mode    ="form"
+			target       ="new"
+		/>
+
+		<act_window
+			id           ="export_odoo_products_type"
+			name         ="Export/Update Types"
+			binding_model="product.type"
+			res_model    ="export.type"
 			view_mode    ="form"
 			target       ="new"
 		/>

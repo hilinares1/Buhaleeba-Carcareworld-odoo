@@ -193,6 +193,15 @@
 											attrs="{'readonly':[('state','=','done')]}"
 										/>
 										<field
+											name ="line_discount"
+											attrs="{'readonly':[('state','=','done')]}"
+										/>
+										<field
+											name ="line_discount_type"
+											widget="many2many_tags"
+											attrs="{'readonly':[('state','=','done')]}"
+										/>
+										<field
 											name ="line_product_id"
 											attrs="{'readonly':[('state','=','done')]}"
 										/>
