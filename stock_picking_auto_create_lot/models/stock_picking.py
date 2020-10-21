@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 from odoo import fields, models
 from odoo.exceptions import except_orm, ValidationError ,UserError
+from datetime import datetime, timedelta , date
 
 class StockPickingType(models.Model):
     _inherit = "stock.picking.type"
@@ -29,9 +30,10 @@ class StockPicking(models.Model):
                     and x.product_id.auto_create_lot
                 )
             ):
+                name = str(self.origin) + "-%s"%(date.today())
                 if i == 1:
                     lot = self.env["stock.production.lot"].create(
-                        {"product_id": line.product_id.id, "company_id": line.company_id.id}
+                        {"name":name,"product_id": line.product_id.id, "company_id": line.company_id.id}
                     )
                     line.lot_id = lot.id
                 else:

@@ -82,6 +82,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//header" position="inside"> 
                     <button name="action_approve" type="object" string="Approve" attrs="{'invisible': [('status','!=','approve')]}"  groups="account.group_account_manager"/>
+                    <button name="action_approve_land" type="object" string="Create Landed Cost" attrs="{'invisible': [('status','!=','land')]}"  groups="stock.group_stock_user"/>
                     <!-- <button name="action_reject" type="object" string="Reject" attrs="{'invisible': [('status','!=','approve')]}" groups="account.group_account_manager"/> -->
                     <!-- <button name="set_to_draft" type="object" string="Set to Draft" attrs="{'invisible': ['|',('status','!=','reject')]}" /> -->
                 </xpath>
@@ -99,10 +100,10 @@
                     <field name="status" widget="statusbar" statusbar_visible="approve,done"/>
                 </xpath>
                 <xpath expr="//button[@name='button_validate'][1]" position="attributes"> 
-                    <attribute name="attrs">{'invisible': ['|', ('state', 'in', ('waiting','confirmed')),'|',('is_approve','in',[1,2]), ('show_validate', '=', False)]}</attribute>
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'in', ('waiting','confirmed')),'|',('is_approve','in',[1,2,4]), ('show_validate', '=', False)]}</attribute>
                 </xpath>
                 <xpath expr="//button[@name='button_validate'][2]" position="attributes"> 
-                    <attribute name="attrs">{'invisible': ['|', ('state', 'not in', ('waiting', 'confirmed')),'|',('is_approve','in',[1,2]), ('show_validate', '=', False)]}</attribute>
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'not in', ('waiting', 'confirmed')),'|',('is_approve','in',[1,2,4]), ('show_validate', '=', False)]}</attribute>
                 </xpath>
                 <xpath expr="//field[@name='partner_id']" position="after"> 
                     <field name="classification" />
