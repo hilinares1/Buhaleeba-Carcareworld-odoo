@@ -350,8 +350,8 @@ class MultiChannelSale(models.Model):
 						'stock_quantity'	: quantity,
 						'in_stock'			: True,
 			}
-			if template.image_1920:
-				product_dict['images'] = self.create_woocommerce_product_image(template)
+			# if template.image_1920:
+			# 	product_dict['images'] = self.create_woocommerce_product_image(template)
 			if template.length or template.width or template.height:
 				dimensions = {
 								u'width': str(template.width)  or "", 
