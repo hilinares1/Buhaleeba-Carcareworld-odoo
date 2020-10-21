@@ -29,7 +29,7 @@
 
                 </h2>
 
-                <div t-if="o.type == 'out_invoice' and o.state == 'posted'" style="margin-left : 20%;" >
+                <div t-if="o.type == 'out_invoice' and o.state == 'posted'" style="margin-left : 23%;" >
                     <strong>Sales Person:</strong>
                     <span t-esc="o.invoice_user_id.name"/>
                 </div>
@@ -46,11 +46,11 @@
             <span t-field="o.partner_id.country_id"/><br></br>
             <span t-field="o.partner_id.phone"/><br></br>      
             <span t-field="o.partner_id.email"/><br></br>
-            <span>VAT:<span t-field="o.partner_id.vat"/></span><br></br>
+            <!-- <span t-if="o.partner_id.vat">VAT:<span t-field="o.partner_id.vat"/></span><br></br> -->
             <span t-field="o.partner_id.website"/><br></br>
              <div t-if="o.partner_id.vat" class="mt16">
                         <t t-if="o.company_id.country_id.vat_label" t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
-                        <t t-else="">Tax ID</t>: <span t-field="o.partner_id.vat"/></div>
+                        <t t-else="">VAT</t>: <span t-field="o.partner_id.vat"/></div>
             <!-- <span t-field="o.partner_id.address"/> -->
             <br></br>
             <br></br>

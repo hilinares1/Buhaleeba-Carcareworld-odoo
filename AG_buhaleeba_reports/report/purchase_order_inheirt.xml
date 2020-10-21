@@ -26,9 +26,12 @@
                 <span t-field="o.partner_id.street"/><br></br>
                 <span t-field="o.partner_id.city"/><br></br>
                 <span t-field="o.partner_id.country_id"/><br></br>
-                <span t-field="o.partner_id.phone"/><br></br>      
+                <span t-field="o.partner_id.phone"/><br></br> 
+                <div t-if="o.partner_id.vat" class="mt16">
+                        <t t-if="o.company_id.country_id.vat_label" t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
+                        <t t-else="">VAT</t>: <span t-field="o.partner_id.vat"/></div>     
                 
-                <span>VAT:<span t-field="o.partner_id.vat"/></span><br></br>
+                <!-- <span>VAT:<span t-field="o.partner_id.vat"/></span><br></br> -->
 
                 <span>Payment Terms:<span t-field="o.payment_term_id"/></span><br></br>
                 <!-- <span>Payment Method:<span t-field="o.payment_term_id"/></span><br></br> -->
@@ -42,10 +45,10 @@
 
             <div style="width: 60%; float: right;">
 
-                <h2 t-if="o.state == 'draft'">Request for Quotation #<span t-field="o.name"/></h2>
-                <h2 t-if="o.state in ['sent', 'to approve']">Purchase Order #<span t-field="o.name"/></h2>
-                <h2 t-if="o.state in ['purchase', 'done']">Purchase Order #<span t-field="o.name"/></h2>
-                <h2 t-if="o.state == 'cancel'">Cancelled Purchase Order #<span t-field="o.name"/></h2>
+                <h2 class="text-nowrap" t-if="o.state == 'draft'">Request for Quotation #<span t-field="o.name"/></h2>
+                <h2 class="text-nowrap" t-if="o.state in ['sent', 'to approve']">Purchase Order #<span t-field="o.name"/></h2>
+                <h2 class="text-nowrap" t-if="o.state in ['purchase', 'done']">Purchase Order #<span t-field="o.name"/></h2>
+                <h2 class="text-nowrap" t-if="o.state == 'cancel'">Cancelled Purchase Order #<span t-field="o.name"/></h2>
 
                 
             </div>
@@ -61,8 +64,8 @@
         <br/><br/>
         <br/><br/>
         <div style="width: 60%; float: right; ">
-        <span class="text-nowrap" style="margin-left: 35%;"> Requisition Ref No : </span> <span t-field="o.name"/><br/><br/>
-        <span class="text-nowrap" style="margin-left: 35%;"> Date Req : </span> <span t-field="o.name"/> <br/><br/>
+        <span class="text-nowrap text-right" style="margin-left: 60%;" > Requisition Ref No : </span> <span t-field="o.requisition_mat_po_id.id"/><br/><br/>
+        <span class="text-nowrap text-right" style="margin-left: 60%;"> Date Req : </span> <span t-field="o.requisition_mat_po_id.requisition_date"/> <br/><br/>
 
         </div>
 
@@ -197,7 +200,7 @@
                             <tr>
                                 <td name="td_taxes_label">Taxable Values in EURO</td>
                                 <td class="text-right">
-                                    <span t-field="o.amount_tax"
+                                    <span t-field="o.amount_untaxed"
                                         t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                 </td>
                             </tr>
@@ -211,21 +214,21 @@
                             <tr>
                                 <td name="td_taxes_label">Taxable Values in AED</td>
                                 <td class="text-right">
-                                    <span t-field="o.tax_rate_value"
+                                    <span t-field="o.currency_value_untaxed"
                                         t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                 </td>
                             </tr>
                             <tr>
                                 <td name="td_taxes_label">VTA Charge in AED</td>
                                 <td class="text-right">
-                                    <span t-field="o.amount_tax"
+                                    <span t-field="o.tax_rate_value"
                                         t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                 </td>
                             </tr>
                             <tr class="border-black o_total">
                                 <td name="td_amount_total_label"><strong>Total in AED</strong></td>
                                 <td class="text-right">
-                                    <span t-field="o.currency_value"
+                                    <span t-field="o.amount_total"
                                         t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                 </td>
                             </tr>
@@ -257,13 +260,13 @@
                                 </td>
                             </tr>
 
-                            <tr>
+                            <!-- <tr>
                                 <td name="td_taxes_label">Taxable Values in AED</td>
                                 <td class="text-right">
-                                    <span t-field="o.tax_rate_value"
+                                    <span t-field="o.currency_value_untaxed"
                                         t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                 </td>
-                            </tr>
+                            </tr> -->
 
                             <tr>
                                 <td name="td_taxes_label">AED Exchange Rate</td>
@@ -276,7 +279,7 @@
                             <tr>
                                 <td name="td_taxes_label">Taxable Values in AED</td>
                                 <td class="text-right">
-                                    <span t-field="o.tax_rate_value"
+                                    <span t-field="o.currency_value_untaxed"
                                         t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                 </td>
                             </tr>
@@ -303,138 +306,7 @@
 
 
         </xpath>
-        <!-- <xpath expr="//div[@class='row justify-content-end']" position="replace">
-
-            <div t-if="o.partner_id.classification == overseas">   
-          
-                <div id="total" class="row justify-content-end">
-                    <div class="col-4">
-                        <table class="table table-sm">
-                            <tr class="border-black">
-                                <td name="td_subtotal_label"><strong>Gross Total</strong></td>
-                                <td class="text-right">
-                                    <span t-field="o.amount_untaxed"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td name="td_taxes_label">Discount Amount</td>
-                                <td class="text-right">
-                                    <span t-field="o.amount_discount"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td name="td_taxes_label">Taxable Values in EURO</td>
-                                <td class="text-right">
-                                    <span t-field="o.amount_tax"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td name="td_taxes_label">EURO Exchange Rate</td>
-                                <td class="text-right">
-                                    <span t-field="o.currency_rate"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td name="td_taxes_label">Taxable Values in AED</td>
-                                <td class="text-right">
-                                    <span t-field="o.tax_rate_value"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td name="td_taxes_label">VTA Charge in AED</td>
-                                <td class="text-right">
-                                    <span t-field="o.amount_tax"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-                            <tr class="border-black o_total">
-                                <td name="td_amount_total_label"><strong>Total in AED</strong></td>
-                                <td class="text-right">
-                                    <span t-field="o.currency_value"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-
-            </div>
-
-
-            <div t-alse="">   
-          
-                <div id="total" class="row justify-content-end">
-                    <div class="col-4">
-                        <table class="table table-sm">
-                            <tr class="border-black">
-                                <td name="td_subtotal_label"><strong>Gross Total</strong></td>
-                                <td class="text-right">
-                                    <span t-field="o.amount_untaxed"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td name="td_taxes_label">Discount Amount</td>
-                                <td class="text-right">
-                                    <span t-field="o.amount_discount"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td name="td_taxes_label">Taxable Values in AED</td>
-                                <td class="text-right">
-                                    <span t-field="o.tax_rate_value"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td name="td_taxes_label">AED Exchange Rate</td>
-                                <td class="text-right">
-                                    <span t-field="o.currency_rate"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td name="td_taxes_label">55555</td>
-                                <td class="text-right">
-                                    <span t-field="o.amount_tax"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td name="td_taxes_label">VTA Charge in AED</td>
-                                <td class="text-right">
-                                    <span t-field="o.amount_tax"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-                            <tr class="border-black o_total">
-                                <td name="td_amount_total_label"><strong>Total in AED</strong></td>
-                                <td class="text-right">
-                                    <span t-field="o.amount_total"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-
-            </div>
-
-
-
-        </xpath> -->
+      
 
 
         <xpath expr="//div[@class='page']" position="after">
