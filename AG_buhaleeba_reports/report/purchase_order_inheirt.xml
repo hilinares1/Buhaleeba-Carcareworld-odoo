@@ -193,7 +193,7 @@
                             <tr>
                                 <td name="td_taxes_label">Discount Amount</td>
                                 <td class="text-right">
-                                    <span t-field="o.amount_discount"
+                                    <span t-field="o.total_discount"
                                         t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                 </td>
                             </tr>
@@ -255,7 +255,7 @@
                             <tr>
                                 <td name="td_taxes_label">Discount Amount</td>
                                 <td class="text-right">
-                                    <span t-field="o.amount_discount"
+                                    <span t-field="o.total_discount"
                                         t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                 </td>
                             </tr>

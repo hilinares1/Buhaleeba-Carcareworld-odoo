@@ -29,8 +29,8 @@
                 <br/>
                 <br/>
                 <div style="margin-left : 5%">
-                    <div class="text-nowrap"><strong>Payment Terms:</strong><p t-field="o.sale_id.payment_term_id"/></div>
-                    <div class="text-nowrap"><strong>Delivery Mothod:</strong><p t-field="o.sale_id.picking_policy"/></div>
+                    <div class="text-nowrap"><strong class="text-nowrap">Payment Terms:</strong><p t-field="o.sale_id.payment_term_id"/></div>
+                    <div class="text-nowrap"><strong class="text-nowrap">Delivery Mothod:</strong><p t-field="o.sale_id.picking_policy"/></div>
                 </div>
             </div>
 
@@ -166,6 +166,7 @@
         <xpath expr="//table[@class='table table-sm mt48']" position="after">
         
             <div style="margin-left : 70%">
+                <br/>
                 <strong>Reciever Name:</strong><br></br>
                 <br></br>
                
@@ -205,7 +206,8 @@
 
             <div>
                 <span style="margin : 5px">Order Printer By:  <span t-field="user.name"/></span>
-                 <br></br>
+                  <br/>
+                <br/>
                 <span style="margin : 5px">Order Printed Time: <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/> </span>
                 
             </div>
