@@ -31,6 +31,14 @@ class account_payment(models.Model):
                                  help='Effective date of PDC', copy=False,
                                  default=False)
     state = fields.Selection([('draft', 'Draft'), ('posted', 'Validated'),('release', 'Released'),('reverse', 'Reversed'), ('sent', 'Sent'), ('reconciled', 'Reconciled'), ('cancelled', 'Cancelled')], readonly=True, default='draft', copy=False, string="Status")
+    currency_rate = fields.Float('Rate')
+
+    @api.onchange('currency_id')
+    def _currency_change(self):
+        for rec in self:
+            # if rec.is_purchase == 0:
+            rec.currency_rate = rec.currency_id.rate
+
 
     # @api.multi
     def update_invoice_lines(self):
@@ -183,6 +191,11 @@ class account_payment(models.Model):
                 for inv in payment.invoice_lines:
                     company_currency = payment.company_id.currency_id
                     move_names = payment.move_name.split(payment._get_move_name_transfer_separator()) if payment.move_name else None
+                    # if not payment.company_id.currency_id.id == payment.currency_id.id:
+                    #     allocation =   abs(inv.allocation) * (1/payment.currency_rate)
+                    # else:
+                    #     allocation =   abs(inv.allocation) * (1/payment.currency_rate)
+
                     amount += inv.allocation
                     # Compute amounts.
                     offwrite = inv.invoice_id.amount_residual_signed - inv.allocation

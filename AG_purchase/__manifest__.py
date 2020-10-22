@@ -21,7 +21,7 @@
     'name': 'Purchase Changes',
     'category': 'Purcase',
     'summary': "Vendor creation Approval level, and GRN approval level",
-    'depends': ['stock','purchase','stock_landed_costs'],
+    'depends': ['stock','purchase','stock_landed_costs','odoo_multi_channel_sale'],
     'data': [
         'views/pr_view.xml',
         'data/pro_data.xml',

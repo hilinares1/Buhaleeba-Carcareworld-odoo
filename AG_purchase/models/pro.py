@@ -38,24 +38,11 @@ class PurchaseOrder(models.Model):
     interchanging_rfq_sequence = fields.Char('Sequence', copy=False)
     interchanging_po_sequence = fields.Char('Sequence', copy=False)
     currency_value = fields.Float('Cuurency after rate',compute="_get_curreny_value")
-    tax_rate_value = fields.Float('Tax after rate',compute="_get_tax_value")
-    currency_value_untaxed = fields.Float('Cuurency untaxed after rate',compute="_get_curreny_value_untaxed")
-
 
     @api.depends('currency_rate')
     def _get_curreny_value(self):
         for rec in self:
-            rec.currency_value = abs(rec.currency_value) - (rec.tax_rate_value)
-
-    @api.depends('currency_rate')
-    def _get_curreny_value_untaxed(self):
-        for rec in self:
-            rec.currency_value_untaxed = abs(rec.amount_total) * (1/rec.currency_rate)
-
-    @api.depends('currency_rate')
-    def _get_tax_value(self):
-        for rec in self:
-            rec.tax_rate_value = abs(rec.amount_tax) * (1/rec.currency_rate)
+            rec.currency_value = abs(rec.amount_total) * (1/rec.currency_rate)
 
     @api.model
     def create(self, vals):
@@ -289,6 +276,7 @@ class StockPicking(models.Model):
     classification = fields.Selection(related="partner_id.classification",store=True,string='Classification', copy=False)
     is_approve = fields.Integer('Is approve',compute='_is_approve',store=True)
     status = fields.Selection([
+        ('land', 'Create Landed cost'),
         ('approve', 'In Approval'),
         ('no', 'No Approval Needed'),
         ('done', 'Done'),
@@ -329,7 +317,7 @@ class StockPicking(models.Model):
                     if rec.classification == 'local vendor':
                         rec.is_approve = 0
                     else:
-                        rec.is_approve = 1
+                        rec.is_approve = 4
     
     @api.depends('is_approve')
     def _get_status(self):
@@ -346,6 +334,8 @@ class StockPicking(models.Model):
                     rec.status = 'reject'
                 if rec.is_approve == 3:
                     rec.status = 'done'
+                if rec.is_approve == 4:
+                    rec.status = 'land'
                 
             else:
                 rec.status = 'no'
@@ -385,7 +375,11 @@ class StockPicking(models.Model):
 
     def action_approve(self):
         # res = self.button_validate()
-        # self.write({'is_approve':3})
+        self.write({'is_approve':3})
+
+    def action_approve_land(self):
+        # res = self.button_validate()
+        self.write({'is_approve':4})
         # self.env['stock.landed.cost'].create({'picking_ids':[(6,0, [self.id])]})
         # res = self.view_landed_cost()
         return {
@@ -446,7 +440,12 @@ class StockLandCost(models.Model):
             # raise UserError(self.picking_ids)
             land = self.env['stock.picking'].search([('id','=',res.pick.id)])
             # raise UserError(land)
-            land.write({'is_approve':3})
+            land.write({'is_approve':1})
+        else:
+            land = self.env['stock.picking'].search([('id','=',res.pick.id)])
+            # raise UserError(land)
+            if land:
+                land.write({'is_approve':4})
         return res
 
     # @api.model
@@ -462,6 +461,33 @@ class StockLandCost(models.Model):
     #     return super(StockLandCost, self).create(vals)
 
 
+class SaleOrder(models.Model):
+    _inherit = "sale.order"
 
+    woo_status = fields.Selection([
+        ('no', 'Not Online sales'),
+        ('pending payment', 'Pending Payment'),
+        ('new quote request', 'New Quote Request'),
+        ('on-hold', 'On hold'),
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('pickup-cod', 'Pickup COD'),
+        ('pickup-paid', 'Pickup Paid'),
+        ('Refunded', 'Refunded'),
+        ('failed', 'Failed'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled')
+    ], string='Woo-commerce Status', readonly=True, index=True,store=True, copy=False, compute="_get_woo_status", tracking=True)
     
-
+    @api.depends('channel_mapping_ids')
+    @api.onchange('state')
+    def _get_woo_status(self):
+        for rec in self:
+            if rec.channel_mapping_ids:
+                for map in rec.channel_mapping_ids:
+                    res = self.env['order.feed'].search([('store_id','=',map.store_order_id)])
+                    if res:
+                        rec.woo_status = res.order_state
+                    
+            else:
+                rec.woo_status = 'no'

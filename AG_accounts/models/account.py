@@ -134,7 +134,7 @@ class AccountMove(models.Model):
     def create(self, vals_list):
         reses = super(AccountMove,self).create(vals_list)
         for res in reses:
-            if res.type == 'out_refund':
+            if res.type == 'out_refund' or res.type == 'entry':
                 res.state = 'confirm'
                 res.is_confirm = 1
             else:
@@ -301,3 +301,30 @@ class AccountMoveLine(models.Model):
                 price_unit_wo_discount = rec.price_unit
             taxes = rec.tax_ids.compute_all(price_unit_wo_discount, rec.move_id.currency_id, rec.quantity, product=rec.product_id, partner=rec.move_id.partner_shipping_id)
             rec.price_tax = sum(t.get('amount', 0.0) for t in taxes.get('taxes', []))
+
+
+class AccountAsset(models.Model):
+    _inherit = "account.asset.asset"
+
+    asset_code = fields.Char(string='Sequence',readonly=True)
+    # custom_description = fields.Text(string='Description',)
+    custom_record_brand = fields.Char(string='Record Brand',)
+    custom_model_number = fields.Char(string='Model Number',)
+    custom_serial_number = fields.Char(string='Serial Number',)
+    custom_manufacturer_id = fields.Many2one('res.partner', string='Manufacturer',)
+    # custom_purchase_id = fields.Many2one('purchase.order',string='Purchase order',)
+    custom_receive_date = fields.Date(string='Received Date',)
+    custom_warranty_information = fields.Char(string='Warranty Information',)
+    custom_warranty_expire_date = fields.Date(string='Warranty Date',)
+    custom_warranty_service_provider = fields.Many2one('res.partner',string='Warranty Service Provider',)
+
+    custom_source_department_id = fields.Many2one('hr.department', string="Source Location")
+    custom_source_partner_id = fields.Many2one('res.partner',string="Source Custodian")
+
+
+    @api.model
+    def create(self, vals):
+        res = super(AccountAsset, self).create(vals)
+        number = self.env['ir.sequence'].next_by_code('account.seq')
+        res.asset_code = number
+        return res
