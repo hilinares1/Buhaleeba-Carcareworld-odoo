@@ -467,6 +467,7 @@ class SaleOrder(models.Model):
     woo_status = fields.Selection([
         ('no', 'Not Online sales'),
         ('pending payment', 'Pending Payment'),
+        ('pending processing', 'Pending Processing'),
         ('new quote request', 'New Quote Request'),
         ('on-hold', 'On hold'),
         ('pending', 'Pending'),
