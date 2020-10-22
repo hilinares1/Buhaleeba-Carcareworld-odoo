@@ -1,0 +1,167 @@
+<odoo>
+    <data>
+        <template id="report_payment_cheque_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="cheque_payment_report.external_layout_check">
+                        <div class="page">
+                            <div>
+                                <div align="right">
+                                    <div>
+                                        <span t-field="o.name"/>
+                                    </div>
+                                    <div>
+                                        <span t-field="o.cheque_number"/>
+                                    </div>
+                                    <div>
+                                        <span t-field="o.payment_date"/>
+                                    </div>
+                                </div>
+                                <div align="left" style="padding-left:90px">
+                                    <span t-field="o.partner_id"/>
+                                </div>
+                            </div>
+
+                            <br/>
+
+                            <table class="table noborder" style="border:0;">
+                                <tbody>
+                                    <td style="border:0;">
+                                        <span t-field="o.communication"/>
+                                    </td>
+                                    <td style="border:0;">
+                                        <span t-field="o.amount" t-options="{&quot;widget&quot;:&quot;float&quot;,&quot;precision&quot;:2}"/>
+                                    </td>
+                                    <td style="border:0;">
+                                        <span t-field="o.communication"/>
+                                    </td>
+                                    <td style="border:0;">
+                                        <span t-field="o.amount" t-options="{&quot;widget&quot;:&quot;float&quot;,&quot;precision&quot;:2}"/>
+                                    </td>
+                                    <td style="border:0;">
+                                        <span t-field="o.communication"/>
+                                    </td>
+                                    <td style="border:0;">
+                                        <span t-field="o.amount" t-options="{&quot;widget&quot;:&quot;float&quot;,&quot;precision&quot;:2}"/>
+                                    </td >
+                                    <td style="border:0;">
+                                        <span t-field="o.communication"/>
+                                    </td>
+                                    <td style="border:0;background-color:transparent;">
+                                        <span t-field="o.amount" t-options="{&quot;widget&quot;:&quot;float&quot;,&quot;precision&quot;:2}"/>
+                                    </td>
+                                </tbody>
+                            </table>
+
+                            <div align="left">
+                                <t t-if="o.check_amount_in_words">
+                                    <span t-field="o.check_amount_in_words"/>
+                                </t>
+                            </div>
+
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-3">
+                                        <span t-field="o.user_id"/>
+                                        <br/>
+                                    </div>
+                                    <div class="col-3">
+                                        <span t-field="o.checked_by"/>
+                                        <br/>
+                                    </div>
+                                    <div class="col-3">
+                                        <span t-field="o.approved_by"/>
+                                        <br/>
+                                    </div>
+                                    <div class="col-3">
+                                        <span t-field="o.received_by"
+                                        />
+                                        <br/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+
+                            <div align="right" style="padding-right:35px">
+                                <span t-field="o.amount"
+                                      t-options="{&quot;widget&quot;:&quot;float&quot;,&quot;precision&quot;:2}"/>
+
+                            </div>
+
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+
+                            <div align="right">
+                                <div>
+                                    <span t-field="o.name"/>
+                                </div>
+                                <div>
+                                    <span t-field="o.cheque_number"/>
+                                </div>
+                                <div>
+                                    <span t-field="o.payment_date"/>
+                                </div>
+                            </div>
+                            <br/>
+                            <table class="table noborder" style="border:0;">
+                                <tbody>
+                                    <td style="border:0;">
+                                        <span t-field="o.communication"/>
+                                    </td>
+                                    <td style="border:0;">
+                                        <span t-field="o.amount" t-options="{&quot;widget&quot;:&quot;float&quot;,&quot;precision&quot;:2}"/>
+                                    </td>
+                                    <td style="border:0;">
+                                        <span t-field="o.communication"/>
+                                    </td>
+                                    <td style="border:0;">
+                                        <span t-field="o.amount" t-options="{&quot;widget&quot;:&quot;float&quot;,&quot;precision&quot;:2}"/>
+                                    </td>
+                                    <td style="border:0;">
+                                        <span t-field="o.communication"/>
+                                    </td>
+                                    <td style="border:0;">
+                                        <span t-field="o.amount" t-options="{&quot;widget&quot;:&quot;float&quot;,&quot;precision&quot;:2}"/>
+                                    </td>
+                                    <td style="border:0;">
+                                        <span t-field="o.communication"/>
+                                    </td>
+                                    <td style="border:0;background-color:transparent;">
+                                        <span t-field="o.amount" t-options="{&quot;widget&quot;:&quot;float&quot;,&quot;precision&quot;:2}"/>
+                                    </td>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+        <report
+                id="action_report_payment_cheque"
+                model="account.payment"
+                string="Cheque report"
+                report_type="qweb-pdf"
+                name="cheque_payment_report.report_payment_cheque_template"
+                file="cheque_payment_report.report_payment_cheque_template"
+        />
+
+    </data>
+</odoo>

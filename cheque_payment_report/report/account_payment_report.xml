@@ -1,0 +1,173 @@
+<odoo>
+    <data>
+        <template id="report_payment_cheque_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <div class="oe_structure"/>
+                            <h2 class="text-center">REMITTANCE ADVICE</h2>
+
+                            <div align="right">
+                                <div>
+                                    <strong>Voucher No:</strong>
+                                    <span t-field="o.name"/>
+                                </div>
+                                <div>
+                                    <strong>Date:</strong>
+                                    <span t-field="o.payment_date"/>
+                                </div>
+                            </div>
+
+                            <div align="left">
+                                <div>
+                                    <strong>PAY TO:</strong>
+                                    <span t-field="o.partner_id"/>
+                                </div>
+                            </div>
+
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Ref. NO.</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <td>
+                                        <span t-field="o.communication"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="o.amount"/>
+                                    </td>
+                                </tbody>
+                            </table>
+
+                            <div align="left">
+                                <strong>Dirhams :</strong>
+                                <span t-field="o.check_amount_in_words"/>
+                            </div>
+
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-3">
+                                        <strong>Prepared By</strong>
+                                        <br/>
+                                        <span t-field="o.user_id"/>
+                                    </div>
+                                    <div class="col-3">
+                                        <strong>Checked By</strong>
+                                        <span t-field="o.checked_by"/>
+                                    </div>
+                                    <div class="col-3">
+                                        <strong>Approved By</strong>
+                                        <span t-field="o.approved_by"/>
+                                    </div>
+                                    <div class="col-3">
+                                        <strong>Received By</strong>
+                                        <span t-field="o.received_by"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+
+
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-3">
+                                    </div>
+                                    <div class="col-3">
+                                    </div>
+                                    <div class="col-3">
+                                    </div>
+                                    <div class="col-3">
+                                        <p align="bottom">welcome to sudan country</p>
+                                    </div>
+                                </div>
+
+
+                                <div class="row">
+                                    <div class="col-3">
+                                        <p>
+                                            Pay
+                                            <br/>
+                                            against this cheque or order
+                                            <br/>
+                                            Dirhams
+                                        </p>
+                                    </div>
+                                    <div class="col-3">
+                                    </div>
+                                    <div class="col-3">
+                                        <p align="right">او لامر</p>
+                                    </div>
+                                    <div class="col-3" style="height: 50px; border: 1px solid black;">
+                                        <strong>AED
+                                            <br/>
+                                            د.ا
+                                        </strong>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!--                            <form style="height: 260px; width: 430px; border: 1px solid black;">>-->
+                            <!--                                <div class="form-group">-->
+                            <!--                                    <p style="padding-left:80px margin-bottom:0px">ادفعوا بموجب هذا الشيك-->
+                            <!--                                        ل</p>-->
+                            <!--                                    <label for="title">او لامر</label>-->
+                            <!--                                    <input type="text" name="title" class="form-control"-->
+                            <!--                                           placeholder="enter title"/>-->
+                            <!--                                </div>-->
+                            <!--                            </form>-->
+
+
+                            <!--                            <div>-->
+                            <!--                                <div align="left">-->
+                            <!--                                    <p>-->
+                            <!--                                        Pay-->
+                            <!--                                        <br/>-->
+                            <!--                                        against this cheque or order-->
+                            <!--                                        <br/>-->
+                            <!--                                        Dirhams-->
+                            <!--                                    </p>-->
+                            <!--                                </div>-->
+
+                            <!--                                <div align="right">-->
+                            <!--                                    <form>-->
+                            <!--                                        <div class="form-group">-->
+                            <!--                                            <p style="padding-left:80px margin-bottom:0px">ادفعوا بموجب هذا الشيك ل</p>-->
+                            <!--                                            <label for="title">او لامر</label>-->
+                            <!--                                            <input type="text" name="title" class="form-control" placeholder="enter title"/>-->
+                            <!--                                        </div>-->
+                            <!--                                    </form>-->
+                            <!--                                </div>-->
+                            <!--                            </div>-->
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+        <report
+                id="action_report_payment_cheque"
+                model="account.payment"
+                string="Cheque report"
+                report_type="qweb-pdf"
+                name="cheque_payment_report.report_payment_cheque_template"
+                file="cheque_payment_report.report_payment_cheque_template"
+        />
+
+    </data>
+</odoo>
