@@ -6,7 +6,7 @@
     """,
     'category': 'Inventory',
     'author': 'Higazi',
-    'depends': ['base', 'stock', 'sale', 'purchase'],
+    'depends': ['base', 'stock', 'sale', 'purchase','AG_products'],
     'data': [
         'security/ir.model.access.csv',
         'views/view.xml'

@@ -7,7 +7,11 @@ class ForecastAnalysisReportWiz(models.TransientModel):
     _name = 'forecast.analysis.report.wiz'
     _description = 'forecast analysis report wiz'
 
-    category_id = fields.Many2one('product.category')
+    pr_category = fields.Many2one('product.categories', string="Product Category")
+    sub_pr_category = fields.Many2one('product.categories', string="Sub-Category")
+    pr_type = fields.Many2one('product.type', string="Product Type")
+    sub_pr_type = fields.Many2one('product.type', string="Sub-Type")
+    pr_brand = fields.Many2one('product.brand', string="Product Brand")
 
     duration = fields.Selection([('3moths', 'Last 3 months'),
                                  ('6moths', 'Last 6 months'),
@@ -31,11 +35,170 @@ class ForecastAnalysisReportWiz(models.TransientModel):
 
     def print_report(self):
         self.env['forecast.analysis.report'].search([]).unlink()
-        if self.category_id:
-            categ_products = self.env['product.product'].search([('categ_id', '=', self.category_id.id)])
+        # filtered by category
+        if self.pr_category and not self.sub_pr_category and not self.pr_type and not self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_category', '=', self.pr_category.id)])
+            print('//////////////////////////////////////////////////////',categ_products)
 
+        # filtered by category and sub_pr_category
+        elif self.pr_category and self.sub_pr_category and not self.pr_type and not self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_category', '=', self.pr_category.id),
+                 ('sub_pr_category', '=', self.sub_pr_category.id)])
+
+        # filtered by category and pr_type
+        elif self.pr_category and not self.sub_pr_category and self.pr_type and not self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_category', '=', self.pr_category.id),
+                 ('pr_type', '=', self.pr_type.id)
+                 ])
+
+        # filtered by category and sub_pr_type
+        elif self.pr_category and not self.sub_pr_category and not self.pr_type and self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_category', '=', self.pr_category.id),
+                 ('sub_pr_type', '=', self.sub_pr_type.id)
+                 ])
+        # filtered by category and pr_brand
+        elif self.pr_category and not self.sub_pr_category and not self.pr_type and not self.sub_pr_type and self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_category', '=', self.pr_category.id),
+                 ('pr_brand', '=', self.pr_brand.id)
+                 ])
+        # filtered by sub_pr_category
+        elif not self.pr_category and self.sub_pr_category and not self.pr_type and not self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('sub_pr_category', '=', self.sub_pr_category.id)])
+
+        # filtered by sub_pr_category and pr_type
+        elif not self.pr_category and self.sub_pr_category and self.pr_type and not self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('pr_type', '=', self.pr_type.id)
+                 ])
+        # filtered by sub_pr_category and sub_pr_type
+        elif not self.pr_category and self.sub_pr_category and not self.pr_type and self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('sub_pr_type', '=', self.sub_pr_type.id)
+                 ])
+        # filtered by sub_pr_category and pr_brand
+        elif not self.pr_category and self.sub_pr_category and not self.pr_type and not self.sub_pr_type and self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('pr_brand', '=', self.pr_brand.id)
+                 ])
+        # filtered by pr_type
+        elif not self.pr_category and not self.sub_pr_category and self.pr_type and not self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_type', '=', self.pr_type.id)])
+
+        # filtered by pr_type and sub_pr_type
+        elif not self.pr_category and not self.sub_pr_category and self.pr_type and self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_type', '=', self.pr_type.id),
+                 ('sub_pr_type', '=', self.sub_pr_type.id)
+                 ])
+        # filtered by pr_type and pr_brand
+        elif not self.pr_category and not self.sub_pr_category and self.pr_type and not self.sub_pr_type and self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_type', '=', self.pr_type.id),
+                 ('pr_brand', '=', self.pr_brand.id)
+                 ])
+        # filtered by sub_pr_type
+        elif not self.pr_category and not self.sub_pr_category and not self.pr_type and self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('sub_pr_type', '=', self.sub_pr_type.id)])
+        # filtered by sub_pr_type and pr_brand
+        elif not self.pr_category and not self.sub_pr_category and not self.pr_type and self.sub_pr_type and self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('sub_pr_type', '=', self.sub_pr_type.id),
+                 ('pr_brand', '=', self.pr_brand.id)
+                 ])
+        # filtered by pr_brand
+        elif not self.pr_category and not self.sub_pr_category and not self.pr_type and not self.sub_pr_type and self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_brand', '=', self.pr_brand.id)])
+
+        # filtered by pr_category and sub_pr_category and pr_type
+        elif self.pr_category and self.sub_pr_category and self.pr_type and not self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_category', '=', self.pr_category.id),
+                 ('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('pr_type', '=', self.pr_type.id)
+                 ])
+        # filtered by pr_category and sub_pr_category and sub_pr_type
+        elif self.pr_category and self.sub_pr_category and not self.pr_type and self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_category', '=', self.pr_category.id),
+                 ('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('sub_pr_type', '=', self.sub_pr_type.id)
+                 ])
+        # filtered by pr_category and sub_pr_category and pr_brand
+        elif self.pr_category and self.sub_pr_category and not self.pr_type and not self.sub_pr_type and self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_category', '=', self.pr_category.id),
+                 ('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('pr_brand', '=', self.pr_brand.id)
+                 ])
+        # filtered by sub_pr_category and pr_type and sub_pr_type
+        elif not self.pr_category and self.sub_pr_category and self.pr_type and self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('pr_type', '=', self.pr_type.id),
+                 ('sub_pr_type', '=', self.sub_pr_type.id)
+                 ])
+        # filtered by sub_pr_category and pr_type and sub_pr_type
+        elif not self.pr_category and self.sub_pr_category and self.pr_type and not self.sub_pr_type and self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('pr_type', '=', self.pr_type.id),
+                 ('pr_brand', '=', self.pr_brand.id),
+                 ])
+        # filtered by pr_type and sub_pr_type and pr_brand
+        elif not self.pr_category and not self.sub_pr_category and self.pr_type and self.sub_pr_type and self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_type', '=', self.pr_type.id),
+                 ('sub_pr_type', '=', self.sub_pr_type.id),
+                 ('pr_brand', '=', self.pr_brand.id)
+                 ])
+        # filtered by pr_category and sub_pr_category and pr_type and sub_pr_type
+        elif self.pr_category and self.sub_pr_category and self.pr_type and self.sub_pr_type and not self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_category', '=', self.pr_category.id),
+                 ('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('pr_type', '=', self.pr_type.id),
+                 ('sub_pr_type', '=', self.sub_pr_type.id),
+                 ])
+        # filtered by pr_category and sub_pr_category and pr_type and pr_brand
+        elif self.pr_category and self.sub_pr_category and self.pr_type and not self.sub_pr_type and self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_category', '=', self.pr_category.id),
+                 ('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('pr_type', '=', self.pr_type.id),
+                 ('pr_brand', '=', self.pr_brand.id),
+                 ])
+        # filtered by sub_pr_category and pr_type and sub_pr_type and pr_brand
+        elif not self.pr_category and self.sub_pr_category and self.pr_type and self.sub_pr_type and self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('pr_type', '=', self.pr_type.id),
+                 ('sub_pr_type', '=', self.sub_pr_type.id),
+                 ('pr_brand', '=', self.pr_brand.id),
+                 ])
+        # filtered by pr_category and sub_pr_category and pr_type and sub_pr_type and pr_brand
+        elif self.pr_category and self.sub_pr_category and self.pr_type and self.sub_pr_type and self.pr_brand:
+            categ_products = self.env['product.product'].search(
+                [('pr_category', '=', self.pr_category.id),
+                 ('sub_pr_category', '=', self.sub_pr_category.id),
+                 ('pr_type', '=', self.pr_type.id),
+                 ('sub_pr_type', '=', self.sub_pr_type.id),
+                 ('pr_brand', '=', self.pr_brand.id),
+                 ])
         else:
             categ_products = self.env['product.product'].search([])
+
         product_ids = tuple([pro_id.id for pro_id in categ_products])
         date_befor = self.compute_pr_date()
         date_today = date.today()
@@ -46,41 +209,41 @@ class ForecastAnalysisReportWiz(models.TransientModel):
                AND s_o.date_order >= %s
                AND s_o.date_order <= %s
                AND s_o_l.product_id in %s group by s_o_l.product_id"""
-        purchase_query = """
-               SELECT sum(p_o_l.product_qty) AS product_qty, p_o_l.product_id FROM purchase_order_line AS p_o_l
-               JOIN purchase_order AS p_o ON p_o_l.order_id = p_o.id
-               INNER JOIN stock_picking_type AS s_p_t ON p_o.picking_type_id = s_p_t.id
-               INNER JOIN stock_picking AS s_p ON s_p_t.id = s_p.picking_type_id
-               WHERE p_o.state IN ('purchase','done')
-               AND s_p.state IN ('draft','waiting','confirmed','assigned')
-               AND p_o.date_order >= %s
-               AND p_o.date_order <= %s
-               AND p_o_l.product_id in %s group by p_o_l.product_id"""
+        # purchase_query = """
+        #        SELECT sum(s_m.product_uom_qty) AS product_qty, s_m.product_id FROM stock_move AS s_m
+        #        JOIN stock_picking AS s_p ON s_m.picking_id = s_p.id
+        #        INNER JOIN stock_picking_type AS s_p_t ON s_p.picking_type_id = s_p_t.id
+        #        WHERE s_p_t.code = 'incoming'
+        #        AND s_p.state IN ('draft','waiting','confirmed','assigned')
+        #        AND s_m.product_id in %s group by s_m.product_id"""
 
         params = date_befor, date_today, product_ids if product_ids else (0, 0, 0)
+        param = product_ids
         self._cr.execute(sale_query, params)
         sol_query_obj = self._cr.dictfetchall()
-        self._cr.execute(purchase_query, params)
-        pol_query_obj = self._cr.dictfetchall()
+        # self._cr.execute(purchase_query, param)
+        # pol_query_obj = self._cr.dictfetchall()
         for obj in categ_products:
             sale_value = 0
-            purchase_value = 0
+            # purchase_value = 0
             for sol_product in sol_query_obj:
                 if sol_product['product_id'] == obj.id:
                     sale_value = sol_product['product_uom_qty']
             qty_available = obj.qty_available
             reordering_min_qty = obj.with_context({'from_date': date_befor, 'to_date': date_today}).reordering_min_qty
-            for pol_product in pol_query_obj:
-                if pol_product['product_id'] == obj.id:
-                    purchase_value = pol_product['product_qty']
-            suggested = sale_value - (qty_available + purchase_value + reordering_min_qty)
+            incoming_qty = obj.incoming_qty
+            # for pol_product in pol_query_obj:
+            #     if pol_product['product_id'] == obj.id:
+            #         purchase_value = pol_product['product_qty']
+            suggested = sale_value - (qty_available + incoming_qty + reordering_min_qty)
             vals = {
-
                 'sales_qty': sale_value,
                 'product_id': obj.id,
-                'category_id': obj.categ_id.id,
+                'pr_category': obj.pr_category.id,
+                'sub_pr_category': obj.sub_pr_category.id,
+                'pr_brand': obj.pr_brand.id,
                 'on_hand': qty_available,
-                'pending': purchase_value,
+                'pending': incoming_qty,
                 'min_stock': reordering_min_qty,
                 'suggested': suggested,
             }
@@ -109,9 +272,9 @@ class ForecastAnalysisReport(models.TransientModel):
 
     date = fields.Date('Date')
     product_id = fields.Many2one('product.product', 'Product')
-    category_id = fields.Many2one(
-        'product.category', 'Product Category',
-        help="Select category for the current product")
+    pr_category = fields.Many2one('product.categories', string="Product Category")
+    sub_pr_category = fields.Many2one('product.categories', string="Sub-Category")
+    pr_brand = fields.Many2one('product.brand', string="Product Brand")
     sales_qty = fields.Float(string="Sales Qty")
     on_hand = fields.Float('On Hand')
     pending = fields.Float('Pending')

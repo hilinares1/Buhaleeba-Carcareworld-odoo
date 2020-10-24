@@ -12,7 +12,15 @@
                         </group>
 
                         <group string="Product Details">
-                            <field name="category_id"/>
+                            <group>
+                                <field name="pr_category"/>
+                                <field name="sub_pr_category"/>
+                                <field name="pr_type"/>
+                            </group>
+                            <group>
+                                <field name="sub_pr_type"/>
+                                <field name="pr_brand"/>
+                            </group>
                         </group>
                     </sheet>
                     <footer>
@@ -47,7 +55,9 @@
                 <tree string="Forecast Analysis Report">
                     <field name="date"/>
                     <field name="product_id"/>
-                    <field name="category_id"/>
+                    <field name="pr_category"/>
+                    <field name="sub_pr_category"/>
+                    <field name="pr_brand"/>
                     <field name="sales_qty"/>
                     <field name="on_hand"/>
                     <field name="pending"/>
@@ -62,7 +72,9 @@
             <field name="arch" type="xml">
                 <pivot string="Forecast Analysis" disable_linking="True" display_quantity="true">
                     <field name="product_id" type="row"/>
-                    <field name="category_id" type="measure"/>
+                    <field name="pr_category" type="measure"/>
+                    <field name="sub_pr_category" type="measure"/>
+                    <field name="pr_brand" type="measure"/>
                     <field name="sales_qty" type="measure"/>
                     <field name="on_hand" type="measure"/>
                     <field name="pending" type="measure"/>
