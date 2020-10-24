@@ -274,7 +274,7 @@ class MultiChannelSale(models.Model):
 		if template:
 			product_dict = {
 						'name'				: template.name,
-						'sku' 				: "",
+						'sku' 				: template.default_code or "",
 						# 'images'			: self.create_woocommerce_product_image(template,True),
 						'type'				: 'variable',
 						'categories'		: self.set_woocommerce_product_categories(template),
