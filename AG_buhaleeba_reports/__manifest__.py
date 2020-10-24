@@ -13,6 +13,8 @@
         'report/order_purchase_inheirt.xml',
         'report/delivery_slip_inheirt.xml',
         'report/invoice_inheirt.xml',
+        'report/report_purchasrequisition.xml',
+        'report/requisition_report.xml',
 
     ],
     'demo': [
