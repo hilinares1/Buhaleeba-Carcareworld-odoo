@@ -104,8 +104,8 @@
         string="Stock Rotation Report"
         model="stock.move"
         report_type="qweb-pdf"
-        file="cit_stock_rotation_report.report_stock_rotation"
-        name="cit_stock_rotation_report.report_stock_rotation"
+        file="cit_stock_rotation_reoprt.report_stock_rotation"
+        name="cit_stock_rotation_reoprt.report_stock_rotation"
         menu="False" />
 
     <record id="paperformat_stock_rotation" model="report.paperformat">
