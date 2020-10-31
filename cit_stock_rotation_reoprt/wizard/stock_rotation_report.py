@@ -40,7 +40,7 @@ class StockRotationReport(models.TransientModel):
         datas = {'form': self.read()[0],
                 'get_stock_moves': self.get_stock_moves_details()
             }
-        return self.env.ref('cit_stock_rotation_report.action_report_stock_rotation').report_action([], data=datas)
+        return self.env.ref('cit_stock_rotation_reoprt.action_report_stock_rotation').report_action([], data=datas)
 
     def get_stock_moves_details(self):
         dataDict = {}
