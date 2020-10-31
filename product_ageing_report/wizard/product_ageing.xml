@@ -33,7 +33,7 @@
             <field name="name">Stock Ageing Analysis</field>
             <field name="res_model">product.ageing</field>
             <field name="type">ir.actions.act_window</field>
-            <field name="view_type">form</field>
+           <!-- <field name="view_type">form</field>-->
             <field name="view_mode">form</field>
             <field name="view_id" ref="ageing_analysis_view"/>
             <field name="target">new</field>
