@@ -11,7 +11,7 @@ from odoo.exceptions import UserError
 
 
 class ReportStockRotation(models.AbstractModel):
-    _name = 'report.cit_stock_rotation_report.report_stock_rotation'
+    _name = 'report.cit_stock_rotation_reoprt.report_stock_rotation'
 
     @api.model
     def _get_report_values(self, docids, data=None):
