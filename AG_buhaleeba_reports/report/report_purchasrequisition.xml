@@ -8,6 +8,7 @@
             string="Requisition"
             report_type="qweb-pdf"
             name="AG_buhaleeba_reports.report_purchasrequisition"
+            file="AG_buhaleeba_reports.report_purchasrequisition"
         />
 
 
