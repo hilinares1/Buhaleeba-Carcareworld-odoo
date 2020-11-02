@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 <template id="report_purchasrequisition_document">
-    <t t-call="web.external_layout">
+   
         
 
         <h1 class="text-center">Purchase Requisition</h1>
@@ -107,7 +107,7 @@
       
         <div class="oe_structure"/>
       
-    </t>
+   
 </template>
 
 <template id="report_purchasrequisition">
