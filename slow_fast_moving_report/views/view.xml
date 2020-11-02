@@ -70,14 +70,14 @@
             <field name="model">slow.fast.moving.report</field>
             <field name="arch" type="xml">
                 <pivot string="Slow Fast Moving" disable_linking="True" display_quantity="true">
-                    <field name="product_id" type="row"/>
-                    <field name="pr_category" type="measure"/>
-                    <field name="sub_pr_category" type="measure"/>
-                    <field name="pr_brand" type="measure"/>
+                    <field name="product_id" type="row" string="Product"/>
+                    <field name="pr_category" type="row" string="Category"/>
+                    <field name="sub_pr_category" type="row" string="Sub Category"/>
+                    <field name="pr_brand" type="row" string="Brand"/>
                     <field name="sale_qty" type="measure"/>
                     <field name="on_hand" type="measure"/>
-                    <field name="sale_last_date" type="measure"/>
-                    <field name="indication" type="measure"/>
+                    <field name="sale_last_date" type="row" string="Sale Last Date"/>
+                    <field name="indication" type="row" string="Indication"/>
                 </pivot>
             </field>
         </record>
