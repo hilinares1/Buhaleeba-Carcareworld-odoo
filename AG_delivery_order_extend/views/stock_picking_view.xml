@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_picking_form_inherit_delivered_button" model="ir.ui.view">
+        <field name="name">stock.picking.inherit.delevered_button</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="arch" type="xml">
+          <!--  <xpath expr="//header/button[last()]" position="after">
+                <button name="custom_picking_delivered" type="object" string="Delivered" attrs="{'invisible': ['|', ('state', '!=', 'done'), ('picking_type_code', '!=', 'outgoing')]}"/>
+            </xpath> -->
+            <xpath expr="//header/button[last()]" position="after">
+                <button name="custom_picking_complete" type="object" string="Complete" attrs="{'invisible': ['|', ('state', '!=', 'in_transit'), ('picking_type_code', '!=', 'outgoing')]}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

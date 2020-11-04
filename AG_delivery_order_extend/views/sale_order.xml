@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		<record id="view_order_form_extend1" model="ir.ui.view">
+			<field name="name">odoo.multi.channel.sale.order</field>
+			<field name="model">sale.order</field>
+			<field name="inherit_id" ref="sale.view_order_form"/>
+			<field name="groups_id" eval="[(4,ref('odoo_multi_channel_sale.group_multi_channel_user'))]"/>
+			<field name="arch" type="xml">
+				<xpath expr="//field[@name='partner_id']" position="after">
+					<field name="store_id" />
+					<field name="payment_method" />
+				</xpath>
+			</field>
+		</record>
+
+		<record id="view_order_tree_extend1" model="ir.ui.view">
+			<field name="name">odoo.multi.channel.sale.order.tree</field>
+			<field name="model">sale.order</field>
+			<field name="inherit_id" ref="sale.view_order_tree"/>
+			<field name="groups_id" eval="[(4,ref('odoo_multi_channel_sale.group_multi_channel_user'))]"/>
+			<field name="arch" type="xml">
+				<xpath expr="//field[@name='expected_date']" position="after">
+					<field name="store_id" string="Store ID"/>
+					<field name="payment_method" string="Payment Method"/>
+				</xpath>
+			</field>
+		</record>
+
+		<record id="view_quotation_tree_extend1" model="ir.ui.view">
+			<field name="name">odoo.multi.channel.view_quotation_tree</field>
+			<field name="model">sale.order</field>
+			<field name="inherit_id" ref="sale.view_quotation_tree"/>
+			<field name="groups_id" eval="[(4,ref('odoo_multi_channel_sale.group_multi_channel_user'))]"/>
+			<field name="arch" type="xml">
+				<xpath expr="//field[@name='expected_date']" position="after">
+					<field name="store_id" string="Store ID"/>
+					<field name="payment_method" string="Payment Method"/>
+				</xpath>
+			</field>
+		</record>
+	</data>
+</odoo>
