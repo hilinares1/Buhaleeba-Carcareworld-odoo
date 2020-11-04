@@ -9,10 +9,11 @@
     'website': 'www.odoo.com',
     "category": "Inventory",
     "depends": [
-        "stock",
+        "stock", "sale_management", "odoo_multi_channel_sale"
     ],
     "data": [
         'views/stock_picking_view.xml',
+        'views/sale_order.xml',
     ],
     'qweb': [
     ],
