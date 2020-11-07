@@ -29,6 +29,6 @@ class Stock(models.Model):
         for rec in so_rec:
           if rec.woo_status in ['pickup-cod', 'pickup-paid']:
                 self.state = 'complete'
-            else:
+          else:
                 self.state = 'in_transit'
         return True
