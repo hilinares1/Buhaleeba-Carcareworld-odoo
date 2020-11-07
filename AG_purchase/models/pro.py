@@ -465,16 +465,16 @@ class SaleOrder(models.Model):
     _inherit = "sale.order"
 
     woo_status = fields.Selection([
-        ('no', 'Not Online sales'),
+        ('no', 'Not Online Sales'),
         ('pending payment', 'Pending Payment'),
         ('pending processing', 'Pending Processing'),
         ('quote request', 'Quote Request'),
-        ('on-hold', 'On hold'),
+        ('on-hold', 'On Hold'),
         ('pending', 'Pending'),
         ('processing', 'Processing'),
         ('pickup-cod', 'Pickup COD'),
         ('pickup-paid', 'Pickup Paid'),
-        ('Refunded', 'Refunded'),
+        ('refunded', 'Refunded'),
         ('failed', 'Failed'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled')
