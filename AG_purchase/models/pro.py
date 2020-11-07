@@ -468,7 +468,7 @@ class SaleOrder(models.Model):
         ('no', 'Not Online sales'),
         ('pending payment', 'Pending Payment'),
         ('pending processing', 'Pending Processing'),
-        ('new quote request', 'New Quote Request'),
+        ('quote request', 'Quote Request'),
         ('on-hold', 'On hold'),
         ('pending', 'Pending'),
         ('processing', 'Processing'),
