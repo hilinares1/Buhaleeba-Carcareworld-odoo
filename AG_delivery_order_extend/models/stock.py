@@ -26,8 +26,10 @@ class Stock(models.Model):
         """
         res = super(Stock, self).action_done()
         so_rec = self.env['sale.order'].search([('id', '=', self.env.context.get('active_id'))])
-        for rec in so_rec:
-            if rec.woo_status not in ['pickup-cod', 'pickup-paid']:
+	for rec in so_rec:
+            if rec.woo_status in ['pickup-cod', 'pickup-paid']:
+                self.state = 'complete'
+            else:
                 self.state = 'in_transit'
 
         return True

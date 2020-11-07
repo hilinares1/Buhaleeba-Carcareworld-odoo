@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <report
+            id="custom_invoice_report"
+            menu = 'False'
+            model="account.move"
+            string="Print Customer VAT" 
+            report_type="qweb-pdf"
+            name="ag_tax_custom_report.invoice_print"
+            file="ag_tax_custom_report.invoice_print"
+        />
+
+        <template id="invoice_print">
+            <t t-call="web.html_container">
+<!--            <t t-call="report.external_layout">-->
+            <t t-call="web.external_layout">
+              <div class="page">
+                    <div class="text-center" t-if="data['report_type'] == 'sale_report'">
+                         <h3>
+                             <strong>VAT on Sales and other Outputs: <span t-esc="data['start_update']"/> to </strong>  <strong t-esc="data['end_update']"/>
+                         </h3>
+                     </div>
+                     <t t-set="srno" t-value="1"/>
+                     <t t-set="srvno" t-value="1"/>
+                     <t t-set="crvno" t-value="1"/>
+                     <t t-set="drvno" t-value="1"/>
+                    <table class="table table-condensed" t-if="data['report_type'] == 'sale_report'">
+                        <thead>
+                            <tr>
+                                <th><strong>Ser</strong></th>
+                                <th><strong>Tax Invoice No</strong></th>
+                                <th><strong>Tax Invoice Date</strong></th>
+                                <th><strong>Gross Invoice amount (Without VAT)</strong></th>
+                                <th><strong>VAT Amount</strong></th>
+<!--                                <th><strong>Tax Invoice Amount</strong></th>-->
+                                <th><strong>NET amount (With VAT)</strong></th>
+<!--                                <th><strong>VAT Amount</strong></th>-->
+                                <th><strong>Customer No.</strong></th>
+                                <th><strong>Customer Name</strong></th>
+                                <th><strong>Customer TRN</strong></th>
+                                <th><strong>Customer Location</strong></th>
+                                <th><strong>Currency</strong></th>
+                            </tr>
+	                   </thead>
+	                   <tbody>
+	                        <t t-set="data_customer_invoice" t-value="customer_invoice"/>
+	                            <t t-foreach ="data_customer_invoice['cust_inv_keys']"  t-as="data_line">
+	                                <tr>
+<!--	                                    <td colspan="10"><strong><span t-esc="data_line"/></strong></td>-->
+                                        <td colspan="3"><strong><span t-esc="data_line"/></strong></td>
+                                        <td ><strong><span t-esc="sum(line.amount_untaxed for line in data_customer_invoice[data_line])" t-options="{'widget': 'monetary', 'display_currency': data_customer_invoice[data_line][0].currency_id}"/></strong></td>
+                                        <td ><strong><span t-esc="sum(line.amount_tax for line in data_customer_invoice[data_line])" t-options="{'widget': 'monetary', 'display_currency': data_customer_invoice[data_line][0].currency_id}"/></strong></td>
+                                        <td ><strong><span t-esc="sum(line.amount_total for line in data_customer_invoice[data_line])" t-options="{'widget': 'monetary', 'display_currency': data_customer_invoice[data_line][0].currency_id}"/></strong></td>
+                                        <td colspan="4"/>
+                                    </tr>
+                                    <t t-foreach ="data_customer_invoice[data_line]"  t-as="line">
+	                                    <tr>
+	                                        <td><span t-esc="srno"/></td>
+<!--	                                        <td><span t-field="line.number"/></td>-->
+                                            <td><span t-field="line.name"/></td>
+<!--	                                        <td><span t-field="line.date_invoice"/></td>-->
+                                            <td><span t-field="line.invoice_date"/></td>
+	                                        <td><span t-field="line.amount_untaxed"/></td>
+	                                        <td><span t-field="line.amount_tax"/></td>
+	                                        <td><span t-field="line.amount_total"/></td>
+<!--	                                        <td><span t-field="line.amount_total"/></td>-->
+<!--	                                        <td><span t-field="line.amount_tax"/></td>-->
+	                                        <td><span t-field="line.partner_id.sequence_no"/></td>
+	                                        <td><span t-field="line.partner_id.name"/></td>
+	                                        <td><span t-field="line.partner_id.vat"/></td>
+	                                        <td><span t-field="line.partner_id.city"/></td>
+	                                        <td><span t-field="line.currency_id.name"/></td>
+	                                    </tr>
+	                                    <t t-set="srno" t-value="srno + 1"/>
+                                    </t>
+	                            </t>
+<!--	                            <t t-foreach ="data_customer_invoice"  t-as="line">-->
+<!--	                                <tr>-->
+<!--	                                    <td><span t-esc="srno"/></td>-->
+<!--	                                    <td><span t-field="line.number"/></td>-->
+<!--	                                    <td><span t-field="line.date_invoice"/></td>-->
+<!--	                                    <td><span t-field="line.amount_total"/></td>-->
+<!--	                                    <td><span t-field="line.amount_tax"/></td>-->
+<!--	                                    <td><span t-field="line.partner_id.name"/></td>-->
+<!--	                                    <td><span t-field="line.partner_id.vat"/></td>-->
+<!--	                                    <td><span t-field="line.partner_id.city"/></td>-->
+<!--	                                    <td><span t-field="line.currency_id.name"/></td>-->
+<!--	                                </tr>-->
+<!--	                                <t t-set="srno" t-value="srno + 1"/>-->
+<!--	                            </t>-->
+	                   </tbody>
+                </table>
+                <div class="text-center" t-if="data['report_type'] == 'purchase_report'">
+                     <h3>
+                         <strong>VAT on Expenses and other Inputs: <span t-esc="data['start_update']"/> to </strong>  <strong t-esc="data['end_update']"/>
+                     </h3>
+                 </div>
+
+                <table class="table table-condensed" t-if="data['report_type'] == 'purchase_report'">
+                    <thead>
+                            <tr>
+                                <th><strong>Ser</strong></th>
+                                <th><strong>Tax Invoice No</strong></th>
+                                <th><strong>Tax Invoice Date</strong></th>
+                                <th><strong>Gross Invoice amount (Without VAT)</strong></th>
+                                <th><strong>VAT Amount</strong></th>
+<!--                                <th><strong>Tax Invoice Amount</strong></th>-->
+                                <th><strong>NET amount (With VAT)</strong></th>
+<!--                                <th><strong>VAT Amount</strong></th>-->
+                                <th><strong>Vendor No.</strong></th>
+                                <th><strong>Supplier Name</strong></th>
+                                <th><strong>Supplier TRN</strong></th>
+                                <th><strong>Supplier Location</strong></th>
+                                <th><strong>Currency</strong></th>
+                            </tr>
+                   </thead>
+                   <tbody>
+                        <t t-set="data_vendor_inv" t-value="vendor_invoice"/>
+                        <t t-foreach ="data_vendor_inv['vinvoice_keys']"  t-as="data_vline">
+                            <tr>
+                                <td colspan="3"><strong><span t-esc="data_vline"/></strong></td>
+                                <td ><strong><span t-esc="sum(line.amount_untaxed for line in data_vendor_inv[data_vline])" t-options="{'widget': 'monetary', 'display_currency': data_vendor_inv[data_vline][0].currency_id}"/></strong></td>
+                                <td ><strong><span t-esc="sum(line.amount_tax for line in data_vendor_inv[data_vline])" t-options="{'widget': 'monetary', 'display_currency': data_vendor_inv[data_vline][0].currency_id}"/></strong></td>
+                                <td ><strong><span t-esc="sum(line.amount_total for line in data_vendor_inv[data_vline])" t-options="{'widget': 'monetary', 'display_currency': data_vendor_inv[data_vline][0].currency_id}"/></strong></td>
+                                <td colspan="4"/>
+                            </tr>
+                            <t t-foreach ="data_vendor_inv[data_vline]"  t-as="vline">
+                                <tr>
+                                    <td><span t-esc="srvno"/></td>
+<!--                                    <td><span t-field="vline.number"/></td>-->
+                                    <td><span t-field="vline.name"/></td>
+<!--                                    <td><span t-field="vline.date_invoice"/></td>-->
+                                    <td><span t-field="vline.invoice_date"/></td>
+                                    <td><span t-field="vline.amount_untaxed"/></td>
+                                    <td><span t-field="vline.amount_tax"/></td>
+                                    <td><span t-field="vline.amount_total"/></td>
+<!--                                    <td><span t-field="vline.amount_total"/></td>-->
+<!--                                    <td><span t-field="vline.amount_tax"/></td>-->
+                                    <td><span t-field="vline.partner_id.sequence_no"/></td>
+                                    <td><span t-field="vline.partner_id.name"/></td>
+                                    <td><span t-field="vline.partner_id.vat"/></td>
+                                    <td><span t-field="vline.partner_id.city"/></td>
+                                    <td><span t-field="vline.currency_id.name"/></td>
+                                </tr>
+                                <t t-set="srvno" t-value="srvno + 1"/>
+                            </t>
+                        </t>
+                   </tbody>
+                </table>
+
+               <!-- 
+               <div class="text-center">
+                     <h3>
+                         <strong>Reverse Charges - Services: <span t-esc="data['start_update']"/> to </strong>  <strong t-esc="data['end_update']"/>
+                     </h3>
+                 </div>
+                <table class="table table-condensed">
+                    <thead>
+                            <tr>
+                                <th><strong>Ser</strong></th>
+                                <th><strong>Tax Invoice No</strong></th>
+                                <th><strong>Tax Invoice Date</strong></th>
+                                <th><strong>Tax Invoice Amount</strong></th>
+                                <th><strong>VAT Amount</strong></th>
+                                <th><strong>Supplier Name</strong></th>
+                                <th><strong>Supplier TRN</strong></th>
+                                <th><strong>Supplier Location</strong></th>
+                            </tr>
+                   </thead>
+                </table>
+                -->
+                <div class="text-center" t-if="data['report_type'] == 'sale_report'">
+                     <h3>
+                         <strong>VAT on Credit Notes: <span t-esc="data['start_update']"/> to </strong>  <strong t-esc="data['end_update']"/>
+                     </h3>
+                 </div>
+                <table class="table table-condensed" t-if="data['report_type'] == 'sale_report'">
+                    <thead>
+                            <tr>
+                                <th><strong>Ser</strong></th>
+                                <th><strong>Tax Invoice No</strong></th>
+                                <th><strong>Tax Invoice Date</strong></th>
+                                <th><strong>Gross Invoice amount (Without VAT)</strong></th>
+                                <th><strong>VAT Amount</strong></th>
+<!--                                <th><strong>Tax Invoice Amount</strong></th>-->
+                                <th><strong>NET amount (With VAT)</strong></th>
+<!--                                <th><strong>VAT Amount</strong></th>-->
+                                <th><strong>Customer No.</strong></th>
+                                <th><strong>Customer Name</strong></th>
+                                <th><strong>Customer TRN</strong></th>
+                                <th><strong>Customer Location</strong></th>
+                                <th><strong>Currency</strong></th>
+                            </tr>
+                   </thead>
+                   <tbody>
+                        <t t-set="data_credit_note_inv" t-value="credit_notes"/>
+                        <t t-foreach ="data_credit_note_inv['credit_notes_keys']"  t-as="data_vline">
+                            <tr>
+                                <td colspan="3"><strong><span t-esc="data_vline"/></strong></td>
+                                <td ><strong><span t-esc="sum(line.amount_untaxed for line in data_credit_note_inv[data_vline])" t-options="{'widget': 'monetary', 'display_currency': data_credit_note_inv[data_vline][0].currency_id}"/></strong></td>
+                                <td ><strong><span t-esc="sum(line.amount_tax for line in data_credit_note_inv[data_vline])" t-options="{'widget': 'monetary', 'display_currency': data_credit_note_inv[data_vline][0].currency_id}"/></strong></td>
+                                <td ><strong><span t-esc="sum(line.amount_total for line in data_credit_note_inv[data_vline])" t-options="{'widget': 'monetary', 'display_currency': data_credit_note_inv[data_vline][0].currency_id}"/></strong></td>
+                                <td colspan="4"/>
+                            </tr>
+                            <t t-foreach ="data_credit_note_inv[data_vline]"  t-as="vline">
+                                <tr>
+                                    <td><span t-esc="crvno"/></td>
+<!--                                    <td><span t-field="vline.number"/></td>-->
+                                    <td><span t-field="vline.name"/></td>
+<!--                                    <td><span t-field="vline.date_invoice"/></td>-->
+                                    <td><span t-field="vline.invoice_date"/></td>
+                                    <td><span t-field="vline.amount_untaxed"/></td>
+                                    <td><span t-field="vline.amount_tax"/></td>
+                                    <td><span t-field="vline.amount_total"/></td>
+<!--                                    <td><span t-field="vline.amount_total"/></td>-->
+<!--                                    <td><span t-field="vline.amount_tax"/></td>-->
+                                    <td><span t-field="vline.partner_id.sequence_no"/></td>
+                                    <td><span t-field="vline.partner_id.name"/></td>
+                                    <td><span t-field="vline.partner_id.vat"/></td>
+                                    <td><span t-field="vline.partner_id.city"/></td>
+                                    <td><span t-field="vline.currency_id.name"/></td>
+                                </tr>
+                                <t t-set="crvno" t-value="crvno + 1"/>
+                            </t>
+                        </t>
+                   </tbody>
+                </table>
+                <div class="text-center" t-if="data['report_type'] == 'purchase_report'">
+                     <h3>
+                         <strong>VAT on Debit Notes: <span t-esc="data['start_update']"/> to </strong>  <strong t-esc="data['end_update']"/>
+                     </h3>
+                 </div>
+                <table class="table table-condensed" t-if="data['report_type'] == 'purchase_report'">
+                    <thead>
+                            <tr>
+                                <th><strong>Ser</strong></th>
+                                <th><strong>Tax Invoice No</strong></th>
+                                <th><strong>Tax Invoice Date</strong></th>
+                                <th><strong>Gross Invoice amount (Without VAT)</strong></th>
+                                <th><strong>VAT Amount</strong></th>
+<!--                                <th><strong>Tax Invoice Amount</strong></th>-->
+                                <th><strong>NET amount (With VAT)</strong></th>
+<!--                                <th><strong>VAT Amount</strong></th>-->
+                                <th><strong>Vendor No.</strong></th>
+                                <th><strong>Supplier Name</strong></th>
+                                <th><strong>Supplier TRN</strong></th>
+                                <th><strong>Supplier Location</strong></th>
+                                <th><strong>Currency</strong></th>
+                            </tr>
+                   </thead>
+                   <tbody>
+                        <t t-set="data_debitnote_inv" t-value="dedit_notes"/>
+                        <t t-foreach ="data_debitnote_inv['debit_notes_keys']"  t-as="data_dvline">
+                            <tr>
+                                <td colspan="3"><strong><span t-esc="data_dvline"/></strong></td>
+                                <td ><strong><span t-esc="sum(line.amount_untaxed for line in data_debitnote_inv[data_dvline])" t-options="{'widget': 'monetary', 'display_currency': data_debitnote_inv[data_dvline][0].currency_id}"/></strong></td>
+                                <td ><strong><span t-esc="sum(line.amount_tax for line in data_debitnote_inv[data_dvline])" t-options="{'widget': 'monetary', 'display_currency': data_debitnote_inv[data_dvline][0].currency_id}"/></strong></td>
+                                <td ><strong><span t-esc="sum(line.amount_total for line in data_debitnote_inv[data_dvline])" t-options="{'widget': 'monetary', 'display_currency': data_debitnote_inv[data_dvline][0].currency_id}"/></strong></td>
+                                <td colspan="4"/>
+                            </tr>
+                            <t t-foreach ="data_debitnote_inv[data_dvline]"  t-as="dvline">
+                                <tr>
+                                    <td><span t-esc="drvno"/></td>
+<!--                                    <td><span t-field="dvline.number"/></td>-->
+                                    <td><span t-field="dvline.name"/></td>
+<!--                                    <td><span t-field="dvline.date_invoice"/></td>-->
+                                    <td><span t-field="dvline.invoice_date"/></td>
+                                    <td><span t-field="dvline.amount_untaxed"/></td>
+                                    <td><span t-field="dvline.amount_tax"/></td>
+                                    <td><span t-field="dvline.amount_total"/></td>
+<!--                                    <td><span t-field="dvline.amount_total"/></td>-->
+<!--                                    <td><span t-field="dvline.amount_tax"/></td>-->
+                                    <td><span t-field="dvline.partner_id.sequence_no"/></td>
+                                    <td><span t-field="dvline.partner_id.name"/></td>
+                                    <td><span t-field="dvline.partner_id.vat"/></td>
+                                    <td><span t-field="dvline.partner_id.city"/></td>
+                                    <td><span t-field="dvline.currency_id.name"/></td>
+                                </tr>
+                                <t t-set="drvno" t-value="drvno + 1"/>
+                            </t>
+                        </t>
+                   </tbody>
+                </table>
+            </div>
+        </t>
+        </t>
+    </template>
+
+  </data>
+</openerp>
