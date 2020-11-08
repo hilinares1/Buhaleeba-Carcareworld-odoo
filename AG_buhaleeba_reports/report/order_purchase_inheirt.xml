@@ -80,17 +80,17 @@
             <table class="table table-sm o_main_table">
                 <thead>
                     <tr>
-                        <th name="th_sr_no"><strong>SR.NO</strong></th>
-                        <th name="th_product_code"><strong>Product Code</strong></th>
-                        <th name="th_description"><strong>Description</strong></th>
+                        <th name="th_sr_no" class="text-center"><strong>SR.NO</strong></th>
+                        <th name="th_product_code" class="text-center"><strong>Product Code</strong></th>
+                        <th name="th_description" class="text-center"><strong>Description</strong></th>
                         
                         <!-- <th name="th_date_req" class="text-center"><strong>Date Req.</strong></th> -->
-                        <th name="th_quantity" class="text-right"><strong>Qty</strong></th>
-                        <th name="th_price_unit" class="text-right"><strong>Unit Price</strong></th>
+                        <th name="th_quantity" class="text-center"><strong>Qty</strong></th>
+                        <th name="th_price_unit" class="text-center"><strong>Unit Price</strong></th>
                         <!-- <th name="th_taxes"><strong>Discount %</strong></th> -->
-                        <th name="th_taxes"><strong>Discount Amount</strong></th>
-                        <th name="th_taxes"><strong>Taxes</strong></th>
-                        <th name="th_amount" class="text-right"><strong>Amount</strong></th>
+                        <th name="th_taxes" class="text-center"><strong>Discount Amount</strong></th>
+                        <th name="th_taxes" class="text-center"><strong>Taxes</strong></th>
+                        <th name="th_amount" class="text-center"><strong>Amount</strong></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -214,15 +214,16 @@
                             <tr>
                                 <td name="td_taxes_label">Taxable Values in AED</td>
                                 <td class="text-right">
+                                    <!-- currency_value_untaxed field not found error fixed by SANA on Nov 8
                                     <span t-field="o.currency_value_untaxed"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/> -->
+                                    <span t-esc="'{:,.2f}'.format(abs(o.amount_total) * (1/o.currency_rate))"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td name="td_taxes_label">VTA Charge in AED</td>
+                                <td name="td_taxes_label">VAT Charge in AED</td>
                                 <td class="text-right">
-                                    <span t-field="o.tax_rate_value"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                    <span t-field="o.tax_rate_value"/>
                                 </td>
                             </tr>
                             <tr class="border-black o_total">
@@ -271,23 +272,23 @@
                             <tr>
                                 <td name="td_taxes_label">AED Exchange Rate</td>
                                 <td class="text-right">
-                                    <span t-field="o.currency_rate"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                    <span t-field="o.currency_rate"/>
                                 </td>
                             </tr>
 
                             <tr>
                                 <td name="td_taxes_label">Taxable Values in AED</td>
                                 <td class="text-right">
+                                    <!-- currency_value_untaxed field not found error fixed by SANA on Nov 8
                                     <span t-field="o.currency_value_untaxed"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/> -->
+                                    <span t-esc="'{:,.2f}'.format(abs(o.amount_total) * (1/o.currency_rate))"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td name="td_taxes_label">VTA Charge in AED</td>
+                                <td name="td_taxes_label">VAT Charge in AED</td>
                                 <td class="text-right">
-                                    <span t-field="o.amount_tax"
-                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                    <span t-field="o.amount_tax"/>
                                 </td>
                             </tr>
                             <tr class="border-black o_total">
