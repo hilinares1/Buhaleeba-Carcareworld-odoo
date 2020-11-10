@@ -29,7 +29,7 @@
                     <table class="table table-condensed" t-if="data['report_type'] == 'sale_report'">
                         <thead>
                             <tr>
-                                <th><strong>Ser</strong></th>
+                                <th><strong>SL NO</strong></th>
                                 <th><strong>Tax Invoice No</strong></th>
                                 <th><strong>Tax Invoice Date</strong></th>
                                 <th><strong>Gross Invoice amount (Without VAT)</strong></th>
@@ -101,7 +101,7 @@
                 <table class="table table-condensed" t-if="data['report_type'] == 'purchase_report'">
                     <thead>
                             <tr>
-                                <th><strong>Ser</strong></th>
+                                <th><strong>SL NO</strong></th>
                                 <th><strong>Tax Invoice No</strong></th>
                                 <th><strong>Tax Invoice Date</strong></th>
                                 <th><strong>Gross Invoice amount (Without VAT)</strong></th>
@@ -179,7 +179,7 @@
                 <table class="table table-condensed" t-if="data['report_type'] == 'sale_report'">
                     <thead>
                             <tr>
-                                <th><strong>Ser</strong></th>
+                                <th><strong>SL NO</strong></th>
                                 <th><strong>Tax Invoice No</strong></th>
                                 <th><strong>Tax Invoice Date</strong></th>
                                 <th><strong>Gross Invoice amount (Without VAT)</strong></th>
@@ -235,7 +235,7 @@
                 <table class="table table-condensed" t-if="data['report_type'] == 'purchase_report'">
                     <thead>
                             <tr>
-                                <th><strong>Ser</strong></th>
+                                <th><strong>SL NO</strong></th>
                                 <th><strong>Tax Invoice No</strong></th>
                                 <th><strong>Tax Invoice Date</strong></th>
                                 <th><strong>Gross Invoice amount (Without VAT)</strong></th>
