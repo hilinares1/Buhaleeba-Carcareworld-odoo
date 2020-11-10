@@ -204,7 +204,7 @@ class InvoiceWizard(models.TransientModel):
 
             column = sheet.col(1)
             column.width = 256 * 30
-            sheet.write(7, 0, 'Ser', title_style1_table_head1b)
+            sheet.write(7, 0, 'SL NO', title_style1_table_head1b)
             sheet.write(7, 1, 'Tax Invoice No', title_style1_table_head1b)
             sheet.write(7, 2, 'Tax Invoice Date', title_style1_table_head1b)
             sheet.write(7, 3, 'Gross Invoice amount (Without VAT)', title_style1_table_head1b)
@@ -259,7 +259,7 @@ class InvoiceWizard(models.TransientModel):
             sheet.write_merge(lrow, srow, 8, 9, 'End Date - ', title_style_comp_left)
             sheet.write_merge(lrow, srow, 10, 11, newend, title_style_comp_left)
             srow = srow + 1;
-            sheet.write(srow, 0, 'Ser', title_style1_table_head1b)
+            sheet.write(srow, 0, 'SL NO', title_style1_table_head1b)
             sheet.write(srow, 1, 'Tax Invoice No', title_style1_table_head1b)
             sheet.write(srow, 2, 'Tax Invoice Date', title_style1_table_head1b)
             sheet.write(srow, 3, 'Gross Invoice amount (Without VAT)', title_style1_table_head1b)
@@ -335,7 +335,7 @@ class InvoiceWizard(models.TransientModel):
             sheet.write_merge(lrow, srow, 10, 11, newend, title_style_comp_left)
             
             cnsrow = srow + 1;
-            sheet.write(cnsrow, 0, 'Ser', title_style1_table_head1b)
+            sheet.write(cnsrow, 0, 'SL NO', title_style1_table_head1b)
             sheet.write(cnsrow, 1, 'Tax Invoice No', title_style1_table_head1b)
             sheet.write(cnsrow, 2, 'Tax Invoice Date', title_style1_table_head1b)
             sheet.write(cnsrow, 3, 'Gross Invoice amount (Without VAT)', title_style1_table_head1b)
@@ -397,7 +397,7 @@ class InvoiceWizard(models.TransientModel):
             sheet.write_merge(lrow, srow, 10, 11, newend, title_style_comp_left)
             
             dnsrow = srow + 1;
-            sheet.write(dnsrow, 0, 'Ser', title_style1_table_head1b)
+            sheet.write(dnsrow, 0, 'SL NO', title_style1_table_head1b)
             sheet.write(dnsrow, 1, 'Tax Invoice No', title_style1_table_head1b)
             sheet.write(dnsrow, 2, 'Tax Invoice Date', title_style1_table_head1b)
             sheet.write(dnsrow, 3, 'Gross Invoice amount (Without VAT)', title_style1_table_head1b)
@@ -452,7 +452,7 @@ class InvoiceWizard(models.TransientModel):
 #        stream = cStringIO.StringIO()
         stream = io.BytesIO()
         workbook.save(stream)
-        attach_id = self.env['invoice.wizard'].create({'name':'Customer VAT Report.xls', 'xls_output': base64.encodestring(stream.getvalue())})
+        attach_id = self.env['invoice.wizard'].create({'name':'VAT Report.xls', 'xls_output': base64.encodestring(stream.getvalue())})
         return {
             'context': self.env.context,
             'view_type': 'form',
