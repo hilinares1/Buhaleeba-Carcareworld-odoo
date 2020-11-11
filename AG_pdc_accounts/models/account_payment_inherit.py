@@ -82,8 +82,9 @@ class account_payment(models.Model):
     def _onchange_partner_type(self):
         # Set partner_id domain
         if self.partner_type:
-            if not self.env.context.get('default_invoice_ids'):
-                self.partner_id = False
+            # Partner ID passing false for Register Payment from Invoice Form View FIX 11 NOV by sana
+            # if not self.env.context.get('default_invoice_ids'):
+            #     self.partner_id = False
             if self.partner_type == 'supplier':
 
                 return {'domain': {'partner_id': [('supplier_rank', '>', 0)]}}
