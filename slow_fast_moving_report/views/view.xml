@@ -9,7 +9,6 @@
                     <sheet>
                         <group string="Date">
                             <field name="from_date"/>
-                            <field name="to_date"/>
                         </group>
 
                         <group string="Product Details">
