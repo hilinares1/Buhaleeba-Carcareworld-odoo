@@ -12,6 +12,7 @@ class ForecastAnalysisReportWiz(models.TransientModel):
     pr_type = fields.Many2one('product.type', string="Product Type")
     sub_pr_type = fields.Many2one('product.type', string="Sub-Type")
     pr_brand = fields.Many2one('product.brand', string="Product Brand")
+    buffer_qty = fields.Float(string="Buffer Qty(%)")
 
     duration = fields.Selection([('3moths', 'Last 3 months'),
                                  ('6moths', 'Last 6 months'),
@@ -39,7 +40,6 @@ class ForecastAnalysisReportWiz(models.TransientModel):
         if self.pr_category and not self.sub_pr_category and not self.pr_type and not self.sub_pr_type and not self.pr_brand:
             categ_products = self.env['product.product'].search(
                 [('pr_category', '=', self.pr_category.id)])
-            print('//////////////////////////////////////////////////////',categ_products)
 
         # filtered by category and sub_pr_category
         elif self.pr_category and self.sub_pr_category and not self.pr_type and not self.sub_pr_type and not self.pr_brand:
@@ -230,12 +230,20 @@ class ForecastAnalysisReportWiz(models.TransientModel):
                 if sol_product['product_id'] == obj.id:
                     sale_value = sol_product['product_uom_qty']
             qty_available = obj.qty_available
-            reordering_min_qty = obj.with_context({'from_date': date_befor, 'to_date': date_today}).reordering_min_qty
+            reordering_min = obj.with_context({'from_date': date_befor, 'to_date': date_today}).reordering_min_qty
+            if qty_available < reordering_min:
+                reordering_min_qty = reordering_min
+            else:
+                reordering_min_qty = 0
             incoming_qty = obj.incoming_qty
-            # for pol_product in pol_query_obj:
-            #     if pol_product['product_id'] == obj.id:
-            #         purchase_value = pol_product['product_qty']
-            suggested = sale_value - (qty_available + incoming_qty + reordering_min_qty)
+            suggested = 0
+            if self.buffer_qty > 0:
+                suggest = sale_value - (qty_available + incoming_qty + reordering_min_qty)
+                res = suggest * self.buffer_qty / 100
+                suggested = suggest + res
+            else:
+                suggested = sale_value - (qty_available + incoming_qty + reordering_min_qty)
+
             vals = {
                 'sales_qty': sale_value,
                 'product_id': obj.id,
