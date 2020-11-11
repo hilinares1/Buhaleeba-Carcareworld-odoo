@@ -224,7 +224,9 @@ class MultiChannelSkeleton(models.Model):
                     invoice_id.action_post()
                     invoice_id = invoice_id.id
                 # Setting Context for Payment Wizard
-                open_inv = sale_obj.invoice_ids.filtered(lambda inv: inv.state == 'posted')
+				# Multiple Payment created for each import order when status completed from wocommerce FIX 11 NOV by sana
+				#open_inv = sale_obj.invoice_ids.filtered(lambda inv: inv.state == 'posted')
+                open_inv = sale_obj.invoice_ids.filtered(lambda inv: inv.state == 'posted' and inv.invoice_payment_state != 'paid')
                 if len(open_inv) and (payment_data['invoice_state'] == 'paid'):
                     ctx = {
                         'default_invoice_ids'          : [(4, invoice_id)],
