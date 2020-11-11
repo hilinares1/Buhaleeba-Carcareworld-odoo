@@ -13,8 +13,7 @@ class SlowMovingReportWiz(models.TransientModel):
     sub_pr_type = fields.Many2one('product.type', string="Sub-Type")
     pr_brand = fields.Many2one('product.brand', string="Product Brand")
 
-    from_date = fields.Date(required=True)
-    to_date = fields.Date(required=True)
+    from_date = fields.Date(required=True, string='Current Date')
 
     def print_report(self):
         self.env['slow.fast.moving.report'].search([]).unlink()
@@ -190,7 +189,7 @@ class SlowMovingReportWiz(models.TransientModel):
                        AND s_o.date_order <= %s
                        AND s_o_l.product_id in %s group by s_o_l.product_id"""
 
-        params = self.from_date, self.to_date, product_ids if product_ids else (0, 0, 0)
+        params = (self.from_date + relativedelta(months=-3)), self.from_date, product_ids if product_ids else (0, 0, 0)
         param = product_ids
         self._cr.execute(sale_query, params)
         sol_query_obj = self._cr.dictfetchall()
@@ -204,7 +203,7 @@ class SlowMovingReportWiz(models.TransientModel):
                         AND s_p.scheduled_date <= %s
                         AND s_p.state = 'done'
                         AND s_m.product_id in %s group by s_m.product_id"""
-        param_new = (date.today() + relativedelta(months=-3)), date.today(), product_ids if product_ids else (
+        param_new = (self.from_date + relativedelta(months=-3)), self.from_date, product_ids if product_ids else (
             0, 0, 0)
         self._cr.execute(stock_move, param_new)
         move_query_obj = self._cr.dictfetchall()
@@ -214,9 +213,8 @@ class SlowMovingReportWiz(models.TransientModel):
             sale = self.env['sale.order.line'].search(
                 [('order_id.state', 'in', ['sale', 'done']),
                  ('product_id', '=', obj.id),
-                 ('order_id.date_order', '>=', self.from_date),
-                 ('order_id.date_order', '<=', self.to_date)], order='order_id', limit=1)
-
+                 ('order_id.date_order', '>=', (self.from_date + relativedelta(months=-3))),
+                 ('order_id.date_order', '<=', self.from_date)], order='order_id', limit=1)
 
             sale_qty = 0
             for sol_product in sol_query_obj:
