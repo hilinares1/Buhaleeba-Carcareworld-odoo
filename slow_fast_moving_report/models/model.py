@@ -226,11 +226,12 @@ class SlowMovingReportWiz(models.TransientModel):
                 if mov_product['product_id'] == obj.id:
                     consumption = mov_product['product_qty']
 
-            re = (qty_available + consumption) * 100
+            re = (qty_available + consumption)
+            indications = 1
             if re == 0:
-                indications = consumption / 1
+                indications = consumption * 100 / 1
             else:
-                indications = consumption / re
+                indications = consumption * 100 / re
 
             if indications > 65:
                 indication = 'fast'
