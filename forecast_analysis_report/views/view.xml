@@ -20,6 +20,7 @@
                             <group>
                                 <field name="sub_pr_type"/>
                                 <field name="pr_brand"/>
+                                <field name="buffer_qty"/>
                             </group>
                         </group>
                     </sheet>
