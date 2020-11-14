@@ -3,7 +3,7 @@
 # Part of Sananaz Mansuri See LICENSE file for full copyright and licensing details.
 {
     'name': "Stock Incoming Transfer Rack",
-    'version': '1.0.0',
+    'version': '1.1.0',
     'license': 'Other proprietary',
     'category': 'Inventory',
     'summary': """Stock Incoming Transfer Rack""",
