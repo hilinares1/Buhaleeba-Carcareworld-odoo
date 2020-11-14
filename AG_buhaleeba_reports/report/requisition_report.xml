@@ -76,7 +76,7 @@
                     <tbody>
                         <t t-foreach="o.requisition_line_ids" t-as="requisition_line">
                             <tr>
-                                <td class="cols text-center">
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
                                  <span t-esc="i"/> 
                                     <t t-set="i" t-value="i+1"/>
                                 </td>
@@ -86,20 +86,20 @@
 <!--                                <td class="cols text-center">-->
 <!--                                    <span ></span>-->
 <!--                                </td>-->
-                                <td class="cols text-center">
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
                                     <span t-field="requisition_line.product_id.code"/> 
                                 </td>
-                                <td class="cols text-center">
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
                                     <span t-field="requisition_line.description"/> 
                                 </td>
-                                <td class="cols text-center">
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
                                     <span t-field="requisition_line.qty"/>
                                 </td>
-                                <td class="cols text-center">
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
                                     <span t-field="requisition_line.uom_id" />
                                 </td>
 
-                                <td class="cols text-center">
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
                                     <span t-field="requisition_line.available_qty"/> 
                                 </td>
                             </tr>
