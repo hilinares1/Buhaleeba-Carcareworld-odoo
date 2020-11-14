@@ -10,6 +10,7 @@ class StockMove(models.Model):
     rack_shelf_id = fields.Many2one(
         'stock.rack.shelf',
         string='Rack / Shelf',
+        required=True
     )
 
 
@@ -18,7 +19,7 @@ class StockMoveLine(models.Model):
 
     rack_shelf_id = fields.Many2one(
         'stock.rack.shelf',
-        string='Rack / Shelf',
+        string='Rack / Shelf',required=True
     )
 
     def _action_done(self):
