@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<template id="report_purchasrequisition_document">
+
+    <template id="report_custom_css">
+        <style type="text/css">
+            .cols
+            {
+            border: 1px solid #dfe6e9 !important;
+            border-spacing:1px;
+            border-collapse:separate;
+            padding:10px 10px !important;
+            vertical-align:middle;
+            width:auto;
+            }
+        </style>
+    </template>
+
+    <template id="report_purchasrequisition_document">
    
-        
+        <t t-call="AG_buhaleeba_reports.report_custom_css"/>
 
         <h1 class="text-center">Purchase Requisition</h1>
         <br/>
@@ -42,48 +57,49 @@
         <br/>
         <!-- table -->
 
-        <div class="row">
+        <div class="row" style="padding-top:15px;">
             <div class="col-12">
                 <t t-set="i" t-value="1" />
-                <table class="table table-bordered" >
-                    <thead style="display: table-row-group">
+                <table  width="100%" border="0" cellpadding="0" cellspacing="0">
+                    <thead>
                         <tr>
-                            <th class="text-left"  scope="col">Sr No</th>
-                            <th class="text-left"  scope="col">Date Of Delivery</th>
-                            <th class="text-left"  scope="col">Type</th>
-                            <th class="text-left"  scope="col">Code</th>
-                            <th class="text-left"  scope="col">Description</th>
-                            <th class="text-left"  scope="col">UOM</th>
-                            <th class="text-left"  scope="col">Quantity</th>
-                            <th class="text-left"  scope="col">Available Quantity</th>
+                            <th class="cols text-center" style="background-color:#A9A9A9; color:white;">Sr No</th>
+<!--                            <th class="cols text-center" style="background-color:#A9A9A9; color:white;">Date Of Delivery</th>-->
+<!--                            <th class="cols text-center" style="background-color:#A9A9A9; color:white;">Type</th>-->
+                            <th class="cols text-center" style="background-color:#A9A9A9; color:white;">Code</th>
+                            <th class="cols text-center" style="background-color:#A9A9A9; color:white;">Description</th>
+                            <th class="cols text-left"  style="background-color:#A9A9A9; color:white;">Quantity</th>
+                            <th class="cols text-left"  style="background-color:#A9A9A9; color:white;">UOM</th>
+                            <th class="cols text-left"  style="background-color:#A9A9A9; color:white;">Available Quantity</th>
                         </tr>
                     </thead>
                     <tbody>
                         <t t-foreach="o.requisition_line_ids" t-as="requisition_line">
                             <tr>
-                                <td class="text-left">
+                                <td class="cols text-center">
                                  <span t-esc="i"/> 
                                     <t t-set="i" t-value="i+1"/>
                                 </td>
-                                <td class="text-center">
-                                    <span t-field="o.received_date"/> 
-                                </td>
-                                <td>
-                                    <span >type</span>
-                                </td>
-                                <td>
+<!--                                <td class="cols text-center">-->
+<!--                                    <span t-field="o.received_date"/> -->
+<!--                                </td>-->
+<!--                                <td class="cols text-center">-->
+<!--                                    <span ></span>-->
+<!--                                </td>-->
+                                <td class="cols text-center">
                                     <span t-field="requisition_line.product_id.code"/> 
                                 </td>
-                                <td>
+                                <td class="cols text-center">
                                     <span t-field="requisition_line.description"/> 
                                 </td>
-                                <td>
+                                <td class="cols text-center">
+                                    <span t-field="requisition_line.qty"/>
+                                </td>
+                                <td class="cols text-center">
                                     <span t-field="requisition_line.uom_id" />
                                 </td>
-                                <td>
-                                    <span t-field="requisition_line.qty"/> 
-                                </td>
-                                <td>
+
+                                <td class="cols text-center">
                                     <span t-field="requisition_line.available_qty"/> 
                                 </td>
                             </tr>
@@ -95,7 +111,12 @@
 
         <br/>
         <br/>
-        <div class="row">               
+        <div style="row">
+            <div class="col-12" style="">
+                <span class="col-6" style="font-weight:bold;padding-left:0px;">Reason For Requisition : <span class="col-6" t-esc="o.reason_for_requisition"/></span>
+            </div>
+        </div>
+        <div class="row" style="padding:70px 20px 0px 50px;">
             <div class="col-6">
                 <span class="col-6">Print On : <span class="col-6" t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/></span>
             </div>
