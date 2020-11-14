@@ -27,6 +27,7 @@
         'security/ir.model.access.csv',
         'security/security_view.xml',
         'data/material_requisition_template_view.xml',
+        'wizard/add_qty.xml'
 
     ],
     'demo': [

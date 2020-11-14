@@ -7,6 +7,18 @@ from datetime import datetime, timedelta
 import math
 from odoo.exceptions import Warning
 
+
+
+PURCHASE_REQUISITION_STATES_IN = [
+        ('draft', 'Draft'),
+        ('ongoing', 'Ongoing'),
+        ('in_progress', 'Confirmed'),
+        ('open', 'Bid Selection'),
+        ('done', 'Closed'),
+        ('cancel', 'Cancelled')
+
+    ]
+
 class MaterialRequisition(models.Model):
 	_name = "material.requisition"
 	_inherit = 'mail.thread'
@@ -285,6 +297,9 @@ class MaterialRequisition(models.Model):
 											# 'task_id': res.task_id.id,
 											'requisition_mat_po_id':res.id,
 											'origin':res.sequence,
+											'date_end':res.requisition_deadline_date,
+											'ordering_date':res.requisition_date,
+											'notes':res.reason_for_requisition
 											})
 		#raise Warning(_('You cant received the product,because picking is not completed'))
 		for line in self.requisition_line_ids:
@@ -312,7 +327,7 @@ class MaterialRequisition(models.Model):
 		return location_id
 
 	sequence = fields.Char(string='Sequence', readonly=True,copy =False)
-	employee_id = fields.Many2one('hr.employee',string="Employee",required=True, track_visibility='always')
+	employee_id = fields.Many2one('res.users',string="Employee",required=True, track_visibility='always',default=lambda self: self.env.user)
 	requisition_responsible_id  = fields.Many2one('res.users',string="Requisition Responsible")
 	requisition_date = fields.Date(string="Requisition Date",required=True,track_visibility='always')
 	received_date = fields.Date(string="Received Date",readonly=True)
@@ -365,9 +380,9 @@ class RequisitionLine(models.Model):
 		# self.forcasted_qty = self.product_id.qty_available
 
 
-	product_id = fields.Many2one('product.product',string="Product")
+	product_id = fields.Many2one('product.product',string="Product",required=True)
 	description = fields.Text(string="Description")
-	qty = fields.Float(string="Quantity",default=1.0)
+	qty = fields.Float(string="Quantity",default=1.0,required=True)
 	uom_id = fields.Many2one('uom.uom',string="Unit Of Measure")
 	requisition_id = fields.Many2one('material.requisition',string="Requisition Line")
 	available_qty = fields.Float(string="Onhand Qty",related="product_id.qty_available",store=True)
@@ -392,8 +407,16 @@ class PurchaseRequisition(models.Model):
 	_inherit = 'purchase.requisition'    
 
 	requisition_mat_po_id = fields.Many2one('material.requisition',string="Purchase Requisition")
+	notes = fields.Char('Reason')
+	state = fields.Selection(PURCHASE_REQUISITION_STATES_IN,
+					                          	'Status', track_visibility='onchange', required=True,
+					                         	copy=False, default='draft')
 	# analytic_id =fields.Many2one('account.analytic.account',string="Project")
 	# task_id = fields.Many2one('project.task', string="Task")
+
+	def action_compare(self):
+		action = self.env.ref('AG_material_requisition.purchase_order_line_cus_action').read()[0]
+		return action
 
 class PurchaseOrder(models.Model):      
 	_inherit = 'purchase.order'   
@@ -401,6 +424,38 @@ class PurchaseOrder(models.Model):
 	# analytic_id =fields.Many2one('account.analytic.account',string="Project")
 	# task_id = fields.Many2one('project.task', string="Task") 
 	requisition_mat_po_id = fields.Many2one('material.requisition',string="Purchase Requisition")
+
+class PurchaseOrderLineCus(models.Model):
+	_inherit = 'purchase.order.line'
+
+	state_id = fields.Selection([
+        ('confirm', 'Confirmd'),
+        ('cancel', 'Cancelled'),
+        ], string='State', readonly=True, copy=False, index=True,)
+
+	requ = fields.Many2one('purchase.requisition',invisible=True)
+
+
+	def action_add_confirm(self):
+		return self.write({'state_id': 'confirm'})
+
+
+	def action_cancel(self):
+		return self.write({'state_id': 'cancel'})
+
+
+	def action_update_qty(self):
+		return {
+                # 'name': _('Quotation'),
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'add.qty.purchase',
+                'view_id': self.env.ref('AG_material_requisition.add_qty_purchase_form').id,
+                'type': 'ir.actions.act_window',
+                # 'context': vals,
+                'target': 'new'
+            }
+
 	
 class StockMove(models.Model):
 	_inherit = "stock.move"

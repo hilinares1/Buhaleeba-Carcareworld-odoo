@@ -9,7 +9,7 @@
                 <form string="Material Requisition">
                 <header>
                     <button name="confirm_requisition" string="Confirm" type="object" class="btn-primary" attrs="{'invisible': [('state', 'in', ['confirm','po_created','received','cancel', 'io_created'])]}" groups="base.group_user"/>
-                    <button name="action_cancel" type="object" string="Cancel" attrs="{'invisible': [('state', 'in', ['confirm','po_created','received','cancel', 'io_created'])]}" groups="base.group_user"/>
+                    <button name="action_cancel" type="object" string="Cancel" attrs="{'invisible': [('state', 'in', ['po_created','received','cancel', 'io_created'])]}" groups="base.group_user"/>
                     <!-- <button name="department_approve" type="object" string="Department Approve" attrs="{'invisible': [('state', 'in', ['new','ir_approve','po_created','received','cancel', 'io_created'])]}"/> -->
                     <!-- <button name="product_available" type="object" string="Check Availability" attrs="{'invisible': [('state', 'in', ['new','department_approval','po_created','received','cancel', 'io_created'])]}"/> -->
                     <!--  <button name="action_reject" type="object" string="Reject" attrs="{'invisible': [('state', 'in', ['new','department_approval','po_created','received','cancel', 'io_created'])]}"/> -->
@@ -53,7 +53,7 @@
                         <page string="Requisitions Lines">
                             <field name="requisition_line_ids" widget="one2many_list" attrs="{'readonly': [('state', 'not in', ['new'])]}">
                                 <tree string="Requisitions Lines" editable="bottom">
-                                    <field name="product_id" />
+                                    <field name="product_id" domain="[('type','=','product')]" />
                                     <field name="description" />
                                     <field name="qty" />
                                     <field name="available_qty" readonly="1"/>
@@ -152,7 +152,7 @@
         <menuitem id="menu_purchase_requisition_new"
           name="Requisition"
           parent="main_menu_requisition"
-          sequence="9"  groups="base.group_no_one,group_mat_requisition_user"/>        
+          sequence="9"  groups="base.group_no_one,group_mat_requisition_user"/>
 
         <menuitem id="menu_sub_purchase_requisition_new"
           name="Material Requisition"
@@ -167,11 +167,23 @@
             <field name="arch" type="xml">
             <field name="vendor_id" position="after">
                 <field name="requisition_mat_po_id"/>
+
                 <!-- <field name="analytic_id"/> -->
                 <!-- <field name="task_id"/>  -->
             </field>
+            <xpath expr="//button[@name='action_draft']" position="after">
+                <button name="action_compare" string="Analyze RFQ" type="object" attrs="{'invisible': ['|','|','|','|',('state', '=', 'draft'),('state', '=', 'in_progress'),('state', '=', 'done'),('state', '=', 'cancel')], 'required': [('state', '=','open')]}" class="btn-primary"/>
+
+            </xpath>
+            <xpath expr="//field[@name='state']" position="replace">
+                <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,open,done" attrs="{'invisible': [('is_quantity_copy', '=', 'none')]}"/>
+            </xpath>
             <xpath expr="//button[1]" position="replace">
                 
+            </xpath>
+            <xpath expr="//notebook/page/field[@name='description']" position="after">
+                <separator string="Reason For Requisition"/>
+                <field name="notes" />
             </xpath>
             <xpath expr="//button[1]" position="replace">
                 <!-- 'default_task_id':task_id  'default_analytic_id':analytic_id  -->
@@ -189,7 +201,53 @@
             </xpath> -->
             </field>
         </record>
+         <!-- Purchase Customization Part -->
 
+    <record id="purchase_order_line_tree_cus2" model="ir.ui.view">
+        <field name="name">purchase.order.line.tree.cus2</field>
+        <field name="model">purchase.order.line</field>
+        <field name="inherit_id" ref="purchase.purchase_order_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_planned']" position="replace">
+                <field name="state_id"/>
+                <button string="Add Quantity" icon="fa-shopping-cart" name="action_update_qty" aria-label="Sort" type="object"/>
+                <button string="Confirm Order" icon="fa-check" name="action_add_confirm" aria-label="Sort" type="object"/>
+                <button string="Cancel" icon="fa-times" name="action_cancel" help="Cancel" aria-label="Sort" type="object"/>
+            </xpath>
+
+            <xpath expr="//tree" position="attributes">
+                <attribute name="decoration-danger">state_id == 'cancel'</attribute>
+                <attribute name="decoration-success">state_id == 'confirm'</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="purchase_order_line_search_cus2" model="ir.ui.view">
+        <field name="name">purchase.order.line.search.cus2</field>
+        <field name="model">purchase.order.line</field>
+        <field name="arch" type="xml">
+            <search string="Search Purchase Order">
+                <field name="order_id"/>
+                <field name="product_id"/>
+                <field name="partner_id" string="Vendor" filter_domain="[('partner_id', 'child_of', self)]"/>
+                <filter name="hide_cancelled" string="Hide cancelled lines" domain="[('state', '!=', 'cancel')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="groupby_supplier" string="Vendor" domain="[]" context="{'group_by' : 'partner_id'}"/>
+                    <filter name="groupby_product" string="Product" domain="[]" context="{'group_by' : 'product_id'}"/>
+                    <filter string="Order Reference" name="order_reference" domain="[]" context="{'group_by' :'order_id'}"/>
+                    <filter string="Status" name="status" domain="[]" context="{'group_by' : 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="purchase_order_line_cus_action" model="ir.actions.act_window">
+        <field name="name">Compare Lines</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.order.line</field>
+<!--        <field name="view_type">form</field>-->
+        <field name="view_mode">tree</field>
+        <field name="domain">[('requ','=', active_id)]</field>
+        <field name="context">{'search_default_hide_cancelled': 1,'search_default_groupby_product':1}</field>
+    </record>
         <!-- <record id="stock_picking_form_inherit" model="ir.ui.view">
             <field name="name">stock.picking.form.inherit</field>
             <field name="model">stock.picking</field>
@@ -204,7 +262,6 @@
 
             </field>
         </record> -->
-
         <record id="view_purchase_order_line_form" model="ir.ui.view">
             <field name="name">view.purchase.order.line.form.inherit</field>
             <field name="model">purchase.order</field>
@@ -218,6 +275,16 @@
             </field>
         </record>
 
+     <record id="purchase_order_cus_form" model="ir.ui.view">
+        <field name="name">purchase.order.cus.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='price_unit']" position="after">
+                <field name="requ" invisible="1"/>
+            </xpath>
+        </field>
+     </record>
         <!-- <record id="view_move_picking_form_inherit" model="ir.ui.view">
             <field name="name">stock.move.form.inherit</field>
             <field name="model">stock.move</field>
