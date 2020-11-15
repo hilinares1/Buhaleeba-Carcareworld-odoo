@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api
 from odoo.tools.float_utils import float_round, float_compare, float_is_zero
+from odoo.exceptions import UserError
 
 
 class StockMove(models.Model):
@@ -12,7 +13,6 @@ class StockMove(models.Model):
         string='Rack / Shelf',
         required=True
     )
-
 
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
@@ -87,6 +87,10 @@ class StockMoveLine(models.Model):
         done_ml = self.env['stock.move.line']
         for ml in self - ml_to_delete:
             if ml.product_id.type == 'product':
+
+                if ml.picking_id.picking_type_code == 'incoming' and not ml.rack_shelf_id:
+                    raise UserError('Kindly assign Rack/Shelf to product %s' % (ml.product_id.name))
+
                 rounding = ml.product_uom_id.rounding
 
                 # if this move line is force assigned, unreserve elsewhere if needed
@@ -121,5 +125,16 @@ class StockMoveLine(models.Model):
             'product_uom_qty': 0.00,
             'date': fields.Datetime.now(),
         })
+
+class StockPicking(models.Model):
+    _inherit = "stock.picking"
+
+    def button_validate(self):
+
+        for move in self.move_line_ids:
+            if move.picking_id.picking_type_code == 'incoming' and not move.rack_shelf_id:
+                raise UserError('Kindly assign Rack/Shelf to product %s' % (move.product_id.name))
+
+        return super().button_validate()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
