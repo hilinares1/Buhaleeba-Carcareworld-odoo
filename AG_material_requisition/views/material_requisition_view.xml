@@ -108,7 +108,7 @@
                 <tree string="Material Requisition">
                     <field name="sequence" string="Number"/>
                     <field name="employee_id"/>
-                    <field name="requisition_responsible_id"/>
+                    <field name="requisition_responsible_id" invisible="1"/>
                     <field name="requisition_date"/>
                     <field name="state"/>
                 </tree>
@@ -221,6 +221,7 @@
             </xpath>
         </field>
     </record>
+
     <record id="purchase_order_line_search_cus2" model="ir.ui.view">
         <field name="name">purchase.order.line.search.cus2</field>
         <field name="model">purchase.order.line</field>
@@ -247,6 +248,7 @@
         <field name="view_mode">tree</field>
         <field name="domain">[('requ','=', active_id)]</field>
         <field name="context">{'search_default_hide_cancelled': 1,'search_default_groupby_product':1}</field>
+
     </record>
         <!-- <record id="stock_picking_form_inherit" model="ir.ui.view">
             <field name="name">stock.picking.form.inherit</field>

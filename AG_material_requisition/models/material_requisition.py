@@ -23,6 +23,7 @@ class MaterialRequisition(models.Model):
 	_name = "material.requisition"
 	_inherit = 'mail.thread'
 	_rec_name = 'sequence'
+	_order = 'sequence desc'
 
 	@api.model
 	def create(self , vals):
@@ -425,6 +426,15 @@ class PurchaseOrder(models.Model):
 	# task_id = fields.Many2one('project.task', string="Task") 
 	requisition_mat_po_id = fields.Many2one('material.requisition',string="Purchase Requisition")
 
+	@api.onchange('order_line')
+	def add_req_value(self):
+		for rec in self:
+			if rec.requisition_id:
+				for l in rec.order_line:
+					l.requ = rec.requisition_id.id
+			else:
+				continue
+
 class PurchaseOrderLineCus(models.Model):
 	_inherit = 'purchase.order.line'
 
@@ -433,7 +443,7 @@ class PurchaseOrderLineCus(models.Model):
         ('cancel', 'Cancelled'),
         ], string='State', readonly=True, copy=False, index=True,)
 
-	requ = fields.Many2one('purchase.requisition',invisible=True)
+	requ = fields.Many2one('purchase.requisition')
 
 
 	def action_add_confirm(self):
