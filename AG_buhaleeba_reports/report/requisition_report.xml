@@ -50,7 +50,7 @@
                 <span class="col-6">Status : <span class="col-6" t-field="o.state"/></span>
             </div>
             <div class="col-6">
-               <span class="col-6">User Id                 : <span class="col-6" t-field="o.employee_id"/></span> 
+               <span class="col-6">User Id : <span class="col-6" t-field="o.employee_id"/></span>
             </div>
         </div>
         <br/>
