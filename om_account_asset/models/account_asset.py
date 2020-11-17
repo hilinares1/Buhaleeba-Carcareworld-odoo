@@ -77,10 +77,14 @@ class AccountAssetAsset(models.Model):
     name = fields.Char(string='Asset Name', required=True, readonly=True, states={'draft': [('readonly', False)]})
     code = fields.Char(string='Reference', size=32, readonly=True, states={'draft': [('readonly', False)]})
     value = fields.Float(string='Gross Value', required=True, readonly=True, digits=0, states={'draft': [('readonly', False)]})
+    qty = fields.Float(string='QTY')
     currency_id = fields.Many2one('res.currency', string='Currency', required=True, readonly=True, states={'draft': [('readonly', False)]},
         default=lambda self: self.env.user.company_id.currency_id.id)
     company_id = fields.Many2one('res.company', string='Company', required=True, readonly=True, states={'draft': [('readonly', False)]},
         default=lambda self: self.env['res.company']._company_default_get('account.asset.asset'))
+    sales_value = fields.Float(string='Sale Value')
+    account_asset_id = fields.Many2one('account.account', string='Asset Account', required=True, domain=[('internal_type','=','other'), ('deprecated', '=', False)], help="Account used to record the purchase of the asset at its original price.")
+
     note = fields.Text()
     category_id = fields.Many2one('account.asset.category', string='Category', required=True, change_default=True, readonly=True, states={'draft': [('readonly', False)]})
     date = fields.Date(string='Date', required=True, readonly=True, states={'draft': [('readonly', False)]}, default=fields.Date.context_today)
@@ -109,6 +113,8 @@ class AccountAssetAsset(models.Model):
     salvage_value = fields.Float(string='Salvage Value', digits=0, readonly=True, states={'draft': [('readonly', False)]},
         help="It is the amount you plan to have that you cannot depreciate.")
     invoice_id = fields.Many2one('account.move', string='Invoice', states={'draft': [('readonly', False)]}, copy=False)
+    #invoice_line_id = fields.Many2one('account.move.line', string='Invoice Lines', states={'draft': [('readonly', False)]}, copy=False)
+   # asset_quantity= fields.Float(string='Quantity',compute='_compute_qty')
     type = fields.Selection(related="category_id.type", string='Type', required=True)
     account_analytic_id = fields.Many2one('account.analytic.account', string='Analytic Account')
     analytic_tag_ids = fields.Many2many('account.analytic.tag', string='Analytic Tag')
@@ -126,7 +132,19 @@ class AccountAssetAsset(models.Model):
         help='Note that this date does not alter the computation of the first journal entry in case of prorata temporis assets. It simply changes its accounting date'
     )
 
-    
+    # @api.depends('asset_quantity')
+    # def _compute_qty(self):
+    #     for record in self:
+    #         qty = False
+    #         qty_ids = self.env['account.move.line'].search([('asset_acc_id', '=', record.id)])
+    #         for line in qty_ids:
+    #             qty = line.quantity
+    #
+    #         record.asset_quantity = qty
+
+
+        #return False
+
     def unlink(self):
         for asset in self:
             if asset.state in ['open', 'close']:
@@ -330,6 +348,8 @@ class AccountAssetAsset(models.Model):
                 vals = {
                     'amount': asset.value_residual,
                     'asset_id': asset.id,
+                   # 'sale_val':asset.sales_value,
+                    'account_asset_type':asset.account_asset_id.id,
                     'sequence': sequence,
                     'name': (asset.code or '') + '/' + str(sequence),
                     'remaining_value': 0,
@@ -478,6 +498,8 @@ class AccountAssetDepreciationLine(models.Model):
     asset_id = fields.Many2one('account.asset.asset', string='Asset', required=True, ondelete='cascade')
     parent_state = fields.Selection(related='asset_id.state', string='State of Asset')
     amount = fields.Float(string='Current Depreciation', digits=0, required=True)
+    #sale_val = fields.Float(string='Sale Value')
+    account_asset_type = fields.Many2one('account.account', string='Asset Account', required=True, domain=[('internal_type','=','other'), ('deprecated', '=', False)], help="Account used to record the purchase of the asset at its original price.")
     remaining_value = fields.Float(string='Next Period Depreciation', digits=0, required=True)
     depreciated_value = fields.Float(string='Cumulative Depreciation', required=True)
     depreciation_date = fields.Date('Depreciation Date', index=True)
@@ -519,6 +541,8 @@ class AccountAssetDepreciationLine(models.Model):
         depreciation_date = self.env.context.get('depreciation_date') or line.depreciation_date or fields.Date.context_today(self)
         company_currency = line.asset_id.company_id.currency_id
         current_currency = line.asset_id.currency_id
+        #sale_value = line.asset_id.sales_value
+
         prec = company_currency.decimal_places
         amount = current_currency._convert(
             line.amount, company_currency, line.asset_id.company_id, depreciation_date)
@@ -536,7 +560,7 @@ class AccountAssetDepreciationLine(models.Model):
         }
         move_line_2 = {
             'name': asset_name,
-            'account_id': category_id.account_depreciation_expense_id.id,
+            'account_id': line.asset_id.account_asset_id.id,
             'credit': 0.0 if float_compare(amount, 0.0, precision_digits=prec) > 0 else -amount,
             'debit': amount if float_compare(amount, 0.0, precision_digits=prec) > 0 else 0.0,
             'partner_id': line.asset_id.partner_id.id,
@@ -545,6 +569,29 @@ class AccountAssetDepreciationLine(models.Model):
             'currency_id': company_currency != current_currency and current_currency.id or False,
             'amount_currency': company_currency != current_currency and line.amount or 0.0,
         }
+        # move_line_3 = {
+        #     'name': asset_name,
+        #     'account_id': line.asset_id.account_asset_id.id,
+        #     'debit': 0.0 if float_compare(sale_value, 0.0, precision_digits=prec) > 0 else -sale_value,
+        #     'credit': sale_value if float_compare(sale_value, 0.0, precision_digits=prec) > 0 else 0.0,
+        #     'partner_id': line.asset_id.partner_id.id,
+        #     'analytic_account_id': account_analytic_id.id if category_id.type == 'purchase' else False,
+        #     'analytic_tag_ids': [(6, 0, analytic_tag_ids.ids)] if category_id.type == 'purchase' else False,
+        #     'currency_id': company_currency != current_currency and current_currency.id or False,
+        #     'amount_currency': company_currency != current_currency and line.sale_value or 0.0,
+        # }
+        # print('-------moveline3------',move_line_3)
+        # move_line_4 = {
+        #     'name': asset_name,
+        #     'account_id': line.asset_id.account_asset_id.id,
+        #     'credit': 0.0 if float_compare(sale_value, 0.0, precision_digits=prec) > 0 else -sale_value,
+        #     'debit': sale_value if float_compare(sale_value, 0.0, precision_digits=prec) > 0 else 0.0,
+        #     'partner_id': line.asset_id.partner_id.id,
+        #     'analytic_account_id': account_analytic_id.id if category_id.type == 'purchase' else False,
+        #     'analytic_tag_ids': [(6, 0, analytic_tag_ids.ids)] if category_id.type == 'purchase' else False,
+        #     'currency_id': company_currency != current_currency and current_currency.id or False,
+        #     'amount_currency': company_currency != current_currency and line.sale_value or 0.0,
+        # }
         move_vals = {
             'ref': line.asset_id.code,
             'date': depreciation_date or False,
@@ -566,6 +613,7 @@ class AccountAssetDepreciationLine(models.Model):
             current_currency = line.asset_id.currency_id
             company = line.asset_id.company_id
             amount += current_currency._convert(line.amount, company_currency, company, fields.Date.today())
+           # sale_value = line.asset_id.sales_value
 
         name = category_id.name + _(' (grouped)')
         move_line_1 = {
@@ -586,6 +634,24 @@ class AccountAssetDepreciationLine(models.Model):
             'analytic_account_id': account_analytic_id.id if category_id.type == 'purchase' else False,
             'analytic_tag_ids': [(6, 0, analytic_tag_ids.ids)] if category_id.type == 'purchase' else False,
         }
+        # move_line_3 = {
+        #     'name': name,
+        #     'account_id': line.asset_id.account_asset_id.id,
+        #     'debit': 0.0,
+        #     'credit': sale_value,
+        #     'journal_id': category_id.journal_id.id,
+        #     'analytic_account_id': account_analytic_id.id if category_id.type == 'purchase' else False,
+        #     'analytic_tag_ids': [(6, 0, analytic_tag_ids.ids)] if category_id.type == 'purchase' else False,
+        # }
+        # move_line_4 = {
+        #     'name': name,
+        #     'account_id': line.asset_id.account_asset_id.id,
+        #     'credit': 0.0,
+        #     'debit': sale_value,
+        #     'journal_id': category_id.journal_id.id,
+        #     'analytic_account_id': account_analytic_id.id if category_id.type == 'purchase' else False,
+        #     'analytic_tag_ids': [(6, 0, analytic_tag_ids.ids)] if category_id.type == 'purchase' else False,
+        # }
         move_vals = {
             'ref': category_id.name,
             'date': depreciation_date or False,

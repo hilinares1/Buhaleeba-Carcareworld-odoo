@@ -14,6 +14,13 @@
                 <field string="Asset Category" name="asset_category_id" invisibl="1"
                        domain="[('type','=','purchase')]" context="{'default_type':'purchase'}"/>
             </xpath>
+           <!-- <xpath expr="//field[@name='line_ids']/tree/field[@name='account_id']" position="after">
+                <field string="Sales Value" name="sale_value"/>
+            </xpath>-->
+<!--             <xpath expr="//field[@name='line_ids']/tree/field[@name='sale_value']" position="after">-->
+<!--                <field string="Account assets" name="asset_acc_id" invisibl="1"/>-->
+<!--            </xpath>-->
+
         </field>
     </record>
 

@@ -178,6 +178,10 @@
                             <field name="partner_id" string="Vendor" widget="res_partner_many2one"
                                    context="{'res_partner_search_mode': 'supplier'}"/>
                             <field name="invoice_id" string="Invoice" options="{'no_create': True}"/>
+                            <field name="sales_value" options="{'no_create': True}"/>
+                            <field name="qty" invisible="1"/>
+                            <field name="account_asset_id"  options="{'no_create': True}"/>
+
                             <field name="analytic_tag_ids" groups="analytic.group_analytic_accounting" widget="many2many_tags"/>
                         </group>
                     </group>
