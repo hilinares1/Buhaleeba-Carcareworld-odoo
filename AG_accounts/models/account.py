@@ -20,7 +20,7 @@
 #
 #############################################################################
 
-from odoo import api, fields, models
+from odoo import api, fields, models, tools, _
 from odoo.exceptions import RedirectWarning, UserError, ValidationError, AccessError
 import odoo.addons.decimal_precision as dp
 from odoo.tools import float_is_zero, float_compare, safe_eval, date_utils, email_split, email_escape_char, email_re
@@ -160,7 +160,6 @@ class AccountMove(models.Model):
         for rec in self:
             if rec.is_purchase == 0:
                 rec.currency_rate = rec.currency_id.rate
-            
 
     # @api.onchange('invoice_line_ids')
     def currency_changes(self):
@@ -169,19 +168,26 @@ class AccountMove(models.Model):
         for rec in self:
             if rec.line_ids:
                 for res in rec.line_ids:
-                    amount_currency = abs(res.amount_currency) * (1/rec.currency_rate)
-                    if res.debit == 0 and res.credit != 0:
-                        credit = amount_currency
-                        value = {'debit':0,'credit':credit,'account_id':res.account_id.id}
-                    elif res.debit != 0 and res.credit == 0:
-                        debit = amount_currency
-                        value = {'debit':debit,'credit':0,'account_id':res.account_id.id}
-                    vals.append((1,res.id,value))
-                rec.update({'line_ids':vals})
+                    #Fixed by sana on 18th November 2020, Fixed issue: when create vendor bill from purchase order while save price set ZERO
+                    #  and all amount makes ZERO
+                    if res.company_id.currency_id != res.move_id.currency_id:
+                        amount_currency = abs(res.amount_currency) * (1 / rec.currency_rate)
+                        amount_currency = tools.float_round(amount_currency, precision_digits=2)
+                        if res.debit == 0 and res.credit != 0:
+                            credit = amount_currency
+                            # credit = tools.float_round(float(amount_currency), precision_digits=2)
+                            value = {'debit': 0, 'credit': round(credit,2), 'account_id': res.account_id.id}
+                        elif res.debit != 0 and res.credit == 0:
+                            debit = amount_currency
+                            value = {'debit': debit, 'credit': 0, 'account_id': res.account_id.id}
+                        print ("valsss",value)
+                        vals.append((1, res.id, value))
+            if vals:
+                rec.update({'line_ids': vals})
                 rec.is_update = rec.is_update + 1
                 # rec.write({'debit':debit,'credit':credit})
-            else:
-                raise UserError('The jornal lines is empty nothing to update')
+            # else:
+            #     raise UserError('The jornal lines is empty nothing to update')
 
 
 
@@ -295,8 +301,8 @@ class AccountMoveLine(models.Model):
                     price_unit_wo_discount = rec.price_unit * (1 - (rec.discount or 0.0) / 100.0)
                 else:
                     price_unit_wo_discount = rec.price_unit  - rec.discount/rec.quantity
-            # elif rec.discount_value:
-            #     price_unit_wo_discount = rec.price_unit  - rec.discount_value/rec.quantity
+            elif rec.discount_value:
+                price_unit_wo_discount = rec.price_unit  - rec.discount_value/rec.quantity
             else:
                 price_unit_wo_discount = rec.price_unit
             taxes = rec.tax_ids.compute_all(price_unit_wo_discount, rec.move_id.currency_id, rec.quantity, product=rec.product_id, partner=rec.move_id.partner_shipping_id)
