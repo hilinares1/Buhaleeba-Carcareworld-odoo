@@ -27,6 +27,8 @@
         'data/pro_data.xml',
         'security/ir.model.access.csv',
         'report/report_deliveryslip.xml',
+        'report/stock_move_analysis_view.xml',
+        'wizard/stock_move_analysis_wizard.xml',
 
     ],
     'demo': [

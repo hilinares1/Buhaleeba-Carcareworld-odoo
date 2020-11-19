@@ -2,3 +2,5 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_product_categories_manager,product.categories,model_product_categories,base.group_user,1,1,1,1
 access_product_type_manager,product.type,model_product_type,base.group_user,1,1,1,1
 access_product_brand_manager,product.brand,model_product_brand,base.group_user,1,1,1,1
+access_stock_move_analysis_view,stock_move_analysis_view,model_stock_move_analysis_view,,1,1,1,1
+access_st_move_analysis_wizard,st_move_analysis_wizard,model_st_move_analysis_wizard,,1,1,1,1
