@@ -22,6 +22,7 @@
 
         'report/entry_analysis.xml',
 
+
     ],
     'installable': True,
     'application': False,
