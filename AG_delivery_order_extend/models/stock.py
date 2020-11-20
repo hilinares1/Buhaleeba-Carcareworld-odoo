@@ -28,7 +28,7 @@ class Stock(models.Model):
         if self.picking_type_code == 'outgoing':
             so_rec = self.env['sale.order'].search([('id', '=', self.env.context.get('active_id'))])
             for rec in so_rec:
-              if rec.woo_status in ['pickup-cod', 'pickup-paid']:
+              if rec.woo_status in ['pickup-cod', 'pickup-paid', 'no']:
                     self.state = 'complete'
               else:
                     self.state = 'in_transit'
