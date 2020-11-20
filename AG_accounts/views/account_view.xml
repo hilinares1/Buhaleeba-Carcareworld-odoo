@@ -22,7 +22,7 @@
 
                 <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='tax_ids']" position="replace">
                     <field name="tax_ids" string="VAT" widget="many2many_tags" domain="[('type_tax_use', '=?', parent.invoice_filter_type_domain), ('company_id', '=', parent.company_id)]" context="{'append_type_to_tax_name': not parent.invoice_filter_type_domain}" options="{'no_create': True}" optional="show"/>
-                    <field name="price_tax" />
+                    <!--<field name="price_tax" invisible="""/>-->
                 </xpath>
                 
             </field>
