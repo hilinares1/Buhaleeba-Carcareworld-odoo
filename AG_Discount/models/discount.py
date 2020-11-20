@@ -16,7 +16,6 @@ from odoo.addons.stock.models.stock_move import PROCUREMENT_PRIORITIES
 from odoo.tools.misc import formatLang, format_date, get_lang
 
 
-
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
 
@@ -34,10 +33,8 @@ class PurchaseOrder(models.Model):
                 line.is_percentage = False
 
 
-
-
 class PurchaseOrderLine(models.Model):
-    _inherit = "purchase.order.line" 
+    _inherit = "purchase.order.line"
 
     is_percentage = fields.Boolean('Is Discount (%)',default=False)
     discount = fields.Float('Discount')
@@ -104,7 +101,6 @@ class PurchaseOrderLine(models.Model):
             self.price_unit = price_unit
         return price
 
-
     def _prepare_account_move_line(self, move):
         vals = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
         vals['price_unit'] = self.price_unit
@@ -115,7 +111,6 @@ class PurchaseOrderLine(models.Model):
 
 class StockMove(models.Model):
     _inherit = "stock.move"
-
 
     def _prepare_account_move_line(self, qty, cost, credit_account_id, debit_account_id, description):
         """
@@ -134,7 +129,9 @@ class StockMove(models.Model):
             credit_value = debit_value
 
         valuation_partner_id = self._get_partner_id_for_valuation_lines()
-        res = [(0, 0, line_vals) for line_vals in self._generate_valuation_lines_data(valuation_partner_id, qty, debit_value, credit_value, debit_account_id, credit_account_id, description).values()]
+        res = [(0, 0, line_vals) for line_vals in
+               self._generate_valuation_lines_data(valuation_partner_id, qty, debit_value, credit_value,
+                                                   debit_account_id, credit_account_id, description).values()]
 
         return res
 
@@ -244,7 +241,6 @@ class AccountMove(models.Model):
                 if not in_draft_mode and rec.type == 'out_invoice':
                     rec._recompute_universal_discount_lines()
                 print()
-
 
     @api.onchange('amount_discount','line_ids')
     def _recompute_universal_discount_lines(self):
@@ -423,8 +419,7 @@ class AccountMoveLine(models.Model):
             move_type=move_type or self.move_id.type,
             is_percentage=is_percentage or self.is_percentage,
         )
-  
-    
+
     @api.model
     def _get_price_total_and_subtotal_model(self, price_unit, quantity, discount, currency, product, partner, taxes, move_type,is_percentage=None):
         ''' This method is used to compute 'price_total' & 'price_subtotal'.
