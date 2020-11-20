@@ -100,13 +100,16 @@ class PurchaseOrder(models.Model):
     def button_confirm(self):
         for order in self:
             orderdate = "%s" %(order.date_order)
-            if dateutil.parser.parse(orderdate).date() <= order.company_id.fiscalyear_lock_date:
-                lock_date = self.company_id.fiscalyear_lock_date
-                if self.user_has_groups('account.group_account_manager'):
-                    message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s.") % format_date(self.env, lock_date)
-                else:
-                    message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s. Check the company settings or ask someone with the 'Adviser' role") % format_date(self.env, lock_date)
-                raise UserError(message)
+            # Fixed by sana on 18th November 2020, Fixed issue: TypeError: '<=' not supported between instances of 'datetime.date' and 'bool'
+            #  order.company_id.fiscalyear_lock_date value passing False
+            if order.company_id.fiscalyear_lock_date:
+                if dateutil.parser.parse(orderdate).date() <= order.company_id.fiscalyear_lock_date:
+                    lock_date = self.company_id.fiscalyear_lock_date
+                    if self.user_has_groups('account.group_account_manager'):
+                        message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s.") % format_date(self.env, lock_date)
+                    else:
+                        message = _("You cannot confirm this RFQ prior to and inclusive of the lock date %s. Check the company settings or ask someone with the 'Adviser' role") % format_date(self.env, lock_date)
+                    raise UserError(message)
             if order.state not in ['draft', 'sent']:
                 continue
             order._add_supplier_to_product()
@@ -300,13 +303,16 @@ class StockPicking(models.Model):
         # rec = self.env['account.lock.date'].search([('id','=',1)])
         # raise UserError(self.date_order)
         orderdate = "%s" %(self.scheduled_date)
-        if dateutil.parser.parse(orderdate).date() <= self.company_id.fiscalyear_lock_date:
-            lock_date = self.company_id.fiscalyear_lock_date
-            if self.user_has_groups('account.group_account_manager'):
-                message = _("You cannot Validate this picking prior to and inclusive of the lock date %s.") % format_date(self.env, lock_date)
-            else:
-                message = _("You cannot Validate this picking prior to and inclusive of the lock date %s. Check the company settings or ask someone with the 'Adviser' role") % format_date(self.env, lock_date)
-            raise UserError(message)
+        # Fixed by sana on 18th November 2020, Fixed issue: TypeError: '<=' not supported between instances of 'datetime.date' and 'bool'
+        #  order.company_id.fiscalyear_lock_date value passing False
+        if self.company_id.fiscalyear_lock_date:
+            if dateutil.parser.parse(orderdate).date() <= self.company_id.fiscalyear_lock_date:
+                lock_date = self.company_id.fiscalyear_lock_date
+                if self.user_has_groups('account.group_account_manager'):
+                    message = _("You cannot Validate this picking prior to and inclusive of the lock date %s.") % format_date(self.env, lock_date)
+                else:
+                    message = _("You cannot Validate this picking prior to and inclusive of the lock date %s. Check the company settings or ask someone with the 'Adviser' role") % format_date(self.env, lock_date)
+                raise UserError(message)
         return res
 
     @api.depends('classification')
@@ -489,6 +495,7 @@ class SaleOrder(models.Model):
                     res = self.env['order.feed'].search([('store_id','=',map.store_order_id)])
                     if res:
                         rec.woo_status = res.order_state
-                    
             else:
                 rec.woo_status = 'no'
+
+
