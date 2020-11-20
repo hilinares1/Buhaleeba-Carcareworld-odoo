@@ -63,7 +63,7 @@
                 </xpath>
                 <xpath expr="//field[@name='taxes_id']" position="replace">
                     <field name="taxes_id" string="VAT" widget="many2many_tags" domain="[('type_tax_use','=','purchase'), ('company_id', '=', parent.company_id)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}" optional="show"/>
-                    <field name="price_tax" string="VAT Amount"/>
+                    <!--<field name="price_tax" string="VAT Amount"/>-->
                 </xpath>
                 <xpath expr="//field[@name='currency_id']" position="after">
                     <field name="currency_rate"  digits="[12,12]" attrs="{'readonly' : [('state', 'not in', ['draft','sent','to approve','second approve'])]}"/>
@@ -145,7 +145,7 @@
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree//field[@name='tax_id']" position="replace">
                     <field name="tax_id" string="VAT" widget="many2many_tags" options="{'no_create': True}" domain="[('type_tax_use','=','sale'),('company_id','=',parent.company_id)]" attrs="{'readonly': [('qty_invoiced', '&gt;', 0)]}" optional="show"/>
-                    <field name="price_tax" string="VAT Amount"/>
+                    <!--<field name="price_tax" string="VAT Amount"/>-->
                 </xpath>
             </field>
         </record>
