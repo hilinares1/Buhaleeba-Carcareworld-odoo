@@ -5,14 +5,15 @@ from odoo.exceptions import except_orm, ValidationError ,UserError
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
 
-    is_purchase_consignment = fields.Boolean(string='Is Purchase Consignment')
+    is_purchase_consignment = fields.Boolean(string='Is Consignment Purchase')
 
-   # def button_confirm(self): #change in demo
-       # for record in self:
-            #res = super(PurchaseOrder, self).button_confirm()
+    def button_confirm(self): #change in demo
+        for record in self:
+            res = super(PurchaseOrder, self).button_confirm()
+            if record.is_purchase_consignment == True:
+                record.picking_ids.write({'owner_id': record.partner_id.id})
+            else:
+                record.picking_ids.write({'owner_id': False})
 
-            #if record.picking_ids:
-             #   if record.is_purchase_consignment == 'True':
-                  #  for pick in record.picking_ids:
-                      #  pick.move_lines.write({'origin': record.interchanging_po_sequence})
-                     #   pick.move_lines.write({'owner_id': record.partner_id})
+
+            return res
