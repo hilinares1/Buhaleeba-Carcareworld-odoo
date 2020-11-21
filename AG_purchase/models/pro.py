@@ -38,6 +38,7 @@ class PurchaseOrder(models.Model):
     interchanging_rfq_sequence = fields.Char('Sequence', copy=False)
     interchanging_po_sequence = fields.Char('Sequence', copy=False)
     currency_value = fields.Float('Cuurency after rate',compute="_get_curreny_value")
+    is_purchase_consignment = fields.Boolean(string='Is Purchase Consignment')
 
     @api.depends('currency_rate')
     def _get_curreny_value(self):
@@ -129,6 +130,10 @@ class PurchaseOrder(models.Model):
                 new_name = self.env['ir.sequence'].next_by_code('purchase.order') or '/'
                 order.write({'interchanging_rfq_sequence':order.name})
                 order.write({'name': new_name})
+            if order.is_purchase_consignment == True:
+                order.picking_ids.write({'owner_id': order.partner_id.id})
+            else:
+                order.picking_ids.write({'owner_id': False})    
             order.picking_ids.write({'origin': order.interchanging_po_sequence})
             if order.picking_ids:
                 for pick in order.picking_ids:
