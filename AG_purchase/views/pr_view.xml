@@ -72,6 +72,9 @@
                     
                     
                 </xpath>
+                <xpath expr="//field[@name='company_id']" position="after">
+                    <field name="is_purchase_consignment" attrs="{'readonly' : [('state', 'in', ['purchase'])]}"/>
+                </xpath>
             </field>
         </record>
 
