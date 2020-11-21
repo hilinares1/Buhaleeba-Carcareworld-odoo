@@ -11,10 +11,10 @@ class PurchaseOrder(models.Model):
         for record in self:
             res = super(PurchaseOrder, self).button_confirm()
             if record.is_purchase_consignment == True:
-                print('---True---')
+                
                 record.picking_ids.write({'owner_id': record.partner_id.id})
             else:
                 record.picking_ids.write({'owner_id': False})
-                print('---False---')
+                
 
             return res
