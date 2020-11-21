@@ -130,7 +130,7 @@
                             <t t-foreach="o.amount_by_group" t-as="amount_by_group">
                                 <tr style="">
                                     <t t-if="len(o.line_ids.filtered(lambda line: line.tax_line_id)) in [0, 1] and o.amount_untaxed == amount_by_group[2]">
-                                        <!-- <td><span class="text-nowrap" t-esc="amount_by_group[0]"/></td> -->
+                                        <!-- <td><span class="text-nowrap" t-esc="amt_by_group[0]"/></td> -->
                                         
                                     </t>
                                     <t t-else="">
@@ -147,14 +147,14 @@
                                 </tr>
                             </t>
                             <tr class="border-black o_subtotal" style="">
-                                <td><strong>Total Before VTA</strong></td>
+                                <td><strong>Total Before Vat</strong></td>
                                 <td class="text-right">
                                     <span t-field="o.amount_untaxed"/>
                                 </td>
                             </tr>
                             <tr class="border-black o_subtotal" style="">
                              <t t-foreach="o.amount_by_group" t-as="amount_by_group">
-                                <td><strong>VTA Amount</strong></td>
+                                <td><strong>Vat Amount</strong></td>
                                 <td class="text-right o_price_total">
                                             <span class="text-nowrap" t-esc="amount_by_group[3]" />
                                 </td>
@@ -162,7 +162,7 @@
                             </tr>
                             
                             <tr class="border-black o_total">
-                                <td><strong>Net Amount Including VTA</strong></td>
+                                <td><strong>Net Amount Including Vat</strong></td>
                                 <td class="text-right">
                                     <span class="text-nowrap" t-field="o.amount_total"/>
                                 </td>
@@ -209,22 +209,22 @@
                                 <tr>
                                     <!-- TODO: remove in master -->
                                     <t t-set="colspan" t-value="8"/>
-                                    <th name="th_description" class="text-left"><span>SR.NO</span></th>
-                                    <th name="th_description" class="text-left"><span>PRODUCT CODE</span></th>
+                                    <th name="th_description" class="text-left"><span>Sr.No</span></th>
+                                    <th name="th_description" class="text-left"><span>Product Code</span></th>
                                     <th name="th_description" class="text-left"><span>Description</span></th>
                                     <!-- TODO: remove in master -->
                                     <th name="th_source" class="d-none text-left" t-if="0"><span>Source Document</span></th>
                                     <th name="th_quantity" class="text-right"><span>Quantity</span></th>
                                     <th name="th_priceunit" t-attf-class="text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}"><span>Unit Price</span></th>
                                     <th name="th_price_unit" t-if="display_discount" t-attf-class="text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
-                                        <span>DISCOUNT AMOUNT</span>
+                                        <span>Discount Amount</span>
                                         <!-- TODO: remove in master -->
                                         <t t-set="colspan" t-value="colspan+1"/>
                                     </th>
                                     <th name="th_taxes" t-attf-class="text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}"><span>Taxes</span></th>
                                     <th name="th_subtotal" class="text-right">
-                                        <span groups="account.group_show_line_subtotals_tax_excluded">UNIT PRICE INCLUDING VTA</span>
-                                        <span groups="account.group_show_line_subtotals_tax_included">AMOUNT INCLUDING VTA</span>
+                                        <span groups="account.group_show_line_subtotals_tax_excluded">Sub Total</span>
+                                        <span groups="account.group_show_line_subtotals_tax_included">Amount Including Vat</span>
                                     </th>
                                 </tr>
                             </thead>
@@ -234,8 +234,8 @@
 
                                 <t t-foreach="lines" t-as="line">
 
-                                <tr t-foreach="o.invoice_line_ids" t-as="move_line">
-                                <tr t-foreach="move_line.product_id" t-as="lines">   
+<!--                                <tr t-foreach="o.invoice_line_ids" t-as="move_line" style="page-break-inside:avoid;">-->
+<!--                                <tr t-foreach="move_line.product_id" t-as="lines">-->
                                             
                                     <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
                                     <t t-set="current_subtotal" t-value="current_subtotal + line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
@@ -250,7 +250,7 @@
 
 
                                             <td class="text-left">
-                                                <span t-field="lines.code"/>
+                                                <span t-field="line.product_id"/>
                                             </td>
                                     
                                             <td name="account_invoice_line_name"><span t-field="line.name" t-options="{'widget': 'text'}"/></td>
@@ -260,24 +260,27 @@
                                                 <span t-field="line.quantity"/>
                                                 <span t-field="line.product_uom_id"  groups="uom.group_uom"/>
                                             </td>
+
                                             <td t-attf-class="text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
                                                 <span class="text-nowrap" t-field="line.price_unit"/>
                                             </td>
                                             
-
-
                                             <td t-if="display_discount" t-attf-class="text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
                                                 <span class="text-nowrap" t-field="line.discount"/>
                                             </td>
                                             <td t-attf-class="text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
                                                 <span t-esc="', '.join(map(lambda x: (x.description or x.name), line.tax_ids))" id="line_tax_ids"/>
                                             </td>
-                                            <!-- tset -->
-                                            <td class="text-center">
-                                            
-                                                <span t-esc="o.amount_total"/>
-                                            
+                                            <td class="text-right o_price_total">
+                                                <span class="text-nowrap" t-field="line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                                                <span class="text-nowrap" t-field="line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
                                             </td>
+                                            <!-- tset -->
+                                            <!--<td class="text-center">
+
+                                                <span t-esc="current_subtotal"/>
+
+                                            </td>-->
                                             <!-- <td class="text-right o_price_total">
                                                 <span class="text-nowrap" t-field="line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
                                                 <span class="text-nowrap" t-field="line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
@@ -308,8 +311,8 @@
                                             </td>
                                         </tr>
                                     </t>
-                                </tr>
-                                </tr>
+<!--                                </tr>-->
+<!--                                </tr>-->
                                 </t>
                             </tbody>
                         </table>
