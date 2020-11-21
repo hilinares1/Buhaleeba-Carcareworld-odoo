@@ -7,12 +7,12 @@ class PurchaseOrder(models.Model):
 
     is_purchase_consignment = fields.Boolean(string='Is Purchase Consignment')
 
-    def button_confirm(self): #change in demo
-        for record in self:
-            res = super(PurchaseOrder, self).button_confirm()
+   # def button_confirm(self): #change in demo
+       # for record in self:
+            #res = super(PurchaseOrder, self).button_confirm()
 
-            if record.picking_ids:
-                if record.is_purchase_consignment == 'True':
-                    for pick in record.picking_ids:
-                        pick.move_lines.write({'origin': record.interchanging_po_sequence})
-                        pick.move_lines.write({'owner_id': record.partner_id})
+            #if record.picking_ids:
+             #   if record.is_purchase_consignment == 'True':
+                  #  for pick in record.picking_ids:
+                      #  pick.move_lines.write({'origin': record.interchanging_po_sequence})
+                     #   pick.move_lines.write({'owner_id': record.partner_id})
