@@ -12,7 +12,7 @@ class StockMove(models.Model):
         'stock.rack.shelf',
         string='Rack / Shelf',
         required=True
-    )
+    )#SMA13
 
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
@@ -20,7 +20,11 @@ class StockMoveLine(models.Model):
     rack_shelf_id = fields.Many2one(
         'stock.rack.shelf',
         string='Rack / Shelf',required=True
-    )
+    )#SMA13
+    custom_quant_id = fields.Many2one(
+        'stock.quant',
+        string='Source Quant',
+    )#SMA13
 
     def _action_done(self):
         """ This method is called during a move's `action_done`. It'll actually move a quant from
@@ -107,7 +111,12 @@ class StockMoveLine(models.Model):
 
                 # move what's been actually done
                 quantity = ml.product_uom_id._compute_quantity(ml.qty_done, ml.move_id.product_id.uom_id, rounding_method='HALF-UP')
-                available_qty, in_date = Quant._update_available_quantity(ml.product_id, ml.location_id, -quantity, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id)
+                if ml.picking_id.picking_type_code == 'internal' and ml.rack_shelf_id:#SMA13
+                    available_qty, in_date = Quant._update_available_quantity(ml.product_id, ml.location_id, -quantity, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id, ml_stock_quant=ml.custom_quant_id)
+                    if available_qty <= 0.0:
+                        raise UserError("Not enough quantity to transfer from selected source Rack/Shelf")
+                else:#SMA13
+                    available_qty, in_date = Quant._update_available_quantity(ml.product_id, ml.location_id, -quantity, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id)
                 if available_qty < 0 and ml.lot_id:
                     # see if we can compensate the negative quants with some untracked quants
                     untracked_qty = Quant._get_available_quantity(ml.product_id, ml.location_id, lot_id=False, package_id=ml.package_id, owner_id=ml.owner_id, strict=True)
@@ -115,7 +124,9 @@ class StockMoveLine(models.Model):
                         taken_from_untracked_qty = min(untracked_qty, abs(quantity))
                         Quant._update_available_quantity(ml.product_id, ml.location_id, -taken_from_untracked_qty, lot_id=False, package_id=ml.package_id, owner_id=ml.owner_id)
                         Quant._update_available_quantity(ml.product_id, ml.location_id, taken_from_untracked_qty, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id)
-                if ml.picking_id.picking_type_code == 'incoming' and ml.rack_shelf_id:
+                if ml.picking_id.picking_type_code == 'incoming' and ml.rack_shelf_id:#SMA13
+                    Quant._update_available_quantity(ml.product_id, ml.location_dest_id, quantity, lot_id=ml.lot_id, package_id=ml.result_package_id, owner_id=ml.owner_id, in_date=in_date, rack_shelf_id=ml.rack_shelf_id.id)
+                elif ml.picking_id.picking_type_code == 'internal' and ml.rack_shelf_id:#SMA13
                     Quant._update_available_quantity(ml.product_id, ml.location_dest_id, quantity, lot_id=ml.lot_id, package_id=ml.result_package_id, owner_id=ml.owner_id, in_date=in_date, rack_shelf_id=ml.rack_shelf_id.id)
                 else:
                     Quant._update_available_quantity(ml.product_id, ml.location_dest_id, quantity, lot_id=ml.lot_id, package_id=ml.result_package_id, owner_id=ml.owner_id, in_date=in_date)
@@ -131,7 +142,7 @@ class StockPicking(models.Model):
 
     def button_validate(self):
 
-        for move in self.move_line_ids:
+        for move in self.move_line_ids:#SMA13
             if move.picking_id.picking_type_code == 'incoming' and not move.rack_shelf_id:
                 raise UserError('Kindly assign Rack/Shelf to product %s' % (move.product_id.name))
 
