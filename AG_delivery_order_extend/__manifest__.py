@@ -9,7 +9,7 @@
     'website': 'www.odoo.com',
     "category": "Inventory",
     "depends": [
-        "stock", "sale_management", "odoo_multi_channel_sale"
+        "stock", "sale_management", "odoo_multi_channel_sale", "stock_picking_auto_create_lot"
     ],
     "data": [
         'views/stock_picking_view.xml',
