@@ -81,7 +81,7 @@
                 <thead>
                     <tr>
                         <th name="th_sr_no" class="text-center"><strong>SR.NO</strong></th>
-                        <th name="th_product_code" class="text-center"><strong>Product Code</strong></th>
+                        <th name="th_product_code" class="text-center"><strong>Vendor Code</strong></th>
                         <th name="th_description" class="text-center"><strong>Description</strong></th>
                         
                         <!-- <th name="th_date_req" class="text-center"><strong>Date Req.</strong></th> -->
@@ -106,7 +106,7 @@
                                     <t t-set="i" t-value="i+1"/>
                                 </td>
                                 <td id="product_code">
-                                    <span t-field="lines.code"/>      
+                                    <span t-field="line.product_supplier_code"/>      
                                 </td>
                                 <td id="product">
                                     <span t-field="line.name"/>
