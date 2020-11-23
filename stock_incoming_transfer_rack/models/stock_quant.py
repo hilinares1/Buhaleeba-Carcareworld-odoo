@@ -10,11 +10,11 @@ class StockQuant(models.Model):
     rack_shelf_id = fields.Many2one(
         'stock.rack.shelf',
         string='Rack / Shelf',
-    )
+    )#SMA13
 
     #@Fully Override
     @api.model
-    def _get_available_quantity(self, product_id, location_id, lot_id=None, package_id=None, owner_id=None, strict=False, allow_negative=False, rack_shelf_id=False):
+    def _get_available_quantity(self, product_id, location_id, lot_id=None, package_id=None, owner_id=None, strict=False, allow_negative=False, rack_shelf_id=False, ml_stock_quant=False):
         """ Return the available quantity, i.e. the sum of `quantity` minus the sum of
         `reserved_quantity`, for the set of quants sharing the combination of `product_id,
         location_id` if `strict` is set to False or sharing the *exact same characteristics*
@@ -32,10 +32,10 @@ class StockQuant(models.Model):
 
         :return: available quantity as a float
         """
-        if not rack_shelf_id:
+        if not rack_shelf_id and not ml_stock_quant:#SMA13
             return super(StockQuant, self)._get_available_quantity(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=strict, allow_negative=allow_negative)
         self = self.sudo()
-        quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=strict, rack_shelf_id=rack_shelf_id)
+        quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=strict, rack_shelf_id=rack_shelf_id, ml_stock_quant=ml_stock_quant)#SMA13
         rounding = product_id.uom_id.rounding
         if product_id.tracking == 'none':
             available_quantity = sum(quants.mapped('quantity')) - sum(quants.mapped('reserved_quantity'))
@@ -58,7 +58,7 @@ class StockQuant(models.Model):
     
     #@Fully Override
     @api.model
-    def _update_available_quantity(self, product_id, location_id, quantity, lot_id=None, package_id=None, owner_id=None, in_date=None, rack_shelf_id=False):
+    def _update_available_quantity(self, product_id, location_id, quantity, lot_id=None, package_id=None, owner_id=None, in_date=None, rack_shelf_id=False, ml_stock_quant=False):
         """ Increase or decrease `reserved_quantity` of a set of quants for a given set of
         product_id/location_id/lot_id/package_id/owner_id.
 
@@ -73,10 +73,10 @@ class StockQuant(models.Model):
                                  current datetime will be used.
         :return: tuple (available_quantity, in_date as a datetime)
         """
-        if not rack_shelf_id:
+        if not rack_shelf_id and not ml_stock_quant:#SMA13
             return super(StockQuant, self)._update_available_quantity(product_id, location_id, quantity, lot_id=lot_id, package_id=package_id, owner_id=owner_id, in_date=in_date)
         self = self.sudo()
-        quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=True, rack_shelf_id=rack_shelf_id)
+        quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=True, rack_shelf_id=rack_shelf_id, ml_stock_quant=ml_stock_quant)#SMA13
         incoming_dates = [d for d in quants.mapped('in_date') if d]
         incoming_dates = [fields.Datetime.from_string(incoming_date) for incoming_date in incoming_dates]
         if in_date:
@@ -112,20 +112,24 @@ class StockQuant(models.Model):
                 'owner_id': owner_id and owner_id.id,
                 'in_date': in_date,
                 'rack_shelf_id': rack_shelf_id,
-            })
-        return self._get_available_quantity(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=False, allow_negative=True, rack_shelf_id=rack_shelf_id), fields.Datetime.from_string(in_date)
+            })#SMA13
+        return self._get_available_quantity(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=False, allow_negative=True, rack_shelf_id=rack_shelf_id, ml_stock_quant=ml_stock_quant), fields.Datetime.from_string(in_date)#SMA13
 
     #@Fully Override
-    def _gather(self, product_id, location_id, lot_id=None, package_id=None, owner_id=None, strict=False, rack_shelf_id=False):
-        if rack_shelf_id:
+    def _gather(self, product_id, location_id, lot_id=None, package_id=None, owner_id=None, strict=False, rack_shelf_id=False, ml_stock_quant=False):
+        if rack_shelf_id or ml_stock_quant:
             self.env['stock.quant'].flush(['location_id', 'owner_id', 'package_id', 'lot_id', 'product_id'])
             self.env['product.product'].flush(['virtual_available'])
             removal_strategy = self._get_removal_strategy(product_id, location_id)
             removal_strategy_order = self._get_removal_strategy_order(removal_strategy)
             domain = [
                 ('product_id', '=', product_id.id),
-                ('rack_shelf_id', '=', rack_shelf_id),#CUSTOM
+#                ('rack_shelf_id', '=', rack_shelf_id),#CUSTOM
             ]
+            if rack_shelf_id:#SMA13
+                domain = expression.AND([[('rack_shelf_id', '=', rack_shelf_id)], domain])
+            if ml_stock_quant:#SMA13
+                domain = expression.AND([[('id', '=', ml_stock_quant.id)], domain])
             if not strict:
                 if lot_id:
                     domain = expression.AND([[('lot_id', '=', lot_id.id)], domain])
