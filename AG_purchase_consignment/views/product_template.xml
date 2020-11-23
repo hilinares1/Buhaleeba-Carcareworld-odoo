@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+         <record id="product_template_inherits_inh_form" model="ir.ui.view">
+            <field name="name">product.template.inherits.inh.form</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="AG_products.product_template_inh_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@name='options']/div[2]" position="after">
+                   <div>
+                       <field name="is_asset"/>
+                       <label for="is_asset"/>
+                   </div>
+                </xpath>
+                <xpath expr="//page[@name='additional_information']/group" position="replace">
+                     <group>
+                            <group>
+                                <field name="pr_category" attrs="{'required': [('type', '=', 'product'),('is_asset','!=',True)]}"/>
+                                <field name="pr_type" attrs="{'required': [('type', '=', 'product'),('is_asset','!=',True)]}"/>
+                                <field name="pr_brand" attrs="{'required': [('type', '=', 'product'),('is_asset','!=',True)]}"/>
+                            </group>
+                            <group>
+                                <field name="sub_pr_category" attrs="{'required': [('type', '=', 'product'),('is_asset','!=',True)]}"/>
+                                <field name="sub_pr_type" attrs="{'required': [('type', '=', 'product'),('is_asset','!=',True)]}"/>
+
+                            </group>
+                        </group>
+                </xpath>
+            </field>
+         </record>
+
+         <record id="stock_inventory_inherited_cus_form" model="ir.ui.view">
+            <field name="name">stock.inventory.inherited.cus.form</field>
+            <field name="model">stock.inventory</field>
+            <field name="inherit_id" ref="stock.view_inventory_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='product_ids']" position="after">
+                   <field name="rack_shelf_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                </xpath>
+                 <xpath expr="//field[@name='rack_shelf_ids']" position="after">
+                <field name="owner_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                </xpath>
+                <xpath expr="//field[@name='accounting_date']" position="attributes">
+                   <attribute name="invisible">True</attribute>
+                </xpath>
+            </field>
+         </record>
+
+        <record id="stock_inventory_line_inherited_cus_tree" model="ir.ui.view">
+            <field name="name">stock.inventory.line.inherited.cus.tree</field>
+            <field name="model">stock.inventory.line</field>
+            <field name="inherit_id" ref="stock.stock_inventory_line_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='location_id']" position="after">
+                   <field name="rack_id" options="{'no_create': True}"/>
+                </xpath>
+
+            </field>
+         </record>
+
+        <record id="stock_inventory_line_inherited_cus_tree2" model="ir.ui.view">
+            <field name="name">stock.inventory.line.inherited.cus.tree2</field>
+            <field name="model">stock.inventory.line</field>
+            <field name="inherit_id" ref="stock.stock_inventory_line_tree2"/>
+<!--            <field name="groups_id" eval="[(6, 0, [ref('stock.group_stock_user')])]"/>-->
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='location_id']" position="after">
+                   <field name="rack_id" groups="stock.group_stock_multi_locations"
+                       options="{'no_create': True}"
+                       invisible="context.get('readonly_rack_id', False)"
+                       readonly="context.get('readonly_rack_id', False)"
+                       attrs="{'readonly': ['|',
+                            ('is_editable', '=', False),
+                            ('state', '!=', 'confirm')]}"/>
+                </xpath>
+                 <xpath expr="//field[@name='theoretical_qty']" position="attributes">
+                   <attribute name="groups">stock.group_stock_manager</attribute>
+                </xpath>
+                  <xpath expr="//field[@name='difference_qty']" position="attributes">
+                   <attribute name="groups">stock.group_stock_manager</attribute>
+                </xpath>
+            </field>
+         </record>
+    </data>
+</odoo>
+
+
