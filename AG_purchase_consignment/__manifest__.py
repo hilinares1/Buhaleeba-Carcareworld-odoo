@@ -24,7 +24,7 @@
     'depends': ['stock','purchase','AG_purchase','AG_products'],
     'data': [
         'views/purchase_consignment.xml',
-        #'views/product_template.xml',
+        'views/product_template.xml',
         'views/vendor_code.xml'
 
     ],
