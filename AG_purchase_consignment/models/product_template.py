@@ -2,10 +2,10 @@ from odoo import api, fields, models, SUPERUSER_ID, _
 import odoo.addons.decimal_precision as dp
 from odoo.exceptions import except_orm, ValidationError ,UserError
 
-#class ProductTemplate(models.Model):
-    #_inherit = "product.template"
+class ProductTemplate(models.Model):
+    _inherit = "product.template"
 
-   # is_asset = fields.Boolean(string='Is Asset Product')
+    is_asset = fields.Boolean(string='Is Asset Product')
 
 
 class StockInventory(models.Model):
