@@ -12,6 +12,14 @@ class StockQuant(models.Model):
         string='Rack / Shelf',
     )#SMA13
 
+    def name_get(self):
+        if not self._context.get('is_custom_rack_shelf'):
+            return super(StockQuant, self).name_get()
+        quant_lst = []
+        for quant in self:
+            quant_lst.append((quant.id, quant.product_id.display_name + (' - ' + quant.rack_shelf_id.name_get()[0][1] if quant.rack_shelf_id else '')))
+        return quant_lst
+
     #@Fully Override
     @api.model
     def _get_available_quantity(self, product_id, location_id, lot_id=None, package_id=None, owner_id=None, strict=False, allow_negative=False, rack_shelf_id=False, ml_stock_quant=False):
