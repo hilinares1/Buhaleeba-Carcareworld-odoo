@@ -29,8 +29,12 @@ class PurchaseOrder(models.Model):
             for line in rec.order_line:
                 GT += line.product_qty * line.price_unit
             for line in rec.order_line:
-                line.discount = (line.product_qty * line.price_unit * rec.total_discount) / GT
-                line.is_percentage = False
+                if line.is_percentage == True:
+                    line.discount = (line.product_qty * line.price_unit * rec.total_discount) / GT
+                    line.is_percentage = False
+                else:
+                    line.discount = line.discount + ((line.product_qty * line.price_unit * rec.total_discount) / GT)
+                    line.is_percentage = False
 
 
 class PurchaseOrderLine(models.Model):
