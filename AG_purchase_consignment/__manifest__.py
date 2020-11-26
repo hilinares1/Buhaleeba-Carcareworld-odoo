@@ -25,7 +25,7 @@
     'data': [
         'views/purchase_consignment.xml',
         'views/product_template.xml',
-        'views/vendor_code.xml'
+        'views/vendor_code.xml',
         'views/stock_valuation_layer_views.xml',
 
     ],
