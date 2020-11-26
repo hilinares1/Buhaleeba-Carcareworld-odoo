@@ -9,7 +9,7 @@
             <xpath expr="//field[@name='qty_done']" position="before">
 <!--                <field name="rack_shelf_id" attrs="{'column_invisible': [('parent.picking_type_code', '!=', 'incoming')]}"/>-->
                 <field name="custom_quant_id" domain="[('product_id', '=', product_id)]" attrs="{'column_invisible': [('parent.picking_type_code', '!=', 'internal')]}" context="{'is_custom_rack_shelf': True}"/>
-                <field name="rack_shelf_id" attrs="{'column_invisible': [('parent.picking_type_code', '!=', 'internal')]}"/>
+                <field name="rack_shelf_id"/>
             </xpath>
         </field>
     </record>
