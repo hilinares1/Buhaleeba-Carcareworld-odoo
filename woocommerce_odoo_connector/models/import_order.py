@@ -90,7 +90,7 @@ class MultiChannelSale(models.Model):
 							l.append({'id':taxes['id']})
 		return l
 
-	def get_woocommerce_order_line(self, data,sid=None):
+	def get_woocommerce_order_line(self, data,sid=None,pay_status=None,cod_additional_cost=None):
 		order_lines = []
 		variant = 0
 		for line in data:
@@ -99,6 +99,7 @@ class MultiChannelSale(models.Model):
 			product_template_id = self.env['channel.product.mappings'].search([('store_variant_id','=',line['variation_id']),('channel_id.id','=',self.id)])
 			if not product_template_id:
 				product_template_id = self.env['channel.product.mappings'].search([('store_product_id','=',line['product_id']),('channel_id.id','=',self.id)])
+
 			order_line_dict = {
 					'line_name'				:line['name'],
 					'line_price_unit'		:line['item_unit_price'],
@@ -109,6 +110,19 @@ class MultiChannelSale(models.Model):
 					'line_taxes'			:self.get_woocommerce_taxes(line['taxes'])
 			}
 			order_lines.append((0,0,order_line_dict))
+		# if pay_status == "cod":
+		# 	if cod_additional_cost:
+		# 		raise UserError('tessssst') 
+					# order_line_dict = {
+					# 		'line_name'				:line['name'],
+					# 		'line_price_unit'		:line['item_unit_price'],
+					# 		'line_discount'         :line['total_discount_amount'],
+					# 		'line_discount_type'    :self.get_woocommerce_discount_types(line['discount_type'],sid),
+					# 		'line_product_id'		:product_template_id.store_product_id,
+					# 		'line_variant_ids'		:product_template_id.store_variant_id,
+					# 		'line_taxes'			:self.get_woocommerce_taxes(line['taxes'])
+					# }
+					# order_lines.append((0,0,order_line_dict))
 		return order_lines
 
 	def get_woocommerce_discount_types(self,data,sid):
@@ -157,7 +171,10 @@ class MultiChannelSale(models.Model):
 									if woocommerce2:
 										order_data = woocommerce2.get("orders/"+str(order['id'])).json()
 										data = order_data['line_items']
-										order_lines = self.get_woocommerce_order_line(data,order_data['id'])
+										pay_status = order_data['ysg_payment_status']
+										cod_additional_cost = order_data['ysg_cod_additional_cost']
+										raise UserError(pay_status)
+										order_lines = self.get_woocommerce_order_line(data,order_data['id'],pay_status,cod_additional_cost)
 										if order['shipping_lines']:
 											order_lines += self.create_or_get_woocommerce_shipping(order_data['shipping_lines'])
 								customer ={}
@@ -169,6 +186,10 @@ class MultiChannelSale(models.Model):
 								method_title ='Delivery'
 								if order['shipping_lines']:
 									method_title = order['shipping_lines'][0]['method_title']
+								if order['status'] == 'pickup-cod' or order['status'] == 'pickup-paid':
+									ship = True
+								else:
+									ship = False
 								order_dict={
 											'store_id'		 : order['id'],
 											'channel_id'	 : self.id,
@@ -177,6 +198,8 @@ class MultiChannelSale(models.Model):
 											'line_type'		 : 'multi',
 											'carrier_id'	 : method_title,
 											'line_ids'		 : order_lines,
+											'shipping_full'  : order['shipping_full'],
+											'states_ship'    : ship,
 											'currency'		 : order['currency'],
 											'customer_name'  : customer['first_name'] +" "+customer['last_name'],
 											'customer_email' : customer['email'],
@@ -261,7 +284,10 @@ class MultiChannelSale(models.Model):
 									if woocommerce2:
 										order_data = woocommerce2.get("orders/"+str(order['id'])).json()
 										data = order_data['line_items']
-										order_lines = self.get_woocommerce_order_line(data,order_data['line_items'])
+										pay_status = order_data['ysg_payment_status']
+										cod_additional_cost = order_data['ysg_cod_additional_cost']
+										raise UserError(pay_status)
+										order_lines = self.get_woocommerce_order_line(data,order_data['line_items'],pay_status,cod_additional_cost)
 										if order['shipping_lines']:
 											order_lines += self.create_or_get_woocommerce_shipping(order_data['shipping_lines'])
 								customer ={}
@@ -273,6 +299,11 @@ class MultiChannelSale(models.Model):
 								method_title ='Delivery'
 								if order['shipping_lines']:
 									method_title = order['shipping_lines'][0]['method_title']
+
+								if order['status'] == 'pickup-cod' or order['status'] == 'pickup-paid':
+									ship = True
+								else:
+									ship = False
 								order_dict={
 											'store_id'		 : order['id'],
 											'channel_id'	 : self.id,
@@ -281,6 +312,8 @@ class MultiChannelSale(models.Model):
 											'line_type'		 : 'multi',
 											'carrier_id'	 : method_title,
 											'line_ids'		 : order_lines,
+											'shipping_full'  : order['shipping_full'],
+											'states_ship'    : ship,
 											'currency'		 : order['currency'],
 											'customer_name'  : customer['first_name'] +" "+customer['last_name'],
 											'customer_email' : customer['email'],

@@ -16,6 +16,8 @@ class SaleOrder(models.Model):
 		inverse_name='order_name',
 		copy=False
 	)
+	shipping_full = fields.Float('Shipping Full')
+	shipping_id = fields.Many2one('res.partner',string='Shipping Company')
 
 	def action_cancel(self):
 		self.ensure_one()

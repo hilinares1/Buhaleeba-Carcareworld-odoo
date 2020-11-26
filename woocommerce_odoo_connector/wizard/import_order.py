@@ -82,6 +82,22 @@ class ImportWoocommerceOrders(models.TransientModel):
         if data["coupon_lines"]:
             discount_line = self.get_woocommerce_discount_lines(woocommerce,data["coupon_lines"])
             order_lines.append((0,0,discount_line))
+        if data["ysg_payment_status"] == "cod":
+            if data["ysg_cod_additional_cost"]:
+                # raise UserError('tessssst')
+                cod = data["ysg_cod_additional_cost"]
+                # for cod in data["ysg_cod_additional_cost"]:
+                order_line_dict = {
+                    'line_name': 'Cash On Delivery',
+                    'line_price_unit': cod['amount'],
+                    'line_product_uom_qty': 1,
+                    # 'line_product_id': channel.cod_id.id,
+                    # 'line_taxes': self.env["import.woocommerce.taxes"].create({
+                    #     "channel_id":channel.id,
+                    #     "operation":"import"
+                    #     }).get_woocommerce_taxes(woocommerce,line.get("taxes"), include_in_price)
+                }
+                order_lines.append((0,0,order_line_dict))
         return order_lines
 
     def get_woocommerce_discount_types(self,data,sid):
@@ -151,6 +167,10 @@ class ImportWoocommerceOrders(models.TransientModel):
         method_title = 'Delivery'
         if order['shipping_lines']:
             method_title = order['shipping_lines'][0]['method_title']
+        if order['status'] == 'pickup-cod' or order['status'] == 'pickup-paid':
+            ship = True
+        else:
+            ship = False
         order_dict = {
             'store_id': order['id'],
             'channel_id': channel.id,
@@ -160,6 +180,8 @@ class ImportWoocommerceOrders(models.TransientModel):
             'line_type': 'multi',
             'carrier_id': method_title,
             'line_ids': order_lines,
+            'shipping_full'  : order['shipping_full'],
+            'states_ship'    : ship,
             'currency': order['currency'],
             'customer_name': order['billing']['first_name']+" "+order['billing']['last_name'],
             'customer_email': order['billing']['email'],

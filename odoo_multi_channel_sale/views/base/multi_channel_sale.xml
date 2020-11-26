@@ -437,6 +437,16 @@
 											required="1"
 											attrs   ="{'readonly':[('state','=','validate')]}"
 										/>
+										<field
+											name    ="cod_id"
+											required="1"
+											attrs   ="{'readonly':[('state','=','validate')]}"
+										/>
+										<field
+											name    ="shipping_id"
+											required="1"
+											attrs   ="{'readonly':[('state','=','validate')]}"
+										/>
 									</group>
 									<group>
 										<field
