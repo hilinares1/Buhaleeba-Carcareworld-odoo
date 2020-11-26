@@ -536,7 +536,7 @@ class SaleOrder(models.Model):
                 'partner_id': self.shipping_id.id,
                 'type':'in_invoice',
                 'so_link':self.id,
-                'invoice_line_ids':(1,0,order_line)
+                'invoice_line_ids':(0,0,order_line)
             }
             
             invoice.create(vals)
