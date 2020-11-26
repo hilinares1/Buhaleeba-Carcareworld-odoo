@@ -134,11 +134,21 @@ class PurchaseOrder(models.Model):
             if order.picking_ids:
                 for pick in order.picking_ids:
                     pick.move_lines.write({'origin': order.interchanging_po_sequence})
+            order.update_purchase_pricelist()
         return True
 
     def button_operation_approve(self):
         self.write({'state': 'to approve', 'date_approve': fields.Datetime.now()})
     
+    def update_purchase_pricelist(self):
+        for order in self:
+            for line in order.order_line:
+                pricelist = self.env['product.supplierinfo'].search([('name','=',order.partner_id.id),('product_tmpl_id','=',line.product_id.product_tmpl_id.id)])
+                if pricelist:
+                    for price in pricelist:
+                        price.price = line.price_unit
+                        # price.currency_id = order.currency_id.id
+
 class StockMove(models.Model):
     _inherit = "stock.move"
 
@@ -467,6 +477,10 @@ class StockLandCost(models.Model):
     #         land.write({'is_approve':3})
     #     return super(StockLandCost, self).create(vals)
 
+class AccountMove(models.Model):
+    _inherit = "account.move"
+
+    so_link = fields.Many2one('sale.order',string="Sale Order")
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
@@ -486,7 +500,16 @@ class SaleOrder(models.Model):
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled')
     ], string='Woo-commerce Status', readonly=True, index=True,store=True, copy=False, compute="_get_woo_status", tracking=True)
-    
+    inv_count = fields.Float('Count',compute="_land_count")
+
+    def _land_count(self):
+        for each in self:
+            land = self.env['account.move'].search([('so_link','=',self.id)])
+            if land:
+                each.inv_count = len(land)
+            else:
+                each.inv_count = 0
+
     @api.depends('channel_mapping_ids')
     @api.onchange('state')
     def _get_woo_status(self):
@@ -498,5 +521,46 @@ class SaleOrder(models.Model):
                         rec.woo_status = res.order_state
             else:
                 rec.woo_status = 'no'
+
+
+    def create_vendor_bill(self):
+        # for rec in self:
+        if self.shipping_id:
+            invoice = self.env['account.move']
+            order_line = {
+                'product_id': self.channel_mapping_ids[0].channel_id.delivery_product_id.id,
+                'price_unit':   self.shipping_full,
+                
+            }
+            vals = {
+                'partner_id': self.shipping_id.id,
+                'type':'in_invoice',
+                'so_link':self.id,
+                'invoice_line_ids':(1,0,order_line)
+            }
+            
+            invoice.create(vals)
+        else:
+            raise UserError('No shipping to create for this order')
+
+    def action_invoice_tree(self):
+        self.ensure_one()
+        domain = [
+            ('so_link','=',self.id)]
+        return {
+            'name': _('Vendor Bill'),
+            'domain': domain,
+            'res_model': 'account.move',
+            'type': 'ir.actions.act_window',
+            'view_id': False,
+            'view_mode': 'tree,form',
+            'view_type': 'form',
+            'help': _('''<p class="oe_view_nocontent_create">
+                           Click to Create vendor bill
+                        </p>'''),
+            'limit': 80,
+            'create':False
+            # 'context': {'default_picking_ids':[(6,0, [self.id])],'default_flag':1,'default_pick':self.id},
+        }
 
 

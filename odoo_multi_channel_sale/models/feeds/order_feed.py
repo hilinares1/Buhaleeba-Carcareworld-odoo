@@ -22,6 +22,8 @@ OrderFields = [
 	'carrier_id',
 	'date_invoice',
 	'date_order',
+	'shipping_full',
+	'states_ship',
 	'confirmation_date',
 	'line_ids',
 	'line_name',
@@ -85,6 +87,8 @@ class OrderFeed(models.Model):
 	invoice_state_name  = fields.Char('Invoice State Name')
 	invoice_state_id    = fields.Char('Invoice State Code')
 	invoice_country_id  = fields.Char('Invoice Country Code')
+	shipping_full = fields.Float('Shipping Full')
+	states_ship = fields.Boolean('status')
 
 	same_shipping_billing = fields.Boolean(
 		string  = 'Shipping Address Same As Billing',
@@ -168,49 +172,19 @@ class OrderFeed(models.Model):
 		line_taxes = vals.pop('line_taxes')
 		if line_ids:
 			for line_id in self.env['order.line.feed'].browse(line_ids):
-				line_price_unit = line_id.line_price_unit
-				if line_price_unit:
-					line_price_unit = parse_float(line_price_unit)
-				line_discount = line_id.line_discount
-				if line_discount:
-					line_discount = parse_float(line_discount)
-				dis_type = []
-				line_discount_type = line_id.line_discount_type
-				for type in line_discount_type:
-					dis_type.append(type.id)
-				if line_id.line_source =='delivery':
-					product_id = carrier_id.product_id
-				elif line_id.line_source =='discount':
-					if not channel_id.discount_product_id:
-						product_id  =channel_id.create_product('discount')
-						channel_id.discount_product_id = product_id.id
-					product_id = channel_id.discount_product_id
-					line_price_unit = -line_price_unit
-				elif line_id.line_source =='product':
-					product_res = self.get_product_id(
-						line_id.line_product_id,
-						line_id.line_variant_ids or 'No Variants',
-						channel_id,
-						line_id.line_product_default_code,
-						line_id.line_product_barcode,
-
-					)
-					product_id = product_res.get('product_id')
-					if product_res.get('message'):
-						_logger.error("OrderLineError1 %r"%product_res)
-						message += product_res.get('message')
-				if product_id:
-					product_uom_id = product_id.uom_id.id
+				if line_id.line_name == "Cash On Delivery":
+					
+					product_uom_ids = channel_id.cod_id.uom_id.id
 					line = dict(
 						name=line_id.line_name,
-						price_unit=line_price_unit,
-						discount_value=line_discount,
-						discount_type=[(6, None, dis_type)],
-						product_id=product_id.id,
-						customer_lead=product_id.sale_delay,
+						price_unit=line_id.line_price_unit,
+						# discount_value=line_discount,
+						# discount_type=[(6, None, dis_type)],
+						product_id=channel_id.cod_id.id,
+						# customer_lead=product_id.sale_delay,
 						product_uom_qty=line_id.line_product_uom_qty,
-						is_delivery = line_id.line_source =='delivery',
-						product_uom=product_uom_id,
+						# is_delivery = line_id.line_source =='delivery',
+						product_uom=product_uom_ids,
 					)
 					# line['tax_id'] = self.get_taxes_ids(line_id.line_taxes,channel_id)
 					if not product_id.id == channel_id.delivery_product_id.id:
@@ -218,7 +192,57 @@ class OrderFeed(models.Model):
 					####ADD TAX
 					lines += [(0,0,line)]
 				else:
-					status=False
+					line_price_unit = line_id.line_price_unit
+					if line_price_unit:
+						line_price_unit = parse_float(line_price_unit)
+					line_discount = line_id.line_discount
+					if line_discount:
+						line_discount = parse_float(line_discount)
+					dis_type = []
+					line_discount_type = line_id.line_discount_type
+					for type in line_discount_type:
+						dis_type.append(type.id)
+					if line_id.line_source =='delivery':
+						product_id = carrier_id.product_id
+					elif line_id.line_source =='discount':
+						if not channel_id.discount_product_id:
+							product_id  =channel_id.create_product('discount')
+							channel_id.discount_product_id = product_id.id
+						product_id = channel_id.discount_product_id
+						line_price_unit = -line_price_unit
+					elif line_id.line_source =='product':
+						product_res = self.get_product_id(
+							line_id.line_product_id,
+							line_id.line_variant_ids or 'No Variants',
+							channel_id,
+							line_id.line_product_default_code,
+							line_id.line_product_barcode,
+
+						)
+						product_id = product_res.get('product_id')
+						if product_res.get('message'):
+							_logger.error("OrderLineError1 %r"%product_res)
+							message += product_res.get('message')
+					if product_id:
+						product_uom_id = product_id.uom_id.id
+						line = dict(
+							name=line_id.line_name,
+							price_unit=line_price_unit,
+							discount_value=line_discount,
+							discount_type=[(6, None, dis_type)],
+							product_id=product_id.id,
+							customer_lead=product_id.sale_delay,
+							product_uom_qty=line_id.line_product_uom_qty,
+							is_delivery = line_id.line_source =='delivery',
+							product_uom=product_uom_id,
+						)
+						# line['tax_id'] = self.get_taxes_ids(line_id.line_taxes,channel_id)
+						if not product_id.id == channel_id.delivery_product_id.id:
+							line['tax_id'] = [(6, None, [channel_id.vat_id.id])]
+						####ADD TAX
+						lines += [(0,0,line)]
+					else:
+						status=False
 		else:
 			product_res = self.get_product_id(
 				line_product_id,
@@ -418,6 +442,16 @@ class OrderFeed(models.Model):
 		vals.pop('message_follower_ids','')
 		vals['team_id'] = channel_id.crm_team_id.id
 		vals['warehouse_id'] = channel_id.warehouse_id.id
+		# states_ship = vals.pop('order_state')
+		# raise UserWarning(states)
+		if vals.pop('states_ship') == True:
+			# raise UserWarning("11111")
+			vals['shipping_id'] = False
+			vals['shipping_full'] = 0
+		else:		
+			# raise UserWarning("22222")
+			vals['shipping_id'] = channel_id.shipping_id.id
+			vals['shipping_full'] = vals.pop('shipping_full')
 
 
 		if match and match.order_name:
