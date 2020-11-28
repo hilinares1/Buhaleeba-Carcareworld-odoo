@@ -527,16 +527,18 @@ class SaleOrder(models.Model):
         # for rec in self:
         if self.shipping_id:
             invoice = self.env['account.move']
+            val = []
             order_line = {
                 'product_id': self.channel_mapping_ids[0].channel_id.delivery_product_id.id,
                 'price_unit':   self.shipping_full,
                 
             }
+            val.append((0,0,order_line))
             vals = {
                 'partner_id': self.shipping_id.id,
                 'type':'in_invoice',
                 'so_link':self.id,
-                'invoice_line_ids':(0,0,order_line)
+                'invoice_line_ids':val,
             }
             
             invoice.create(vals)
