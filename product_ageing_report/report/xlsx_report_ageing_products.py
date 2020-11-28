@@ -10,6 +10,7 @@ class AgeingAnalysisModel(models.AbstractModel):
     def ageing_xlsx_report(self, from_date, interval, product_categ, location_id,filter_by, options):
         location_id = options[0]['location_id']
         product_categ = options[0]['product_categ']
+        owner_id = options[0]['owner_id']
         from_date = options[0]['from_date']
         interval = options[0]['interval']
         cr = self._cr
@@ -36,6 +37,13 @@ class AgeingAnalysisModel(models.AbstractModel):
                        " join stock_location st on st.id = sq.location_id"
                        " where sq.quantity > 0  and sq.in_date <=%s and st.usage ='internal'"
                        "", (tuple(product_categ), from_date))
+
+        elif owner_id:
+            cr.execute("select sq.id as quant,pp.id as product from stock_quant sq "
+                       "join product_product pp on(pp.id=sq.product_id) "
+                        " join res_partner rs on rs.id=sq.owner_id"
+                       " where sq.owner_id in %s and sq.in_date <=%s ",
+                       (tuple(owner_id), from_date))
         else:
             cr.execute("select sq.id as quant,sq.product_id as product from stock_quant sq"
                        " join stock_location st on st.id = sq.location_id"
@@ -52,7 +60,7 @@ class AgeingAnalysisModel(models.AbstractModel):
             for val in product_ids:
                 if val['product'] == pr:
                     quant.append(val['quant'])
-            cr.execute(" select pt.name as product,sq.quantity as quantity ,st.name as location,lot.name as lot ,"
+            cr.execute(" select pt.name as product,sq.quantity as quantity ,st.name as location,sq.owner_id as owner,lot.name as lot ,"
                        " sq.in_date as in_date"
                        " from stock_quant sq "
                         "join product_product pp on (pp.id = sq.product_id)"
@@ -62,7 +70,7 @@ class AgeingAnalysisModel(models.AbstractModel):
                         " where sq.lot_id IS NOT NULL  and sq.id in %s",
                        (tuple(quant),))
             rec_with_lot = cr.dictfetchall()
-            cr.execute(" select pt.name as product,sq.quantity as quantity ,st.name as location,sq.in_date as in_date "
+            cr.execute(" select pt.name as product,sq.quantity as quantity ,st.name as location,sq.owner_id as owner,sq.in_date as in_date "
                        " from stock_quant sq "
                        "join product_product pp on (pp.id = sq.product_id)"
                        "join product_template pt on (pt.id=pp.product_tmpl_id)"
@@ -106,6 +114,7 @@ class AgeingAnalysisModel(models.AbstractModel):
                                 'product': re['product'],
                                 'location': re['location'],
                                 'lot': re['lot'],
+                                'owner': re['owner'],
                                 'total_qty': re['quantity']
                             }
                             quantity = [0, 0, 0, 0, 0]
@@ -137,6 +146,7 @@ class AgeingAnalysisModel(models.AbstractModel):
                             'product': re['product'],
                             'location': re['location'],
                             'lot': re['lot'],
+                            'owner': re['owner'],
                             'total_qty': re['quantity']
                         }
                         quantity = [0, 0, 0, 0, 0]
@@ -189,6 +199,7 @@ class AgeingAnalysisModel(models.AbstractModel):
                             temp = {
                                 'product': re['product'],
                                 'location': re['location'],
+                                'owner': re['owner'],
                                 'lot': '',
                                 'total_qty': re['quantity'],
                                 'age': ''
@@ -216,6 +227,7 @@ class AgeingAnalysisModel(models.AbstractModel):
                         temp = {
                             'product': re['product'],
                             'location': re['location'],
+                            'owner': re['owner'],
                             'lot': '',
                             'total_qty': re['quantity'],
                             'age': ''
@@ -256,19 +268,27 @@ class AgeingAnalysisModel(models.AbstractModel):
                     str(4 * docs.interval) + '+']
         loc = ""
         categ = ""
+        owner = ""
         for i in docs.location_id:
             if i.location_id.name and i.name:
                 loc += i.location_id.name + " / " + i.name + ", "
         for i in docs.product_categ:
             if i.name:
                 categ += i.name + ", "
+        for i in docs.owner_id:
+            if i.name:
+                owner +=  i.name + ", "
+
         loc = loc[:-2]
         categ = categ[:-2]
+        owner = owner[:-2]
+
         docargs = {
             'doc_ids': self.ids,
             'doc_model': self.model,
             'docs': docs,
             'loc': loc,
+            'owner': owner,
             'categ': categ,
             'interval': interval,
             'products': products,
@@ -332,14 +352,15 @@ class AgeingAnalysisModel(models.AbstractModel):
         sheet.write('A6', 'SL NO', format61)
         sheet.write('B6', 'PRODUCT', format61)
         sheet.write('C6', 'LOCATION', format61)
-        sheet.write('D6', 'LOT', format61)
-        sheet.write('E6', 'AGE', format62)
-        sheet.write('F6', str(vals['interval'][0]), format61)
-        sheet.write('G6', str(vals['interval'][1]), format61)
-        sheet.write('H6', str(vals['interval'][2]), format61)
-        sheet.write('I6', str(vals['interval'][3]), format61)
-        sheet.write('J6', str(vals['interval'][4]), format61)
-        sheet.write('K6', 'TOTAL', format61)
+        sheet.write('D6', 'OWNER', format61)
+        sheet.write('E6', 'LOT', format61)
+        sheet.write('F6', 'AGE', format62)
+        sheet.write('G6', str(vals['interval'][0]), format61)
+        sheet.write('H6', str(vals['interval'][1]), format61)
+        sheet.write('I6', str(vals['interval'][2]), format61)
+        sheet.write('J6', str(vals['interval'][3]), format61)
+        sheet.write('K6', str(vals['interval'][4]), format61)
+        sheet.write('L6', 'TOTAL', format61)
         row_num = 6
         col_num = 0
         s_no = 1
@@ -368,14 +389,15 @@ class AgeingAnalysisModel(models.AbstractModel):
                     sheet.write(row_num, col_num, '', format52)
                     sheet.write(row_num, col_num + 1, '', format52)
                     sheet.write(row_num, col_num + 2, loc['location'], format52)
-                    sheet.write(row_num, col_num + 3, '', format52)
-                    sheet.write(row_num, col_num + 4, '', format521)
-                    sheet.write(row_num, col_num + 5, sum_col1, format71)
-                    sheet.write(row_num, col_num + 6, sum_col2, format71)
-                    sheet.write(row_num, col_num + 7, sum_col3, format71)
-                    sheet.write(row_num, col_num + 8, sum_col4, format71)
-                    sheet.write(row_num, col_num + 9, sum_col5, format71)
-                    sheet.write(row_num, col_num + 10, total_sum, format73)
+                    sheet.write(row_num, col_num + 3, loc['owner'], format52)
+                    sheet.write(row_num, col_num + 4, '', format52)
+                    sheet.write(row_num, col_num + 5, '', format521)
+                    sheet.write(row_num, col_num + 6, sum_col1, format71)
+                    sheet.write(row_num, col_num + 7, sum_col2, format71)
+                    sheet.write(row_num, col_num + 8, sum_col3, format71)
+                    sheet.write(row_num, col_num + 9, sum_col4, format71)
+                    sheet.write(row_num, col_num + 10, sum_col5, format71)
+                    sheet.write(row_num, col_num + 11, total_sum, format73)
                     row_num = row_num + 1
                     if data['form'][0]['filter_by'] == 'lot':
                         for val in vals:
@@ -383,14 +405,15 @@ class AgeingAnalysisModel(models.AbstractModel):
                             sheet.write(row_num, col_num, '', formt11)
                             sheet.write(row_num, col_num + 1, '', formt11)
                             sheet.write(row_num, col_num + 2, '', formt11)
-                            sheet.write(row_num, col_num + 3, val['lot'], formt11)
-                            sheet.write(row_num, col_num + 4, val['age'], formt112)
-                            sheet.write(row_num, col_num + 5, val['quantity'][0], form81)
-                            sheet.write(row_num, col_num + 6, val['quantity'][1], form81)
-                            sheet.write(row_num, col_num + 7, val['quantity'][2], form81)
-                            sheet.write(row_num, col_num + 8, val['quantity'][3], form81)
-                            sheet.write(row_num, col_num + 9, val['quantity'][4], form81)
-                            sheet.write(row_num, col_num + 10, val['total_qty'], form81)
+                            sheet.write(row_num, col_num + 3, loc['owner'], formt11)
+                            sheet.write(row_num, col_num + 4, val['lot'], formt11)
+                            sheet.write(row_num, col_num + 5, val['age'], formt112)
+                            sheet.write(row_num, col_num + 6, val['quantity'][0], form81)
+                            sheet.write(row_num, col_num + 7, val['quantity'][1], form81)
+                            sheet.write(row_num, col_num + 8, val['quantity'][2], form81)
+                            sheet.write(row_num, col_num + 9, val['quantity'][3], form81)
+                            sheet.write(row_num, col_num + 10, val['quantity'][4], form81)
+                            sheet.write(row_num, col_num + 11, val['total_qty'], form81)
                             row_num = row_num + 1
                     g_sum += total_sum
                     gsum_col1 += sum_col1
@@ -402,24 +425,26 @@ class AgeingAnalysisModel(models.AbstractModel):
                 sheet.write(row_num_old, col_num + 1, i, format51)
                 sheet.write(row_num_old, col_num + 2, '', format51)
                 sheet.write(row_num_old, col_num + 3, '', format51)
-                sheet.write(row_num_old, col_num + 4, '', format512)
-                sheet.write(row_num_old, col_num + 5, gsum_col1, format72)
-                sheet.write(row_num_old, col_num + 6, gsum_col2, format72)
-                sheet.write(row_num_old, col_num + 7, gsum_col3, format72)
-                sheet.write(row_num_old, col_num + 8, gsum_col4, format72)
-                sheet.write(row_num_old, col_num + 9, gsum_col5, format72)
-                sheet.write(row_num_old, col_num + 10, g_sum, format7)
+                sheet.write(row_num_old, col_num + 4, '', format51)
+                sheet.write(row_num_old, col_num + 5, '', format512)
+                sheet.write(row_num_old, col_num + 6, gsum_col1, format72)
+                sheet.write(row_num_old, col_num + 7, gsum_col2, format72)
+                sheet.write(row_num_old, col_num + 8, gsum_col3, format72)
+                sheet.write(row_num_old, col_num + 9, gsum_col4, format72)
+                sheet.write(row_num_old, col_num + 10, gsum_col5, format72)
+                sheet.write(row_num_old, col_num + 11, g_sum, format7)
             else:
                 for val in products[i]:
                     sheet.write(row_num, col_num, s_no, format51)
                     sheet.write(row_num, col_num + 1, i, format51)
                     sheet.write(row_num, col_num + 2, val['location'], format51)
-                    sheet.write(row_num, col_num + 3, val['lot'], format51)
-                    sheet.write(row_num, col_num + 4, val['age'], format512)
-                    sheet.write(row_num, col_num + 5, val['quantity'][0], format72)
-                    sheet.write(row_num, col_num + 6, val['quantity'][1], format72)
-                    sheet.write(row_num, col_num + 7, val['quantity'][2], format72)
-                    sheet.write(row_num, col_num + 8, val['quantity'][3], format72)
-                    sheet.write(row_num, col_num + 9, val['quantity'][4], format72)
-                    sheet.write(row_num, col_num + 10, val['total_qty'], format7)
+                    sheet.write(row_num, col_num + 3, val['owner'], format51)
+                    sheet.write(row_num, col_num + 4, val['lot'], format51)
+                    sheet.write(row_num, col_num + 5, val['age'], format512)
+                    sheet.write(row_num, col_num + 6, val['quantity'][0], format72)
+                    sheet.write(row_num, col_num + 7, val['quantity'][1], format72)
+                    sheet.write(row_num, col_num + 8, val['quantity'][2], format72)
+                    sheet.write(row_num, col_num + 9, val['quantity'][3], format72)
+                    sheet.write(row_num, col_num + 10, val['quantity'][4], format72)
+                    sheet.write(row_num, col_num + 11, val['total_qty'], format7)
                     row_num = row_num + 1

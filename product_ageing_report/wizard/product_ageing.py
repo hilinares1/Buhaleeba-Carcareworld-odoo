@@ -13,6 +13,7 @@ class AgeingAnalysis(models.TransientModel):
     filter_by = fields.Selection([
         ('location', "Location"), ('lot', "Lot"),
     ], string="Expand By", default='lot')
+    owner_id = fields.Many2many('res.partner', string='Owner')
 
     @api.model
     def compute_ageing(self, data):
@@ -20,14 +21,14 @@ class AgeingAnalysis(models.TransientModel):
                 'data['form']':  date duration"""
         rec = self.browse(data)
         data = {}
-        data['form'] = rec.read(['from_date', 'location_id', 'product_categ', 'interval'])
+        data['form'] = rec.read(['from_date', 'location_id', 'product_categ','owner_id','interval'])
         return self.env.ref('product_ageing_report.report_product_ageing').report_action(self,data=data)
 
     @api.model
     def xlsx_ageing_report(self, data):
         rec = self.browse(data)
         data = {}
-        data['form'] = rec.read(['from_date', 'location_id', 'product_categ', 'interval', 'filter_by'])
+        data['form'] = rec.read(['from_date', 'location_id', 'product_categ','owner_id', 'interval', 'filter_by'])
         if not rec.filter_by:
             raise ValidationError('Please select a Expand Option for Report')
         return self.env.ref('product_ageing_report.report_product_ageing_xlsx').report_action(self, data=data)

@@ -20,6 +20,10 @@
                                 <b>Location:</b> <span t-esc="loc"/>
                                 <br />
                             </t>
+                           <!--  <t t-if="owner">
+                                <b>Owner:</b> <span t-esc="owner"/>
+                                <br />
+                            </t>-->
                             <b>Interval(Days):</b> <span t-esc="docs.interval"/>
                             <br/>
                         </div>
@@ -31,6 +35,7 @@
                                     <th class="text-left">Product</th>
                                     <th class="text-left">Location</th>
                                     <th class="text-left">Lot</th>
+                                    <th class="text-left">Owner</th>
                                     <th class="text-left">Age</th>
                                     <t t-foreach="interval" t-as="i">
                                         <th class="text-right">
@@ -54,6 +59,9 @@
                                             </td>
                                             <td class="text-left">
                                               <span t-esc="line['lot']"/>
+                                            </td>
+                                            <td class="text-left">
+                                              <span t-esc="line['owner']"/>
                                             </td>
                                             <td class="text-left">
                                               <span t-esc="line['age']"/>
@@ -90,6 +98,23 @@
         </t>
     </template>
 
+
+    <record id="paperformat_product_ageing" model="report.paperformat">
+        <field name="name">Paper Format</field>
+        <field name="default" eval="True" />
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">42</field>
+        <field name="margin_bottom">20</field>
+        <field name="margin_left">20</field>
+        <field name="margin_right">20</field>
+<!--        <field name="header_line" eval="False" />-->
+        <field name="header_spacing">40</field>
+        <field name="dpi">90</field>
+    </record>
+
     <report
         id="report_product_ageing"
         model="stock.quant"
@@ -98,6 +123,7 @@
         name="product_ageing_report.report_ageing_analysis"
         file="product_ageing_report.report_ageing_analysis"
         menu="False"
+        paperformat="product_ageing_report.paperformat_product_ageing"
     />
 
 </odoo>
