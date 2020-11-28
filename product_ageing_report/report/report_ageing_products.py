@@ -16,14 +16,17 @@ class ReportAvgPrices(models.AbstractModel):
                        "join product_product pp on (pp.id = sq.product_id) "
                        "join product_template pt on (pt.id=pp.product_tmpl_id and pt.categ_id in %s) "
                        " join stock_location st on st.id = sq.location_id"
+                        " join res_partner rs on rs.id=sq.owner_id"
                        " where sq.location_id in %s and sq.quantity > 0 and sq.in_date <=%s and st.usage ='internal'"
                        ,
                        (tuple(docs.product_categ.ids),
+                       # tuple(docs.owner_id.ids),
                         tuple(docs.location_id.ids), docs.from_date))
         elif docs.location_id:
             cr.execute(
                 "select sq.id as quant ,sq.product_id as product from stock_quant sq "
                 " join stock_location st on st.id = sq.location_id"
+                 
                 " where sq.location_id in %s and sq.quantity > 0 "
                 "and sq.in_date <=%s and st.usage ='internal'",
                 (tuple(docs.location_id.ids), docs.from_date))
@@ -31,14 +34,22 @@ class ReportAvgPrices(models.AbstractModel):
             cr.execute("select sq.id as quant,pp.id as product from stock_quant sq "
                        "join product_product pp on(pp.id=sq.product_id) "
                        "  join stock_location st on st.id = sq.location_id"
+                      #  " join res_partner rs on rs.id=sq.owner_id"
                        " join product_template pt on(pt.id=pp.product_tmpl_id and pt.categ_id in %s)"
                        "where sq.quantity > 0  and sq.in_date <=%s and st.usage ='internal'"
                        "", (tuple(docs.product_categ.ids), docs.from_date))
+        elif docs.owner_id:
+            cr.execute("select sq.id as quant,pp.id as product from stock_quant sq "
+                       "join product_product pp on(pp.id=sq.product_id) "
+                        " join res_partner rs on rs.id=sq.owner_id"
+                       " where sq.owner_id in %s and sq.in_date <=%s ",
+                       (tuple(docs.owner_id.ids), docs.from_date))
         else:
             cr.execute("select sq.id as quant,sq.product_id as product from stock_quant sq "
                        " join stock_location st on st.id = sq.location_id"
                        " where quantity > 0  and in_date <=%s  and st.usage ='internal'"
                        , (docs.from_date,))
+
         product_ids = cr.dictfetchall()
         products = {}
         product = []
@@ -50,22 +61,25 @@ class ReportAvgPrices(models.AbstractModel):
             for val in product_ids:
                 if val['product'] == pr:
                     quant.append(val['quant'])
-            cr.execute(" select pt.name as product,sq.quantity as quantity ,st.name as location,lot.name as lot ,sq.in_date as in_date"
+            cr.execute(" select pt.name as product,sq.quantity as quantity ,st.name as location,lot.name as lot ,sq.owner_id as owner,sq.in_date as in_date"
                        " from stock_quant sq "
                         "join product_product pp on (pp.id = sq.product_id)"
                        " join product_template pt on (pt.id=pp.product_tmpl_id)"
                        " join stock_production_lot lot on lot.id=sq.lot_id"  
                         " join stock_location st on st.id = sq.location_id"
+                       # " join res_partner rs on rs.id=sq.owner_id"
                         " where sq.lot_id IS NOT NULL  and sq.id in %s",
                        (tuple(quant),))
             rec_with_lot = cr.dictfetchall()
-            cr.execute(" select pt.name as product,sq.quantity as quantity ,st.name as location,sq.in_date as in_date "
+            cr.execute(" select pt.name as product,sq.quantity as quantity ,st.name as location, sq.owner_id as owner, sq.in_date as in_date "
                        " from stock_quant sq "
                        "join product_product pp on (pp.id = sq.product_id)"
                        "join product_template pt on (pt.id=pp.product_tmpl_id)"
                        " join stock_location st on st.id = sq.location_id"
+                      # " join res_partner rs on rs.id=sq.owner_id"
                        " where sq.lot_id IS NULL  and sq.id in %s",
                        (tuple(quant),))
+
             rec_without_lot = cr.dictfetchall()
             vals = []
             date1 = datetime.datetime.strptime(str(docs.from_date), '%Y-%m-%d %H:%M:%S').date()
@@ -103,9 +117,10 @@ class ReportAvgPrices(models.AbstractModel):
                                 'product': re['product'],
                                 'location': re['location'],
                                 'lot': re['lot'],
+                                'owner': re['owner'],
                                 'total_qty': re['quantity']
                             }
-                            quantity = [0, 0, 0, 0, 0]
+                            quantity = [0, 0, 0, 0, 0, 0]
 
                             date2 = datetime.datetime.strptime(str(re['in_date']), '%Y-%m-%d %H:%M:%S').date()
                             no_days = (date1 - date2).days
@@ -134,6 +149,7 @@ class ReportAvgPrices(models.AbstractModel):
                             'product': re['product'],
                             'location': re['location'],
                             'lot': re['lot'],
+                            'owner': re['owner'],
                             'total_qty': re['quantity']
                         }
                         quantity = [0, 0, 0, 0, 0]
@@ -188,6 +204,7 @@ class ReportAvgPrices(models.AbstractModel):
                                 'product': re['product'],
                                 'location': re['location'],
                                 'lot': '',
+                                'owner': re['owner'],
                                 'age': '',
                                 'total_qty': re['quantity']
                             }
@@ -215,6 +232,7 @@ class ReportAvgPrices(models.AbstractModel):
                             'product': re['product'],
                             'location': re['location'],
                             'lot': '',
+                            'owner': re['owner'],
                             'total_qty': re['quantity'],
                             'age': ''
                         }
@@ -254,20 +272,31 @@ class ReportAvgPrices(models.AbstractModel):
                     str(4 * docs.interval) + '+']
         loc = ""
         categ = ""
+        owner = ""
+
         for i in docs.location_id:
             if i.location_id.name and i.name:
                 loc += i.location_id.name + " / " + i.name + ", "
+
         for i in docs.product_categ:
             if i.name:
                 categ += i.name + ", "
+
+        for i in docs.owner_id:
+            if i.name:
+                owner +=  i.name + ", "
+
         loc = loc[:-2]
         categ = categ[:-2]
+        owner = owner[:-2]
+
         docargs = {
             'doc_ids': self.ids,
             'doc_model': self.model,
             'docs': docs,
             'loc': loc,
             'categ': categ,
+            'owner': owner,
             'interval': interval,
             'products': products,
         }

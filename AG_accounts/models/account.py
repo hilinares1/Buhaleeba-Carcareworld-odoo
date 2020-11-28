@@ -132,7 +132,7 @@ class AccountMove(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        res = super(AccountMove,self).create(vals_list)
+        reses = super(AccountMove,self).create(vals_list)
         for res in reses:
             if res.type == 'out_refund' or res.type == 'entry':
                 res.state = 'confirm'

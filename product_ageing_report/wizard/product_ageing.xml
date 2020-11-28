@@ -11,6 +11,7 @@
                            <group>
                                <field name="location_id" widget="many2many_tags" />
                                <field name="product_categ" widget="many2many_tags" />
+                                <field name="owner_id" widget="many2many_tags" />
                                <field name = "filter_by" widget = "radio" class ="oe_edit_only"
                                   options = "{'horizontal': true}" />
                             </group>
@@ -22,7 +23,7 @@
                     </sheet>
                    <footer>
                         <button string="Print" name="compute_ageing" type="object" class="btn-primary"/>
-<!--                        <button string="Print XLSX" name="xlsx_ageing_report" type="object" class="oe_highlight" context="{'xls_export':1}" />-->
+                        <button string="Print XLSX" name="xlsx_ageing_report" type="object" class="oe_highlight" context="{'xls_export':1}" />
                         <button string="Discard" class="btn-default" special="cancel"/>
                    </footer>
                </form>
@@ -42,15 +43,15 @@
         <menuitem name="Stock Ageing Analysis" id="prod_ageing_analysis" action="action_prod_ageing_analysis"
                   parent="stock.menu_warehouse_report"/>
 
-<!--         <report-->
-<!--            id="report_product_ageing_xlsx"-->
-<!--            model="stock.quant"-->
-<!--            report_type="xlsx"-->
-<!--            string="Ageing Analysis"-->
-<!--            name="product_ageing_report.report_product_ageing_xlsx"-->
-<!--            file="product_ageing_report.report_product_ageing_xlsx"-->
-<!--            menu="False"-->
-<!--        />-->
+         <report
+            id="report_product_ageing_xlsx"
+            model="stock.quant"
+            report_type="xlsx"
+            string="Ageing Analysis"
+            name="product_ageing_report.report_product_ageing_xlsx"
+            file="product_ageing_report.report_product_ageing_xlsx"
+            menu="False"
+        />
 
     </data>
 </odoo>
