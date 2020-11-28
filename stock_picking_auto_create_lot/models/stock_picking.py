@@ -41,7 +41,7 @@ class StockPicking(models.Model):
         # name = str(self.origin) + "-%s-%s"%(dates.strftime("%m%d%y"),random)
         # if self.env['stock.production.lot'].search([('name','=',name),('product','=',line.product_id.id)]):
         name = self._get_lot_name()
-        raise UserError(name)
+        # raise UserError(name)
         if self.move_line_ids_without_package:
             for move in self.move_line_ids_without_package:
                 if move.lot_id.name != move.issued_lot:
