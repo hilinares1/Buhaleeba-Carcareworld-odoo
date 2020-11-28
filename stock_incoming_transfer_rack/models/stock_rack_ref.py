@@ -30,7 +30,7 @@ class StockRackRef(models.Model):
     def _compute_complete_name(self):
         for rack_shelf in self:
             if rack_shelf.parent_id:
-                rack_shelf.complete_name = '%s / %s' % (rack_shelf.name , rack_shelf.parent_id.complete_name)
+                rack_shelf.complete_name = '%s / %s' % ( rack_shelf.parent_id.complete_name ,rack_shelf.name )
             else:
                 rack_shelf.complete_name = rack_shelf.name
 
