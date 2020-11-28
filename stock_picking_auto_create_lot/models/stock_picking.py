@@ -40,7 +40,22 @@ class StockPicking(models.Model):
         # random = random.randrange(10, 1, -2)
         # name = str(self.origin) + "-%s-%s"%(dates.strftime("%m%d%y"),random)
         # if self.env['stock.production.lot'].search([('name','=',name),('product','=',line.product_id.id)]):
-        name = self._get_lot_name()
+        dates = date.today()
+        random_num = random.randrange(9, 1, -2)
+        name = str(self.origin) + "-%s%s"%(dates.strftime("%d%m%y"),random_num)
+        for line in self.move_line_ids.filtered(
+                lambda x: (
+                    not x.lot_id
+                    and not x.lot_name
+                    and x.product_id.tracking != "none"
+                    and x.product_id.auto_create_lot
+                )
+            ):
+            if self.env['stock.production.lot'].search([('name','=',name),('product_id','=',line.product_id.id)]):
+                random_num = random.randrange(9, 1, -2)
+                name = str(self.origin) + "-%s%s"%(dates.strftime("%d%m%y"),random_num)
+            else:
+                continue
         # raise UserError(name)
         if self.move_line_ids_without_package:
             for move in self.move_line_ids_without_package:
