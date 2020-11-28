@@ -143,7 +143,7 @@ class AccountMove(models.Model):
                 res._currency_change()
             else:
                 res.currency_rate = res.currency_id.rate
-        return res
+        return reses
 
     def send_to_approve(self):
         for rec in self:

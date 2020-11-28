@@ -73,6 +73,8 @@ class MultiChannelSale(models.Model):
 	import_partner_cron = fields.Boolean("Import Customers")
 	import_category_cron = fields.Boolean("Import Categories")
 	vat_id = fields.Many2one('account.tax',string='VAT %')
+	cod_id = fields.Many2one('product.product',string='COD')
+	shipping_id = fields.Many2one('res.partner',string='Shipping Company')
 
 	channel_stock_action = fields.Selection([
         ('qoh', 'Quantity on hand'),

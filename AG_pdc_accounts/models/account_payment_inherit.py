@@ -149,6 +149,14 @@ class account_payment(models.Model):
     def onchnage_amount(self):
         total = 0.0
         remain = self.amount
+        if self.invoice_ids and not self.invoice_lines:
+            lines = [(6, 0, [])]
+            for inv in self.invoice_ids:
+                vals = {
+                       'invoice_id': inv.id,
+                       }
+                lines.append((0, 0, vals))
+            self.invoice_lines = lines
         for line in self.invoice_lines:
             if line.open_amount <= remain:
                 line.allocation = line.open_amount
@@ -606,11 +614,15 @@ class account_payment(models.Model):
                 # ==== 'inbound' / 'outbound' ====
                 i = 0
                 if rec.invoice_ids:
-                    for inv in rec.invoice_lines:
-                        (moves[i] + inv.invoice_id).line_ids \
-                            .filtered(lambda line: not line.reconciled and line.account_id == rec.destination_account_id and not (line.account_id == line.payment_id.writeoff_account_id and line.name == line.payment_id.writeoff_label))\
-                            .reconcile()
-                        i = i + 1
+                    (moves[0] + rec.invoice_ids).line_ids \
+                        .filtered(lambda line: not line.reconciled and line.account_id == rec.destination_account_id and not (line.account_id == line.payment_id.writeoff_account_id and line.name == line.payment_id.writeoff_label))\
+                        .reconcile()
+                    # for inv in rec.invoice_lines:
+                    #     (moves[i] + inv.invoice_id).line_ids \
+                    #         .filtered(lambda line: not line.reconciled and line.account_id == rec.destination_account_id and not (line.account_id == line.payment_id.writeoff_account_id and line.name == line.payment_id.writeoff_label))\
+                    #         .reconcile()
+                    #     i = i + 1
+                    
 
             elif rec.payment_type == 'transfer':
                 # ==== 'transfer' ====
