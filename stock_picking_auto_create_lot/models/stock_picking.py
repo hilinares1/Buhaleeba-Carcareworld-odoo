@@ -30,7 +30,7 @@ class StockPicking(models.Model):
                     and x.product_id.auto_create_lot
                 )
             ):
-                name = str(self.origin) + "-%s"%(date.today())
+                name = str(self.origin) + "-%s"%(datetime.today())
                 if i == 1:
                     lot = self.env["stock.production.lot"].create(
                         {"name":name,"product_id": line.product_id.id, "company_id": line.company_id.id}
