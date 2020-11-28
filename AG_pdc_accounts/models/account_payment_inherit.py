@@ -614,11 +614,17 @@ class account_payment(models.Model):
                 # ==== 'inbound' / 'outbound' ====
                 i = 0
                 if rec.invoice_ids:
-                    for inv in rec.invoice_lines:
-                        (moves[i] + inv.invoice_id).line_ids \
-                            .filtered(lambda line: not line.reconciled and line.account_id == rec.destination_account_id and not (line.account_id == line.payment_id.writeoff_account_id and line.name == line.payment_id.writeoff_label))\
-                            .reconcile()
-                        i = i + 1
+                    if len(rec.invoice_lines) == 1:
+                        (moves[0] + rec.invoice_ids).line_ids \
+                        .filtered(lambda line: not line.reconciled and line.account_id == rec.destination_account_id and not (line.account_id == line.payment_id.writeoff_account_id and line.name == line.payment_id.writeoff_label))\
+                        .reconcile()
+                    else:
+                        for inv in rec.invoice_lines:
+                            (moves[i] + inv.invoice_id).line_ids \
+                                .filtered(lambda line: not line.reconciled and line.account_id == rec.destination_account_id and not (line.account_id == line.payment_id.writeoff_account_id and line.name == line.payment_id.writeoff_label))\
+                                .reconcile()
+                            i = i + 1
+                    
 
             elif rec.payment_type == 'transfer':
                 # ==== 'transfer' ====
