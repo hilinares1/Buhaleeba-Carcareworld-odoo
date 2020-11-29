@@ -21,7 +21,7 @@
     'name': 'Accounts Changes',
     'category': 'Accounts',
     'summary': "Accounts Changes",
-    'depends': ['account','om_account_asset'],
+    'depends': ['account'],
     'data': [
         'views/account_view.xml',
         'data/account_data.xml',
