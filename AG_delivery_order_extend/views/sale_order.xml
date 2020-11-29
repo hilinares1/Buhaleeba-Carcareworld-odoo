@@ -10,6 +10,7 @@
 				<xpath expr="//field[@name='partner_id']" position="after">
 					<field name="store_id" />
 					<field name="payment_method" />
+					<field name="receive_state" />
 				</xpath>
 			</field>
 		</record>
