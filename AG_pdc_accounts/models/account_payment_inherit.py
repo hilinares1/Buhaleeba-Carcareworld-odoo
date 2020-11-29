@@ -149,6 +149,14 @@ class account_payment(models.Model):
     def onchnage_amount(self):
         total = 0.0
         remain = self.amount
+        lines = [(6, 0, [])]
+        if len(self.invoice_ids) == 1 and not self.invoice_lines:
+            for inv in self.invoice_ids:
+                vals = {
+                    'invoice_id': inv.id,
+                    }
+                lines.append((0, 0, vals))
+            self.invoice_lines = lines
         for line in self.invoice_lines:
             if line.open_amount <= remain:
                 line.allocation = line.open_amount
