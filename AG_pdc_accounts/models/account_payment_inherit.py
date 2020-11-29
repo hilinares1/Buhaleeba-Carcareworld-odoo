@@ -31,14 +31,6 @@ class account_payment(models.Model):
                                  help='Effective date of PDC', copy=False,
                                  default=False)
     state = fields.Selection([('draft', 'Draft'), ('posted', 'Validated'),('release', 'Released'),('reverse', 'Reversed'), ('sent', 'Sent'), ('reconciled', 'Reconciled'), ('cancelled', 'Cancelled')], readonly=True, default='draft', copy=False, string="Status")
-    currency_rate = fields.Float('Rate')
-
-    @api.onchange('currency_id')
-    def _currency_change(self):
-        for rec in self:
-            # if rec.is_purchase == 0:
-            rec.currency_rate = rec.currency_id.rate
-
 
     # @api.multi
     def update_invoice_lines(self):
@@ -82,7 +74,6 @@ class account_payment(models.Model):
     def _onchange_partner_type(self):
         # Set partner_id domain
         if self.partner_type:
-            # Partner ID passing false for Register Payment from Invoice Form View FIX 11 NOV by sana
             # if not self.env.context.get('default_invoice_ids'):
             #     self.partner_id = False
             if self.partner_type == 'supplier':
@@ -149,38 +140,14 @@ class account_payment(models.Model):
     def onchnage_amount(self):
         total = 0.0
         remain = self.amount
-        lines = [(6, 0, [])]
-        # if len(self.invoice_ids) == 1 and not self.invoice_lines:
-        #     for inv in self.invoice_ids:
-        #         vals = {
-        #             'invoice_id': inv.id,
-        #             }
-        #         lines.append((0, 0, vals))
-        #     self.invoice_lines = lines
-        if self.invoice_lines:
-            for line in self.invoice_lines:
-                if line.open_amount <= remain:
-                    line.allocation = line.open_amount
-                    remain -= line.allocation
-                else:
-                    line.allocation = remain
-                    remain -= line.allocation
-                total += line.allocation
-        else:
-            for inv in self.invoice_ids:
-                vals = {
-                    'invoice_id': inv.id,
-                    }
-                lines.append((0, 0, vals))
-            self.invoice_lines = lines
-            for line in self.invoice_lines:
-                if line.open_amount <= remain:
-                    line.allocation = line.open_amount
-                    remain -= line.allocation
-                else:
-                    line.allocation = remain
-                    remain -= line.allocation
-                total += line.allocation
+        for line in self.invoice_lines:
+            if line.open_amount <= remain:
+                line.allocation = line.open_amount
+                remain -= line.allocation
+            else:
+                line.allocation = remain
+                remain -= line.allocation
+            total += line.allocation
 
 
 
@@ -216,11 +183,6 @@ class account_payment(models.Model):
                 for inv in payment.invoice_lines:
                     company_currency = payment.company_id.currency_id
                     move_names = payment.move_name.split(payment._get_move_name_transfer_separator()) if payment.move_name else None
-                    # if not payment.company_id.currency_id.id == payment.currency_id.id:
-                    #     allocation =   abs(inv.allocation) * (1/payment.currency_rate)
-                    # else:
-                    #     allocation =   abs(inv.allocation) * (1/payment.currency_rate)
-
                     amount += inv.allocation
                     # Compute amounts.
                     offwrite = inv.invoice_id.amount_residual_signed - inv.allocation

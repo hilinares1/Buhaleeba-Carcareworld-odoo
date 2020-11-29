@@ -21,9 +21,6 @@
 				<xpath expr="//field[@name='state']" position="replace">
 					<field name="state" widget="statusbar" statusbar_visible="draft,posted,release,reverse,reconciled,cancelled"/>
 				</xpath>
-				<xpath expr="//field[@name='amount']" position="after">
-					<field name="currency_rate" attrs="{'readonly': [('state', 'not in', ['draft'])]}"/>
-				</xpath>
 				<button name="button_journal_entries" position="replace">
 					<button class="oe_stat_button" name="button_journal_entries" string="Journal Items" type="object" groups="account.group_account_user" attrs="{'invisible':[('move_line_ids','=',[])]}" icon="fa-bars"></button>
 
