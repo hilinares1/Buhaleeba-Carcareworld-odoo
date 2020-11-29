@@ -19,6 +19,8 @@ class SaleOrder(models.Model):
     #     if res and res.store_order_id:
     #         saleorder_feed = env['order.feed'].search([('store_id', '=', res.store_order_id)], limit=1)
     #         record.write({'payment_method': saleorder_feed.payment_method})
+
+    # Bincy Code merge on 28 Nov
     def action_confirm(self):
         res = super(SaleOrder, self).action_confirm()
 

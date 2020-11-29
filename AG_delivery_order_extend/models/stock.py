@@ -5,14 +5,28 @@ from odoo import api, fields, models, SUPERUSER_ID, _
 class Stock(models.Model):
     _inherit = 'stock.picking'
 
-    state = fields.Selection(
-        selection_add = [
-            ('in_transit', 'IN Transit'),
-            ('complete', 'Complete'),
-        ],
-    )
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('waiting', 'Waiting Another Operation'),
+        ('confirmed', 'Waiting'),
+        ('in_progress', 'In progress'),
+        ('assigned', 'Ready'),
+        ('in_transit', 'IN Transit'),
+        ('done', 'Done'),
+        ('complete', 'Complete'),
+        ('cancel', 'Cancelled'),
+    ], string='Status', compute='_compute_state',
+        copy=False, index=True, readonly=True, store=True, tracking=True,
+        help=" * Draft: The transfer is not confirmed yet. Reservation doesn't apply.\n"
+             " * Waiting another operation: This transfer is waiting for another operation before being ready.\n"
+             " * Waiting: The transfer is waiting for the availability of some products.\n(a) The shipping policy is \"As soon as possible\": no product could be reserved.\n(b) The shipping policy is \"When all products are ready\": not all the products could be reserved.\n"
+             " * Ready: The transfer is ready to be processed.\n(a) The shipping policy is \"As soon as possible\": at least one product has been reserved.\n(b) The shipping policy is \"When all products are ready\": all product have been reserved.\n"
+             " * Done: The transfer has been processed.\n"
+             " * Cancelled: The transfer has been cancelled.")
     store_id = fields.Char('Woocommerce Store Id',readonly=True)
     payment_method = fields.Char('Payment Method',readonly=True)
+
+    #Code from Bincy commit on 28th Nov added status on delivery
     woo_status = fields.Selection([
         ('no', 'Not Online Sales'),
         ('pending payment', 'Pending Payment'),
@@ -30,9 +44,8 @@ class Stock(models.Model):
     ], string='Woo-commerce Status', readonly=True, index=True, store=True, copy=False,
         tracking=True)
 
-
-    # def custom_picking_delivered(self):
-    #     self.state = 'in_transit'
+    def custom_picking_delivered(self):
+        self.state = 'assigned'
 
     def custom_picking_complete(self):
         self.state = 'complete'
@@ -52,3 +65,15 @@ class Stock(models.Model):
               else:
                     self.state = 'in_transit'
         return True
+
+    def action_assign(self):
+        """ Check availability of picking moves.
+        This has the effect of changing the state and reserve quants on available moves, and may
+        also impact the state of the picking as it is computed based on move's states.
+        @return: True
+        """
+        res = super(Stock, self).action_assign()
+        if self.picking_type_code == 'outgoing':
+            # if not self.env.context.get('channel_id'):
+                self.state = 'in_progress'
+        return res
