@@ -569,50 +569,16 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self)._prepare_invoice()
         for rec in self:
             if rec.points_amt:
-                # res[] = rec.points_amt
-                # amount = rec.points_amt
-                # amounts = -rec.points_amt
-                # dict = []
-                # dict1 = {
-                #         # 'move_name': self.name,
-                #         'name': "Earned Point",
-                #         'price_unit': rec.points_amt,
-                #         'product_id': self.channel_mapping_ids[0].channel_id.points_product_id.id,
-                #         'quantity': 1,
-                #         'debit':0.0,
-                #         'credit': rec.points_amt,
-                #         'account_id': self.channel_mapping_ids[0].channel_id.points_crebit_account_id.id,
-                #         # 'move_id': self._origin,
-                #         # 'date': self.date,
-                #         'exclude_from_invoice_tab': True,
-                #         # 'partner_id': terms_lines.partner_id.id,
-                #         'company_id': self.company_id.id,
-                #         # 'company_currency_id': terms_lines.company_currency_id.id,
-                #         }
-                # dict.append((0,0,dict1))
-                # dict2 = {
-                #         # 'move_name': self.name,
-                #         'name': "Earned Point",
-                #         'price_unit': rec.points_amt,
-                #         'product_id': self.channel_mapping_ids[0].channel_id.points_product_id.id,
-                #         'quantity': 1,
-                #         'debit': rec.points_amt,
-                #         'credit': 0.0,
-                #         'account_id': self.channel_mapping_ids[0].channel_id.points_debit_account_id.id,
-                #         # 'move_id': self._origin,
-                #         # 'date': self.date,
-                #         'exclude_from_invoice_tab': True,
-                #         # 'partner_id': terms_lines.partner_id.id,
-                #         'company_id': self.company_id.id,
-                #         # 'company_currency_id': terms_lines.company_currency_id.id,
-                #         }
-                # dict.append((0,0,dict2))
-                res.update({
-                    'points_amt':rec.points_amt,
-                    'points_product_id':self.channel_mapping_ids[0].channel_id.points_product_id.id,
-                    'points_crebit_account_id':self.channel_mapping_ids[0].channel_id.points_crebit_account_id.id,
-                    'points_debit_account_id':self.channel_mapping_ids[0].channel_id.points_debit_account_id.id,
-                    })
+                if self.channel_mapping_ids:
+                    res.update({
+                        'points_amt':rec.points_amt,
+                        'points_product_id':self.channel_mapping_ids[0].channel_id.points_product_id.id,
+                        'points_crebit_account_id':self.channel_mapping_ids[0].channel_id.points_crebit_account_id.id,
+                        'points_debit_account_id':self.channel_mapping_ids[0].channel_id.points_debit_account_id.id,
+                        })
+                else:
+                    res.update({
+                        'points_amt':0})
         return res
 
 
