@@ -5,25 +5,33 @@
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.view_picking_form" />
         <field name="arch" type="xml">
-          <!--  <xpath expr="//header/button[last()]" position="after">
-                <button name="custom_picking_delivered" type="object" string="Delivered" attrs="{'invisible': ['|', ('state', '!=', 'done'), ('picking_type_code', '!=', 'outgoing')]}"/>
-            </xpath> -->
+            <xpath expr="//header/field[@name='state']" position="replace">
+                <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,partially_available,in_progress,assigned,done" />
+            </xpath>
+            <!--<xpath expr="//header/button[@name='button_validate']" position="attributes">-->
+                <!--&lt;!&ndash;<button name="button_validate" attrs="{'invisible': ['|', ('state', 'not in', ('waiting', 'confirmed')), ('show_validate', '=', False)]}" string="Validate" type="object" groups="stock.group_stock_user" class="o_btn_validate"/>&ndash;&gt;-->
+                <!--<attribute name ="attrs">{'invisible': ['|', ('state', 'not in', ('waiting', 'confirmed', 'in_progress')), ('show_validate', '=', False)]}</attribute>-->
+            <!--</xpath>-->
             <xpath expr="//header/button[last()]" position="after">
-                <button name="custom_picking_complete" type="object" string="Complete" attrs="{'invisible': ['|', ('state', '!=', 'in_transit'), ('picking_type_code', '!=', 'outgoing')]}"/>
+                <button name="custom_picking_delivered" type="object" string="Dispatched" attrs="{'invisible': ['|', ('state', '!=', 'in_progress'), ('picking_type_code', '!=', 'outgoing')]}" class="oe_highlight"/>
+            </xpath>
+            <xpath expr="//header/button[last()]" position="after">
+                <button name="custom_picking_complete" type="object" string="Complete" attrs="{'invisible': ['|', ('state', '!=', 'in_transit'), ('picking_type_code', '!=', 'outgoing')]}" class="oe_highlight"/>
             </xpath>
 
              <xpath expr="//field[@name='move_line_ids_without_package']" position="replace">
                     <field name="move_line_ids_without_package" attrs="{'readonly': [('state', 'in', ['in_transit','done','complete','cancel'])]}" context="{'tree_view_ref': 'stock.view_stock_move_line_detailed_operation_tree', 'default_picking_id': id, 'default_location_id': location_id, 'default_location_dest_id': location_dest_id, 'default_company_id': company_id}"/>
              </xpath>
-            <xpath expr="//field[@name='origin']" position="after">
+             <xpath expr="//field[@name='origin']" position="after">
                     <field name="store_id"/>
              </xpath>
-            <xpath expr="//field[@name='store_id']" position="after">
+             <xpath expr="//field[@name='store_id']" position="after">
                     <field name="payment_method"/>
              </xpath>
              <xpath expr="//field[@name='payment_method']" position="after">
                     <field name="woo_status"/>
              </xpath>
+
         </field>
     </record>
 
