@@ -17,6 +17,7 @@ class SaleOrder(models.Model):
 		copy=False
 	)
 	shipping_full = fields.Float('Shipping Full')
+	points_amt = fields.Float('Points')
 	shipping_id = fields.Many2one('res.partner',string='Shipping Company')
 
 	def action_cancel(self):

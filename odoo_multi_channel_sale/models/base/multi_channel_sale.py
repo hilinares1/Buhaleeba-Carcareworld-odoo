@@ -75,6 +75,9 @@ class MultiChannelSale(models.Model):
 	vat_id = fields.Many2one('account.tax',string='VAT %')
 	cod_id = fields.Many2one('product.product',string='COD')
 	shipping_id = fields.Many2one('res.partner',string='Shipping Company')
+	points_product_id = fields.Many2one('product.product',string='Points Product')
+	points_crebit_account_id = fields.Many2one('account.account',string='Points Credit Account')
+	points_debit_account_id = fields.Many2one('account.account',string='Points Debit Account')
 
 	channel_stock_action = fields.Selection([
         ('qoh', 'Quantity on hand'),

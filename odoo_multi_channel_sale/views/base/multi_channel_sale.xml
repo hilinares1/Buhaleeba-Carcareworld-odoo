@@ -447,6 +447,21 @@
 											required="1"
 											attrs   ="{'readonly':[('state','=','validate')]}"
 										/>
+										<field
+											name    ="points_product_id"
+											required="1"
+											attrs   ="{'readonly':[('state','=','validate')]}"
+										/>
+										<field
+											name    ="points_crebit_account_id"
+											required="1"
+											attrs   ="{'readonly':[('state','=','validate')]}"
+										/>
+										<field
+											name    ="points_debit_account_id"
+											required="1"
+											attrs   ="{'readonly':[('state','=','validate')]}"
+										/>
 									</group>
 									<group>
 										<field

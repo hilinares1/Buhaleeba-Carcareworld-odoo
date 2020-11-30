@@ -18,6 +18,7 @@
 						<group>
 							<field name="shipping_id" />
 							<field name="shipping_full" />
+							<field name="points_amt" />
 						</group>
 					</page>
 				</xpath>
