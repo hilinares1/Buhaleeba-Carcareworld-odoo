@@ -128,7 +128,53 @@ class AccountMove(models.Model):
         states={'draft': [('readonly', False)],'confirm': [('readonly', False)]})
     line_ids = fields.One2many('account.move.line', 'move_id', string='Journal Items', copy=True, readonly=True,
         states={'draft': [('readonly', False)],'confirm': [('readonly', False)]})
-    is_purchase = fields.Integer('Purchase',default=0)    
+    is_purchase = fields.Integer('Purchase',default=0)
+    points_amt = fields.Float('Points')
+    points_product_id = fields.Many2one('product.product',string='Points Product')
+    points_crebit_account_id = fields.Many2one('account.account',string='Points Credit Account')
+    points_debit_account_id = fields.Many2one('account.account',string='Points Debit Account')
+
+
+    def action_post(self):
+        res = super(AccountMove, self).action_post()
+        if self.points_amt:
+            dict = []
+            dict1 = {
+                    # 'move_name': self.name,
+                    'name': "Earned Point",
+                    'price_unit': self.points_amt,
+                    'product_id': self.points_product_id.id,
+                    'quantity': 1,
+                    'debit':0.0,
+                    'credit': self.points_amt,
+                    'account_id': self.points_crebit_account_id.id,
+                    # 'move_id': self._origin,
+                    # 'date': self.date,
+                    'exclude_from_invoice_tab': True,
+                    # 'partner_id': terms_lines.partner_id.id,
+                    'company_id': self.company_id.id,
+                    # 'company_currency_id': terms_lines.company_currency_id.id,
+                    }
+            dict.append((0,0,dict1))
+            dict2 = {
+                    # 'move_name': self.name,
+                    'name': "Earned Point",
+                    'price_unit': self.points_amt,
+                    'product_id': self.points_product_id.id,
+                    'quantity': 1,
+                    'debit': self.points_amt,
+                    'credit': 0.0,
+                    'account_id': self.points_debit_account_id.id,
+                    # 'move_id': self._origin,
+                    # 'date': self.date,
+                    'exclude_from_invoice_tab': True,
+                    # 'partner_id': terms_lines.partner_id.id,
+                    'company_id': self.company_id.id,
+                    'company_currency_id': self.company_currency_id.id,
+                    }
+            dict.append((0,0,dict2))
+            self.update({'line_ids':dict})
+        return res
 
     @api.model_create_multi
     def create(self, vals_list):

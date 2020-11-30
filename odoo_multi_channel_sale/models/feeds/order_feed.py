@@ -23,6 +23,7 @@ OrderFields = [
 	'date_invoice',
 	'date_order',
 	'shipping_full',
+	'points_amt',
 	'states_ship',
 	'confirmation_date',
 	'line_ids',
@@ -88,6 +89,7 @@ class OrderFeed(models.Model):
 	invoice_state_id    = fields.Char('Invoice State Code')
 	invoice_country_id  = fields.Char('Invoice Country Code')
 	shipping_full = fields.Float('Shipping Full')
+	points_amt = fields.Float('Points')
 	states_ship = fields.Boolean('status')
 
 	same_shipping_billing = fields.Boolean(
@@ -442,6 +444,7 @@ class OrderFeed(models.Model):
 		vals.pop('message_follower_ids','')
 		vals['team_id'] = channel_id.crm_team_id.id
 		vals['warehouse_id'] = channel_id.warehouse_id.id
+		vals['points_amt'] = vals.pop('points_amt')
 		# states_ship = vals.pop('order_state')
 		# raise UserWarning(states)
 		if vals.pop('states_ship') == True:
