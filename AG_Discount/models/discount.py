@@ -16,6 +16,7 @@ from odoo.addons.stock.models.stock_move import PROCUREMENT_PRIORITIES
 from odoo.tools.misc import formatLang, format_date, get_lang
 
 
+
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
 
@@ -29,16 +30,14 @@ class PurchaseOrder(models.Model):
             for line in rec.order_line:
                 GT += line.product_qty * line.price_unit
             for line in rec.order_line:
-                if line.is_percentage == True:
-                    line.discount = (line.product_qty * line.price_unit * rec.total_discount) / GT
-                    line.is_percentage = False
-                else:
-                    line.discount = line.discount + ((line.product_qty * line.price_unit * rec.total_discount) / GT)
-                    line.is_percentage = False
+                line.discount = (line.product_qty * line.price_unit * rec.total_discount) / GT
+                line.is_percentage = False
+
+
 
 
 class PurchaseOrderLine(models.Model):
-    _inherit = "purchase.order.line"
+    _inherit = "purchase.order.line" 
 
     is_percentage = fields.Boolean('Is Discount (%)',default=False)
     discount = fields.Float('Discount')
@@ -105,6 +104,7 @@ class PurchaseOrderLine(models.Model):
             self.price_unit = price_unit
         return price
 
+
     def _prepare_account_move_line(self, move):
         vals = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
         vals['price_unit'] = self.price_unit
@@ -115,6 +115,7 @@ class PurchaseOrderLine(models.Model):
 
 class StockMove(models.Model):
     _inherit = "stock.move"
+
 
     def _prepare_account_move_line(self, qty, cost, credit_account_id, debit_account_id, description):
         """
@@ -133,9 +134,7 @@ class StockMove(models.Model):
             credit_value = debit_value
 
         valuation_partner_id = self._get_partner_id_for_valuation_lines()
-        res = [(0, 0, line_vals) for line_vals in
-               self._generate_valuation_lines_data(valuation_partner_id, qty, debit_value, credit_value,
-                                                   debit_account_id, credit_account_id, description).values()]
+        res = [(0, 0, line_vals) for line_vals in self._generate_valuation_lines_data(valuation_partner_id, qty, debit_value, credit_value, debit_account_id, credit_account_id, description).values()]
 
         return res
 
@@ -175,7 +174,7 @@ class AccountMove(models.Model):
 
     amount_discount = fields.Monetary(string='Discount',
                                          readonly=True,
-                                         store=True, track_visibility='always')
+                                         store=True, track_visibility='always',compute='_compute_amount')
     sales_discount_account_id = fields.Integer(compute='verify_discount')
 
     @api.depends('amount_discount')
@@ -195,11 +194,16 @@ class AccountMove(models.Model):
     def _compute_amount(self):
         super(AccountMove, self)._compute_amount()
         for rec in self:
-            if rec.amount_discount:
+            amount_discount = 0.0
+            for line in rec.invoice_line_ids:
+                amount_discount += line.discount
+            rec.amount_discount = amount_discount
+            if amount_discount:
                 rec.ks_calculate_discount()
             sign = rec.type in ['in_refund', 'out_refund'] and -1 or 1
             rec.amount_total_company_signed = rec.amount_total * sign
             rec.amount_total_signed = rec.amount_total * sign
+            
 
     def ks_calculate_discount(self):
         for rec in self:
@@ -207,11 +211,15 @@ class AccountMove(models.Model):
                 rec.amount_total = rec.amount_tax + rec.amount_untaxed - rec.amount_discount
                 rec.ks_update_universal_discount()
 
+
+            
+
     def ks_update_universal_discount(self):
         """This Function Updates the Universal Discount through Sale Order"""
         for rec in self:
+            
             already_exists = self.line_ids.filtered(
-                lambda line: line.name and line.name.find('Discount') == 0)
+                lambda line: line.name and line.name.find('Discount of') == 0)
             terms_lines = self.line_ids.filtered(
                 lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
             other_lines = self.line_ids.filtered(
@@ -240,11 +248,15 @@ class AccountMove(models.Model):
                         'debit': total_balance < 0.0 and -total_balance or 0.0,
                         'credit': total_balance > 0.0 and total_balance or 0.0,
                     })
+            
             if not already_exists and rec.amount_discount > 0:
                 in_draft_mode = self != self._origin
                 if not in_draft_mode and rec.type == 'out_invoice':
+                    # raise UserError(rec.type)
                     rec._recompute_universal_discount_lines()
+                
                 print()
+
 
     @api.onchange('amount_discount','line_ids')
     def _recompute_universal_discount_lines(self):
@@ -267,8 +279,9 @@ class AccountMove(models.Model):
                         #            else (self.display_name))
                         terms_lines = self.line_ids.filtered(
                             lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
+                        product = 'Discount of %s'%(lines.product_id.name)
                         already_exists = self.line_ids.filtered(
-                                        lambda line: line.name and line.name.find(str(lines.product_id.name)) == 0)
+                                        lambda line: line.name and line.name.find(product) == 0)
                         if already_exists:
                             amount = lines.discount
                             if self.sales_discount_account_id \
@@ -325,8 +338,9 @@ class AccountMove(models.Model):
                                 if in_draft_mode:
                                     self.line_ids += create_method(dict)
                                     # Updation of Invoice Line Id
+                                    product = 'Discount of %s'%(lines.product_id.name)
                                     duplicate_id = self.invoice_line_ids.filtered(
-                                        lambda line: line.name and line.name.find('Discount') == 0)
+                                        lambda line: line.name and line.name.find(product) == 0)
                                     self.invoice_line_ids = self.invoice_line_ids - duplicate_id
                                 else:
                                     dict.update({
@@ -355,8 +369,9 @@ class AccountMove(models.Model):
                                 lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
                             other_lines = self.line_ids.filtered(
                                 lambda line: line.account_id.user_type_id.type not in ('receivable', 'payable'))
+                            product = 'Discount of %s'%(lines.product_id.name)
                             already_exists = self.line_ids.filtered(
-                                lambda line: line.name and line.name.find(str(lines.product_id.name)) == 0)
+                                lambda line: line.name and line.name.find(product) == 0)
                             total_balance = sum(other_lines.mapped('balance')) + amount
                             total_amount_currency = sum(other_lines.mapped('amount_currency'))
                             dict1 = {
@@ -371,8 +386,9 @@ class AccountMove(models.Model):
                             print()
 
                 elif lines.discount <= 0:
+                    product = 'Discount of %s'%(lines.product_id.name)
                     already_exists = self.line_ids.filtered(
-                        lambda line: line.name and line.name.find(str(lines.product_id.name)) == 0)
+                        lambda line: line.name and line.name.find(product) == 0)
                     if already_exists:
                         self.line_ids -= already_exists
                         terms_lines = self.line_ids.filtered(
@@ -423,7 +439,8 @@ class AccountMoveLine(models.Model):
             move_type=move_type or self.move_id.type,
             is_percentage=is_percentage or self.is_percentage,
         )
-
+  
+    
     @api.model
     def _get_price_total_and_subtotal_model(self, price_unit, quantity, discount, currency, product, partner, taxes, move_type,is_percentage=None):
         ''' This method is used to compute 'price_total' & 'price_subtotal'.
@@ -621,11 +638,11 @@ class SaleOrder(models.Model):
                 'amount_total': amount_untaxed + amount_tax - amount_discount,
             })
 
-    def _prepare_invoice(self):
-        res = super(SaleOrder, self)._prepare_invoice()
-        for rec in self:
-            res['amount_discount'] = rec.amount_discount
-        return res
+    # def _prepare_invoice(self):
+    #     res = super(SaleOrder, self)._prepare_invoice()
+    #     for rec in self:
+    #         res['amount_discount'] = rec.amount_discount
+    #     return res
 
     # def _compute_amount_undiscounted(self):
     #     for order in self:
