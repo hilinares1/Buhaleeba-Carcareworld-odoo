@@ -143,6 +143,17 @@ class account_payment(models.Model):
         res['domain']['journal_id'] = self.payment_type == 'inbound' and [('at_least_one_inbound', '=', True)] or [('at_least_one_outbound', '=', True)]
         res['domain']['journal_id'].append(('type', 'in', ('bank', 'cash')))
         return res
+
+    @api.onchange('invoice_lines')
+    def onchnage_amounts(self):
+        for rec in self:
+            if rec.invoice_lines:
+                amount = 0.0
+                for line in rec.invoice_lines:
+                    amount += line.allocation
+                rec.amount = amount
+            else:
+                rec.amount = rec.amount
     
     @api.onchange('amount')
     def onchnage_amount(self):
@@ -1242,6 +1253,15 @@ class PaymentInvoiceLine(models.Model):
     total_amount = fields.Float(string='Total Amount', compute='_get_invoice_data', store=True)
     open_amount = fields.Float(string='Due Amount', compute='_get_invoice_data', store=True)
     allocation = fields.Float(string='Allocation Amount')
+    allocate = fields.Boolean(string='Allocate Amount')
+
+    @api.onchange('allocate')
+    def after_allocation(self):
+        for rec in self:
+            if rec.allocate == True:
+                rec.allocation = rec.open_amount
+            else:
+                rec.allocation = 0.0
     
     # @api.multi
     @api.depends('invoice_id')

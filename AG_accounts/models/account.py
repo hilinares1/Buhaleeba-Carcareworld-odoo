@@ -95,7 +95,7 @@ class AccountMove(models.Model):
     is_confirm = fields.Integer('Is Confirmed',default=0)
     state = fields.Selection(selection=[
             ('confirm', 'In confirm'),
-            ('approve', 'First Approval'),
+            ('approve', 'Approval'),
             ('secapprove', 'Second Approval'),
             ('draft', 'Draft'),
             ('posted', 'Posted'),
@@ -125,9 +125,9 @@ class AccountMove(models.Model):
     invoice_line_ids = fields.One2many('account.move.line', 'move_id', string='Invoice lines',
         copy=False, readonly=True,
         domain=[('exclude_from_invoice_tab', '=', False)],
-        states={'draft': [('readonly', False)],'confirm': [('readonly', False)]})
+        states={'draft': [('readonly', False)],'approve': [('readonly', False)],'confirm': [('readonly', False)]})
     line_ids = fields.One2many('account.move.line', 'move_id', string='Journal Items', copy=True, readonly=True,
-        states={'draft': [('readonly', False)],'confirm': [('readonly', False)]})
+        states={'draft': [('readonly', False)],'approve': [('readonly', False)],'confirm': [('readonly', False)]})
     is_purchase = fields.Integer('Purchase',default=0)
     points_amt = fields.Float('Points')
     points_product_id = fields.Many2one('product.product',string='Points Product')
@@ -197,11 +197,12 @@ class AccountMove(models.Model):
 
     def action_approve(self):
         for rec in self:
-            rec.write({'state':'secapprove'})
+            rec.action_post()
+            # rec.write({'state':'draft'})
     
-    def action_second_approve(self):
-        for rec in self:
-            rec.write({'state':'draft'})
+    # def action_second_approve(self):
+    #     for rec in self:
+    #         rec.write({'state':'draft'})
 
     @api.onchange('currency_id')
     def _currency_change(self):
