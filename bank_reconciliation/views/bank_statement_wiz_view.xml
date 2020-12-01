@@ -8,7 +8,7 @@
             <form string="Bank Reconciliation">
                 <header>
                     <button name="show_lines" string="Show Lines" type="object"/>
-                    <button name="reconcile_lines" string="Reconcile" type="object" />
+                    <button name="reconcile_lines" string="Reconcile" type="object" invisible="1"/>
                     <!-- <button name="unreconcile_lines" string="Unreconcile" type="object" attrs="{'invisible': [('state', 'in', 'unreconciled')]}"/> -->
                     <!-- <button name="cancel_lines" string="Cancel" type="object" attrs="{'invisible': [('state', 'in', 'draft')]}"/> -->
                     <!-- <field name="state" widget='statusbar' statusbar_visible="draft,reconciled,unreconciled" /> -->
@@ -46,10 +46,11 @@
                             <field name="amount_currency" readonly="True" groups="base.group_multi_currency"/>
                             <field name="currency_id" readonly="True" invisible="1" />
                             <field name="date_maturity" readonly="True"/>
-                            <field name="statement_date"/>
                             <field name="company_currency_id" invisible="1" readonly="True"/>
                             <field name="debit" sum="Debit Sum" readonly="True"/>
                             <field name="credit" sum="Credit Sum" readonly="True"/>
+                            <field name="statement_date"/>
+
                         </tree>
                     </field>
                 </group>
