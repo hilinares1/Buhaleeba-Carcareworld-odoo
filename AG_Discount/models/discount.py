@@ -437,13 +437,17 @@ class AccountMove(models.Model):
                 sign = -1 if move.is_inbound() else 1
                 quantity = base_line.quantity
                 if base_line.currency_id:
-                    # price_unit_foreign_curr = sign * base_line.price_unit * (1 - (base_line.discount / 100.0))
-                    price_unit_foreign_curr = sign * base_line.price_unit 
+                    if base_line.is_percentage == True:
+                        price_unit_foreign_curr = sign * base_line.price_unit * (1 - (base_line.discount / 100.0))
+                    else:
+                        price_unit_foreign_curr = sign * (base_line.price_unit - (base_line.discount/base_line.quantity))
                     price_unit_comp_curr = base_line.currency_id._convert(price_unit_foreign_curr, move.company_id.currency_id, move.company_id, move.date)
                 else:
                     price_unit_foreign_curr = 0.0
-                    # price_unit_comp_curr = sign * base_line.price_unit * (1 - (base_line.discount / 100.0))
-                    price_unit_comp_curr = sign * base_line.price_unit 
+                    if base_line.is_percentage == True:
+                        price_unit_comp_curr = sign * base_line.price_unit * (1 - (base_line.discount / 100.0))
+                    else:
+                        price_unit_comp_curr = sign * (base_line.price_unit - (base_line.discount/base_line.quantity))
                 tax_type = 'sale' if move.type.startswith('out_') else 'purchase'
                 is_refund = move.type in ('out_refund', 'in_refund')
             else:
