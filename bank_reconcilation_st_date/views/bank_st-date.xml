@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_line_form_inherit" model="ir.ui.view">
+        <field name="name">account.move.line.form.inherit</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account.view_move_line_form" />
+        <field name="arch" type="xml">
+            <field name="statement_date" position="after">
+                  <button name="nn_fill_date" string="Fill Date" type="object" icon="fa-gears"  invisible="1"/>
+
+            </field>
+        </field>
+    </record>
+
+    <record id="view_bank_statement_wize_inherit" model="ir.ui.view">
+        <field name="name">view.bank.statement.wiz.inherit</field>
+        <field name="model">bank.statement</field>
+        <field name="inherit_id" ref="bank_reconciliation.bank_statement_wiz" />
+        <field name="arch" type="xml">
+            <xpath expr="//form/group[2]/field/tree/field[@name='statement_date']" position="after">
+                    <button name="nn_fill_date" string="Fill Date" type="object" icon="fa-gears" />
+                </xpath>
+
+
+        </field>
+    </record>
+</odoo>
