@@ -5,7 +5,7 @@ from odoo.exceptions import except_orm, Warning, RedirectWarning, UserError
 
 class BankStatement(models.Model):
     _name = 'bank.statement'
-
+    _rec_name = 'account_id'
 
     # @api.multi
     # def write(self, vals):
