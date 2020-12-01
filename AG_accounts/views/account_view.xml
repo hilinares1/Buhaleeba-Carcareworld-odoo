@@ -12,7 +12,9 @@
                     <button name="action_approve" string="Approve" class="oe_highlight" type="object" groups="account.group_account_manager" attrs="{'invisible': [('state', '!=', 'approve')]}"/>
                     <button name="action_second_approve" string="Approve" class="oe_highlight" type="object" groups="AG_accounts.group_operation_manager" attrs="{'invisible': [('state', '!=', 'secapprove')]}"/>
                 </xpath>
-                
+                <xpath expr="//field[@name='ref']" position="replace">
+                    <field name="ref" string="Vendor Bill Number" />
+                </xpath>
                 <xpath expr="//field[@name='currency_id']" position="before">
                     <field name="points_amt" readonly="1" attrs="{'invisible':[('points_amt','=',0)]}"/>
                     <field name="points_product_id" readonly="1" attrs="{'invisible':[('points_amt','=',0)]}"/>
