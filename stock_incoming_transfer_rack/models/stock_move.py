@@ -25,6 +25,10 @@ class StockMoveLine(models.Model):
         'stock.quant',
         string='Source Quant',
     )#SMA13
+    custom_source_rack_shelf_id = fields.Many2one(
+        'stock.rack.shelf',
+        string='Source Rack / Shelf',
+    )#SMA13
 
     def _action_done(self):
         """ This method is called during a move's `action_done`. It'll actually move a quant from
@@ -112,9 +116,13 @@ class StockMoveLine(models.Model):
                 # move what's been actually done
                 quantity = ml.product_uom_id._compute_quantity(ml.qty_done, ml.move_id.product_id.uom_id, rounding_method='HALF-UP')
                 if ml.picking_id.picking_type_code == 'internal' and ml.rack_shelf_id:#SMA13
-                    available_qty, in_date = Quant._update_available_quantity(ml.product_id, ml.location_id, -quantity, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id, ml_stock_quant=ml.custom_quant_id)
-                    if available_qty <= 0.0:
+                    current_available_qty = Quant._get_available_quantity(ml.product_id, ml.location_id, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id, strict=False, allow_negative=True, ml_stock_quant=ml.custom_quant_id)#SMA13
+                    if current_available_qty <= 0.0:#SMA13
                         raise UserError("Not enough quantity to transfer from selected source Rack/Shelf")
+                
+                    available_qty, in_date = Quant._update_available_quantity(ml.product_id, ml.location_id, -quantity, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id, ml_stock_quant=ml.custom_quant_id)
+#                    if available_qty <= 0.0:
+#                        raise UserError("Not enough quantity to transfer from selected source Rack/Shelf")
                 else:#SMA13
                     available_qty, in_date = Quant._update_available_quantity(ml.product_id, ml.location_id, -quantity, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id)
                 if available_qty < 0 and ml.lot_id:
