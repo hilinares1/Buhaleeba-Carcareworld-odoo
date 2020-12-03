@@ -21,6 +21,7 @@
                 <field name="asset_category_id" type="row"/>
                 <field name="gross_value" type="measure"/>
                 <field name="unposted_value" type="measure"/>
+                <field name="value_residual" type="measure"/><!-- Custom -->
             </graph>
         </field>
     </record>
