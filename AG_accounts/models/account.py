@@ -133,7 +133,62 @@ class AccountMove(models.Model):
     points_product_id = fields.Many2one('product.product',string='Points Product')
     points_crebit_account_id = fields.Many2one('account.account',string='Points Credit Account')
     points_debit_account_id = fields.Many2one('account.account',string='Points Debit Account')
+    res_model = fields.Char('Related Document Model')
+    res_id = fields.Integer('Related Document ID')
+    share_link = fields.Char(string="Link", compute='_compute_share_link')
+    channel_id = fields.Many2one('multi.channel.sale',string="channel")
+    store_order_id = fields.Char('Order_id')
 
+
+    def export_update_woocommerce_brand(self):
+        if self.channel_id:
+            connect = self.env['multi.channel.sale'].search([('id','=',self.channel_id.id)])
+            category_update = self.env['channel.order.mappings'].search([('store_order_id','=',self.store_order_id),('channel_id.id','=',self.channel_id.id)])
+            for category_map in category_update:
+                # category = category_map.category_name
+                # count += 1
+                    # if category.parent_id:
+                    # 	parent_category = self.env['channel.type.mappings'].search([('odoo_type_id','=',category.parent_id.id),('channel_id.id','=',self.id)])
+                    # 	if not parent_category:
+                    # 		self.export_woocommerce_types(0)
+                    # 		parent_category = self.env['channel.type.mappings'].search([('odoo_type_id','=',category.parent_id.id),('channel_id.id','=',self.id)])
+                    # 		store_type_id = parent_category.store_type_id
+                category_dict = {
+                        'transaction_id' 		: self.share_link,
+                        # 'description' 		: category.description,
+                        # 'parent_id'	: store_brand_id,
+                    }
+                woocommerce = connect.get_woocommerce_connection()
+                return_dict = woocommerce.put('orders/'+self.store_order_id,category_dict).json()
+                if 'message' in return_dict:
+                    raise UserError(_('Error in Updating Brands : '+str(return_dict['message'])))
+                    # category_map.need_sync = 'no'
+            return connect.display_message(" Brands Updated  ")
+
+    # @api.model
+    # def default_get(self, fields):
+    #     result = super(AccountMove, self).default_get(fields)
+    #     result['res_model'] = self._context.get('active_model', False)
+    #     result['res_id'] = self._context.get('active_id', False)
+    #     if result['res_model'] and result['res_id']:
+    #         record = self.env[result['res_model']].browse(result['res_id'])
+    #         result['share_link'] = record.get_base_url() + record._get_share_url(redirect=True)
+    #     return result
+
+    @api.depends('res_model', 'res_id')
+    def _compute_share_link(self):
+        for rec in self:
+            rec.share_link = False
+            rec.res_model = 'account.move'
+            rec.res_id = self.id
+            if rec.res_model:
+                res_model = self.env[rec.res_model]
+                if isinstance(res_model, self.pool['portal.mixin']) and rec.res_id:
+                    record = res_model.browse(rec.res_id)
+                    # raise UserError(record._get_share_url(redirect=True))
+                    rec.share_link = record.get_base_url() + record._get_share_url(redirect=True) + '&report_type=pdf&download=true'
+                    rec.share_link = rec.share_link.replace('mail/view', 'my/invoices/%s'%(rec.res_id))
+                    # raise UserError(rec.share_link)
 
     def action_post(self):
         res = super(AccountMove, self).action_post()

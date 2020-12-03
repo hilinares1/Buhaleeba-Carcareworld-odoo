@@ -11,15 +11,21 @@
                     <button name="send_to_approve" string="Confirm" class="oe_highlight" type="object" groups="account.group_account_invoice" attrs="{'invisible': ['|',('is_confirm','=',0),('state', '!=', 'confirm')]}"/>
                     <button name="action_approve" string="Approve" class="oe_highlight" type="object" groups="account.group_account_manager" attrs="{'invisible': [('state', '!=', 'approve')]}"/>
                     <button name="action_second_approve" string="Approve" class="oe_highlight" type="object" groups="AG_accounts.group_operation_manager" attrs="{'invisible': [('state', '!=', 'secapprove')]}"/>
+                    <button name="export_update_woocommerce_brand" string="send link" class="oe_highlight" type="object"/>
                 </xpath>
                 <xpath expr="//field[@name='ref']" position="replace">
-                    <field name="ref" string="Vendor Bill Number" />
+                    <field name="ref"  />
+                    <field name="share_link"  />
+                    <field name="channel_id"  />
+                    <field name="store_order_id"  />
+                    <field name="res_model" invisible="1"/>
+                    <field name="res_id" invisible="1"/>
                 </xpath>
                 <xpath expr="//field[@name='currency_id']" position="before">
-                    <field name="points_amt" readonly="1" attrs="{'invisible':[('points_amt','=',0)]}"/>
-                    <field name="points_product_id" readonly="1" attrs="{'invisible':[('points_amt','=',0)]}"/>
-                    <field name="points_crebit_account_id" readonly="1" attrs="{'invisible':[('points_amt','=',0)]}"/>
-                    <field name="points_debit_account_id" readonly="1" attrs="{'invisible':[('points_amt','=',0)]}"/>
+                    <field name="points_amt" readonly="1" invisible="1"/>
+                    <field name="points_product_id" readonly="1" invisible="1"/>
+                    <field name="points_crebit_account_id" readonly="1" invisible="1"/>
+                    <field name="points_debit_account_id" readonly="1" invisible="1"/>
                 </xpath>
                 <xpath expr="//field[@name='currency_id']" position="after">
                     <field name="currency_rate"  digits="[12,12]" attrs="{'readonly' : [('state', 'not in', ['draft','confirm','approve'])],'invisible': [('type', '=', 'entry')]}"/>

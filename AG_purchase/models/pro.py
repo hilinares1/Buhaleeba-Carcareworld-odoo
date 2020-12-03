@@ -575,6 +575,8 @@ class SaleOrder(models.Model):
                         'points_product_id':self.channel_mapping_ids[0].channel_id.points_product_id.id,
                         'points_crebit_account_id':self.channel_mapping_ids[0].channel_id.points_crebit_account_id.id,
                         'points_debit_account_id':self.channel_mapping_ids[0].channel_id.points_debit_account_id.id,
+                        'channel_id':self.channel_mapping_ids[0].channel_id.id,
+                        'store_order_id':self.channel_mapping_ids[0].store_order_id,
                         })
                 else:
                     res.update({
