@@ -26,6 +26,12 @@ class AssetAssetReport(models.Model):
     unposted_value = fields.Float(string='Unposted Amount', readonly=True)
     company_id = fields.Many2one('res.company', string='Company', readonly=True)
 
+    value_residual = fields.Float(
+        string='Residual Value',
+        readonly=True
+    )#custom
+    
+    #custom Add value_residual in query
     def init(self):
         tools.drop_view_if_exists(self._cr, 'asset_asset_report')
         self._cr.execute("""
@@ -56,7 +62,11 @@ class AssetAssetReport(models.Model):
                     a.state as state,
                     count(dl.*) as installment_nbr,
                     count(dl.*) as depreciation_nbr,
-                    a.company_id as company_id
+                    a.company_id as company_id,
+                    (CASE WHEN dlmin.id = min(dl.id)
+                      THEN a.value_residual
+                      ELSE 0
+                      END) as value_residual
                 from account_asset_depreciation_line dl
                     left join account_asset_asset a on (dl.asset_id=a.id)
                     left join (select min(d.id) as id,ac.id as ac_id from account_asset_depreciation_line as d inner join account_asset_asset as ac ON (ac.id=d.asset_id) group by ac_id) as dlmin on dlmin.ac_id=a.id
