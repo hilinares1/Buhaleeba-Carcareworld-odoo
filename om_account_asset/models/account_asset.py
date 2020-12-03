@@ -98,7 +98,9 @@ class AccountAssetAsset(models.Model):
         help="The amount of time between two depreciations, in months")
     method_end = fields.Date(string='Ending Date', readonly=True, states={'draft': [('readonly', False)]})
     method_progress_factor = fields.Float(string='Degressive Factor', readonly=True, default=0.3, states={'draft': [('readonly', False)]})
-    value_residual = fields.Float(compute='_amount_residual', method=True, digits=0, string='Residual Value')
+    value_residual = fields.Float(compute='_amount_residual', method=True, digits=0, string='Residual Value',
+        store=True#custom
+    )
     method_time = fields.Selection([('number', 'Number of Entries'), ('end', 'Ending Date')], string='Time Method', required=True, readonly=True, default='number', states={'draft': [('readonly', False)]},
         help="Choose the method to use to compute the dates and number of entries.\n"
              "  * Number of Entries: Fix the number of entries and the time between 2 depreciations.\n"
