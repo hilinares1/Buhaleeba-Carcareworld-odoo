@@ -33,10 +33,10 @@ class StockMoveLine(models.Model):
         for rec in self:
             rac = []
             rack = self.env['stock.quant'].search([('product_id','=',rec.product_id.id)])
-            for racks in rack:
-                rac.append(racks.rack_shelf_id.id)
+            # for racks in rack:
+            #     rac.append(racks.rack_shelf_id.id)
 
-            return rac
+            return rack.ids
 
 
     def _action_done(self):
