@@ -150,7 +150,7 @@ class StockPicking(models.Model):
     def button_validate(self):
 
         for move in self.move_line_ids:#SMA13
-            if move.picking_id.picking_type_code == 'incoming' and not move.rack_shelf_id:
+            if move.picking_id.picking_type_code == 'incoming' and not(move.rack_shelf_id or move.custom_source_rack_shelf_id) :
                 raise UserError('Kindly assign Rack/Shelf to product %s' % (move.product_id.name))
 
         return super().button_validate()
