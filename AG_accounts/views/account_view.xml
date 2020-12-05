@@ -11,7 +11,7 @@
                     <button name="send_to_approve" string="Confirm" class="oe_highlight" type="object" groups="account.group_account_invoice" attrs="{'invisible': ['|',('is_confirm','=',0),('state', '!=', 'confirm')]}"/>
                     <button name="action_approve" string="Approve" class="oe_highlight" type="object" groups="account.group_account_manager" attrs="{'invisible': [('state', '!=', 'approve')]}"/>
                     <button name="action_second_approve" string="Approve" class="oe_highlight" type="object" groups="AG_accounts.group_operation_manager" attrs="{'invisible': [('state', '!=', 'secapprove')]}"/>
-                    <button name="export_update_woocommerce_brand" string="send link" class="oe_highlight" type="object"/>
+                    <button name="export_update_woocommerce_brand" string="send link" class="oe_highlight" type="object" attrs="{'invisible': [('type', '!=', 'out_invoice')]}"/>
                 </xpath>
                 <xpath expr="//field[@name='ref']" position="replace">
                     <field name="ref"  />
