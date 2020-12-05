@@ -19,6 +19,7 @@
 							<field name="shipping_id" />
 							<field name="shipping_full" />
 							<field name="points_amt" />
+							<field name="pickup_store_details" />
 						</group>
 					</page>
 				</xpath>

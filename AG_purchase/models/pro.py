@@ -152,6 +152,8 @@ class PurchaseOrder(models.Model):
 class StockMove(models.Model):
     _inherit = "stock.move"
 
+    # pickup_store_details = fields.Text('Pickup store Details')
+
     def _create_account_move_line(self, credit_account_id, debit_account_id, journal_id, qty, description, svl_id, cost):
         self.ensure_one()
         AccountMove = self.env['account.move'].with_context(default_journal_id=journal_id)
@@ -300,6 +302,15 @@ class StockPicking(models.Model):
     currency_rate = fields.Float('Currency Rate')
     currency_id = fields.Many2one('res.currency',string="Currency")
     land_count = fields.Float('Land Count',compute="_land_count")
+    pickup_store_details = fields.Text('Pickup store Details',compute="_get_store_detail")
+
+    @api.depends('sale_id')
+    def _get_store_detail(self):
+        for rec in self:
+            if rec.sale_id:
+                rec.pickup_store_details = rec.sale_id.pickup_store_details
+            else:
+                rec.pickup_store_details = ""
 
     def _land_count(self):
         for each in self:
@@ -582,6 +593,15 @@ class SaleOrder(models.Model):
                     res.update({
                         'points_amt':0})
         return res
+
+    # @api.onchange('picking_ids','state')
+    # def _onchange_pick(self):
+    #     for rec in self:
+    #         if rec.pickup_store_details:
+    #             for line in rec.picking_ids:
+    #                 line.pickup_store_details  = rec.pickup_store_details
+                
+
 
 
 

@@ -108,6 +108,7 @@
                 </xpath>
                 <xpath expr="//field[@name='partner_id']" position="after"> 
                     <field name="classification" />
+                    <field name="pickup_store_details" />
                     <field name="is_approve" invisible="1"/>
                     <field name="currency_rate" digits="[12,12]" invisible="1"/>
                     <field name="currency_id" invisible="1"/>

@@ -138,32 +138,62 @@ class AccountMove(models.Model):
     share_link = fields.Char(string="Link", compute='_compute_share_link')
     channel_id = fields.Many2one('multi.channel.sale',string="channel")
     store_order_id = fields.Char('Order_id')
+    is_link_sended = fields.Integer('Is Link Sended',default=0)
+
+
+    def write(self,vals):
+        res = super(AccountMove,self).write(vals)
+        # for re in res:
+        # raise UserError(vals.get('state'))
+        if vals.get('state') == "posted":
+            if self.is_link_sended == 0:
+                self.export_update_woocommerce_brand()
+                # rec.is_link_sended = 1
+            # else:
+            #     raise UserError("DONE")
+
+        return res
+
+    # @api.onchange('state')
+    # def send_link_to_woo(self):
+    #     for rec in self:
+    #         if self.channel_id:
+    #             if rec.is_link_sended == 0:
+    #                 rec.export_update_woocommerce_brand()
+    #                 # rec.is_link_sended = 1
+    #             else:
+    #                 raise UserError("DONE")
 
 
     def export_update_woocommerce_brand(self):
         if self.channel_id:
-            connect = self.env['multi.channel.sale'].search([('id','=',self.channel_id.id)])
-            category_update = self.env['channel.order.mappings'].search([('store_order_id','=',self.store_order_id),('channel_id.id','=',self.channel_id.id)])
-            for category_map in category_update:
-                # category = category_map.category_name
-                # count += 1
-                    # if category.parent_id:
-                    # 	parent_category = self.env['channel.type.mappings'].search([('odoo_type_id','=',category.parent_id.id),('channel_id.id','=',self.id)])
-                    # 	if not parent_category:
-                    # 		self.export_woocommerce_types(0)
-                    # 		parent_category = self.env['channel.type.mappings'].search([('odoo_type_id','=',category.parent_id.id),('channel_id.id','=',self.id)])
-                    # 		store_type_id = parent_category.store_type_id
-                category_dict = {
-                        'transaction_id' 		: self.share_link,
-                        # 'description' 		: category.description,
-                        # 'parent_id'	: store_brand_id,
-                    }
-                woocommerce = connect.get_woocommerce_connection()
-                return_dict = woocommerce.put('orders/'+self.store_order_id,category_dict).json()
-                if 'message' in return_dict:
-                    raise UserError(_('Error in Updating Brands : '+str(return_dict['message'])))
-                    # category_map.need_sync = 'no'
-            return connect.display_message(" Brands Updated  ")
+            if self.is_link_sended == 0:
+                connect = self.env['multi.channel.sale'].search([('id','=',self.channel_id.id)])
+                category_update = self.env['channel.order.mappings'].search([('store_order_id','=',self.store_order_id),('channel_id.id','=',self.channel_id.id)])
+                for category_map in category_update:
+                    # category = category_map.category_name
+                    # count += 1
+                        # if category.parent_id:
+                        # 	parent_category = self.env['channel.type.mappings'].search([('odoo_type_id','=',category.parent_id.id),('channel_id.id','=',self.id)])
+                        # 	if not parent_category:
+                        # 		self.export_woocommerce_types(0)
+                        # 		parent_category = self.env['channel.type.mappings'].search([('odoo_type_id','=',category.parent_id.id),('channel_id.id','=',self.id)])
+                        # 		store_type_id = parent_category.store_type_id
+                    category_dict = {
+                            'transaction_id' 		: self.share_link,
+                            # 'description' 		: category.description,
+                            # 'parent_id'	: store_brand_id,
+                        }
+                    woocommerce = connect.get_woocommerce_connection()
+                    return_dict = woocommerce.put('orders/'+self.store_order_id,category_dict).json()
+                    if 'message' in return_dict:
+                        raise UserError(_('Error in Updating : '+str(return_dict['message'])))
+                        # category_map.need_sync = 'no'
+                self.is_link_sended = 1
+                return connect.display_message(" Updated  ")
+                
+            # else:
+            #     raise UserError("DONE")
 
     # @api.model
     # def default_get(self, fields):
