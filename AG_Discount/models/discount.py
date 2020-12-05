@@ -30,8 +30,12 @@ class PurchaseOrder(models.Model):
             for line in rec.order_line:
                 GT += line.product_qty * line.price_unit
             for line in rec.order_line:
-                line.discount = (line.product_qty * line.price_unit * rec.total_discount) / GT
-                line.is_percentage = False
+                if line.is_percentage == True:
+                    line.discount = (line.product_qty * line.price_unit * rec.total_discount) / GT
+                    line.is_percentage = False
+                else:
+                    line.discount = line.discount + ((line.product_qty * line.price_unit * rec.total_discount) / GT)
+                    line.is_percentage = False
 
 
 
@@ -208,7 +212,10 @@ class AccountMove(models.Model):
     def ks_calculate_discount(self):
         for rec in self:
             if rec.amount_discount:
-                rec.amount_total = rec.amount_tax + rec.amount_untaxed - rec.amount_discount
+                if rec.type == "out_invoice" or rec.type == "out_refund":
+                    rec.amount_total = rec.amount_tax + rec.amount_untaxed - rec.amount_discount
+                else:
+                    rec.amount_total = rec.amount_tax + rec.amount_untaxed
                 rec.ks_update_universal_discount()
 
 
