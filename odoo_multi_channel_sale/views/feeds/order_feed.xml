@@ -160,6 +160,10 @@
 									attrs      ="{'readonly':[('state','=','done')]}"
 								/>
 								<field
+									name       ="pickup_store_details"
+									attrs      ="{'readonly':[('state','=','done')]}"
+								/>
+								<field
 									name       ="states_ship"
 									readonly   = "1"
 								/>
