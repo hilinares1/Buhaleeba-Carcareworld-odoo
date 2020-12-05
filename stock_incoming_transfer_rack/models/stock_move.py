@@ -26,17 +26,17 @@ class StockMoveLine(models.Model):
     )#SMA13
     custom_source_rack_shelf_id = fields.Many2one(
         'stock.rack.shelf',
-        string='Source Rack / Shelf',domain=[('id','in',lambda self: self.get_shelf())]
+        string='Source Rack / Shelf',domain=lambda self: self.get_shelf()
     )#SMA13
 
     def get_shelf(self):
         for rec in self:
             rac = []
             rack = self.env['stock.quant'].search([('product_id','=',rec.product_id.id)])
-            # for racks in rack:
-            #     rac.append(racks.rack_shelf_id.id)
-
-            return rack.ids
+            for racks in rack:
+                rac.append(racks.rack_shelf_id.id)
+            
+            return ['id','in',rac]
 
 
     def _action_done(self):
