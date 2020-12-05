@@ -10,8 +10,7 @@ class StockMove(models.Model):
 
     rack_shelf_id = fields.Many2one(
         'stock.rack.shelf',
-        string='Rack / Shelf',
-        required=True
+        string='Rack / Shelf'
     )#SMA13
 
 class StockMoveLine(models.Model):
@@ -19,7 +18,7 @@ class StockMoveLine(models.Model):
 
     rack_shelf_id = fields.Many2one(
         'stock.rack.shelf',
-        string='Rack / Shelf',required=True
+        string='Rack / Shelf'
     )#SMA13
     custom_quant_id = fields.Many2one(
         'stock.quant',
