@@ -36,7 +36,7 @@ class StockMoveLine(models.Model):
             for racks in rack:
                 rac.append(racks.rack_shelf_id.id)
             
-            return ['id','in',rac]
+            return [('id','in',rac)]
 
 
     def _action_done(self):
