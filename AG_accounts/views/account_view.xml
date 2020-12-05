@@ -15,9 +15,10 @@
                 </xpath>
                 <xpath expr="//field[@name='ref']" position="replace">
                     <field name="ref"  />
-                    <field name="share_link"  />
-                    <field name="channel_id"  />
-                    <field name="store_order_id"  />
+                    <field name="share_link"  invisible="1"/>
+                    <field name="is_link_sended"  invisible="1"/>
+                    <field name="channel_id"  invisible="1"/>
+                    <field name="store_order_id"  invisible="1"/>
                     <field name="res_model" invisible="1"/>
                     <field name="res_id" invisible="1"/>
                 </xpath>

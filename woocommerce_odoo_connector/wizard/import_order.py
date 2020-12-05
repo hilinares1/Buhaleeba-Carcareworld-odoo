@@ -170,8 +170,17 @@ class ImportWoocommerceOrders(models.TransientModel):
             method_title = order['shipping_lines'][0]['method_title']
         if order['status'] == 'pickup-cod' or order['status'] == 'pickup-paid':
             ship = True
+            pickuup= {}
+            pickup_store_detail = ""
+            pickuup = order['ysg_pickup_store_details']
+            # raise UserError(pickuup)
+            # for lines in pickuup:
+            pickup_store_detail = pickuup['name']
+                # raise UserError(lines['name'])
+                #  + str(line['address']) + str(line['city']) +str(line['phone'])+str(line['store_country'])
         else:
             ship = False
+        
         order_dict = {
             'store_id': order['id'],
             'channel_id': channel.id,
@@ -183,6 +192,7 @@ class ImportWoocommerceOrders(models.TransientModel):
             'line_ids': order_lines,
             'shipping_full'  : order['shipping_full'],
             'points_amt'  : order['ysg_order_earned_points'],
+            'pickup_store_details'  : pickup_store_detail,
             'states_ship'    : ship,
             'currency': order['currency'],
             'customer_name': order['billing']['first_name']+" "+order['billing']['last_name'],
