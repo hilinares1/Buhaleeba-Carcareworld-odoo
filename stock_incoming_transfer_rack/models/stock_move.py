@@ -26,8 +26,18 @@ class StockMoveLine(models.Model):
     )#SMA13
     custom_source_rack_shelf_id = fields.Many2one(
         'stock.rack.shelf',
-        string='Source Rack / Shelf',
+        string='Source Rack / Shelf',domain=[('id','in',lambda self: self.get_shelf())]
     )#SMA13
+
+    def get_shelf(self):
+        for rec in self:
+            rac = []
+            rack = self.env['stock.quant'].search([('product_id','=',rec.product_id.id)])
+            for racks in rack:
+                rac.append(racks.rack_shelf_id.id)
+
+            return rac
+
 
     def _action_done(self):
         """ This method is called during a move's `action_done`. It'll actually move a quant from
