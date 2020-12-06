@@ -18,6 +18,24 @@
             file="ag_stock_inventory_report_extend.custom_report_picking_operations"
             print_report_name="'Picking Operations - %s - %s' % (object.partner_id.name or '', object.name)"
         />
+        <report
+            string="Picking Operations"
+            id="stock.action_report_picking"
+            model="stock.picking"
+            report_type="qweb-pdf"
+            name="stock.report_picking"
+            file="stock.report_picking_operations"
+            print_report_name="'Picking Operations - %s - %s' % (object.partner_id.name or '', object.name)"
+            menu="False"
+        />
+        <report id="stock.action_label_transfer_template_pdf"
+            model="stock.picking"
+            string="Barcodes (PDF)"
+            name="stock.label_transfer_template_view_pdf"
+            file="stock.label_transfer_template_view_pdf"
+            report_type="qweb-pdf"
+            menu="False"
+        />
 
         <template id="custom_report_picking">
             <t t-call="web.html_container">
