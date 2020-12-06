@@ -518,6 +518,7 @@ class SaleOrder(models.Model):
         ('cancelled', 'Cancelled')
     ], string='Woo-commerce Status', readonly=True, index=True,store=True, copy=False, compute="_get_woo_status", tracking=True)
     inv_count = fields.Float('Count',compute="_land_count")
+    vender_flag = fields.Integer('vendor flag',default=0)
 
     def _land_count(self):
         for each in self:
@@ -542,25 +543,27 @@ class SaleOrder(models.Model):
 
     def create_vendor_bill(self):
         # for rec in self:
-        if self.shipping_id:
-            invoice = self.env['account.move']
-            val = []
-            order_line = {
-                'product_id': self.channel_mapping_ids[0].channel_id.delivery_product_id.id,
-                'price_unit':   self.shipping_full,
+        if self.vender_flag == 0:
+            if self.shipping_id:
+                invoice = self.env['account.move']
+                val = []
+                order_line = {
+                    'product_id': self.channel_mapping_ids[0].channel_id.delivery_product_id.id,
+                    'price_unit':   self.shipping_full,
+                    
+                }
+                val.append((0,0,order_line))
+                vals = {
+                    'partner_id': self.shipping_id.id,
+                    'type':'in_invoice',
+                    'so_link':self.id,
+                    'invoice_line_ids':val,
+                }
                 
-            }
-            val.append((0,0,order_line))
-            vals = {
-                'partner_id': self.shipping_id.id,
-                'type':'in_invoice',
-                'so_link':self.id,
-                'invoice_line_ids':val,
-            }
-            
-            invoice.create(vals)
-        else:
-            raise UserError('No shipping to create for this order')
+                invoice.create(vals)
+                self.vendor_flag = 1
+            else:
+                raise UserError('No shipping to create for this order')
 
     def action_invoice_tree(self):
         self.ensure_one()
