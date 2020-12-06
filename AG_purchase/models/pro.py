@@ -303,12 +303,14 @@ class StockPicking(models.Model):
     currency_id = fields.Many2one('res.currency',string="Currency")
     land_count = fields.Float('Land Count',compute="_land_count")
     pickup_store_details = fields.Text('Pickup store Details',compute="_get_store_detail")
+    # woo_order_id = fields.Char('Woo-commerce Order ID',compute="_get_store_detail")
 
     @api.depends('sale_id')
     def _get_store_detail(self):
         for rec in self:
             if rec.sale_id:
                 rec.pickup_store_details = rec.sale_id.pickup_store_details
+                rec.store_id = rec.sale_id.store_id
             else:
                 rec.pickup_store_details = ""
 
