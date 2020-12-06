@@ -168,10 +168,11 @@ class ImportWoocommerceOrders(models.TransientModel):
         method_title = 'Delivery'
         if order['shipping_lines']:
             method_title = order['shipping_lines'][0]['method_title']
+        pickup_store_detail = ""
         if order['status'] == 'pickup-cod' or order['status'] == 'pickup-paid':
             ship = True
             pickuup= {}
-            pickup_store_detail = ""
+            
             pickuup = order['ysg_pickup_store_details']
             # raise UserError(pickuup)
             # for lines in pickuup:

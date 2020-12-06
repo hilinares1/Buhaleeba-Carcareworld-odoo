@@ -447,13 +447,14 @@ class OrderFeed(models.Model):
 		vals['team_id'] = channel_id.crm_team_id.id
 		vals['warehouse_id'] = channel_id.warehouse_id.id
 		vals['points_amt'] = vals.pop('points_amt')
-		vals['pickup_store_details'] = vals.pop('pickup_store_details')
+		
 		# states_ship = vals.pop('order_state')
 		# raise UserWarning(states)
 		if vals.pop('states_ship') == True:
 			# raise UserWarning("11111")
 			vals['shipping_id'] = False
 			vals['shipping_full'] = 0
+			vals['pickup_store_details'] = vals.pop('pickup_store_details')
 		else:		
 			# raise UserWarning("22222")
 			vals['shipping_id'] = channel_id.shipping_id.id
