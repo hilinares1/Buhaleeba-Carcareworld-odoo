@@ -46,7 +46,13 @@
                     <field name="default_code"/>
                     <field name="internal_ref" />
                     <field name="is_confirm" invisible="1" />
+                    <field name="is_manager" invisible="1" />
                 </xpath>
+
+                <xpath expr="//field[@name='list_price']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','confirmed'),('is_manager','!=',1)]}</attribute>
+                </xpath>
+
                 
                 <xpath expr="//button[@name='action_update_quantity_on_hand']" position="replace">
                     <button string="Update Quantity" type="object"

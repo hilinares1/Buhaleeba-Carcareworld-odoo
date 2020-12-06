@@ -40,6 +40,15 @@ class ProductTemplate(models.Model):
     pr_type = fields.Many2one('product.type',string="Product Type",domain=[('parent_id','=',False)])
     sub_pr_type = fields.Many2one('product.type',string="Sub-Type",domain=[('parent_id','!=',False)])
     pr_brand = fields.Many2one('product.brand',string="Product Brand")
+    is_manager = fields.Integer('manger',compute="_get_is_manager")
+
+    @api.depends('state')
+    def _get_is_manager(self):
+        for rec in self:
+            if self.env.user.has_group("AG_purchase.group_purchase_operation_manager"):
+                rec.is_manager = 1
+            else:
+                rec.is_manager = 0
     
 
     def action_submit(self):

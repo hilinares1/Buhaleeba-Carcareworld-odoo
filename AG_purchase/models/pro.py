@@ -188,6 +188,7 @@ class ResPartner(models.Model):
     is_confirm = fields.Boolean('Is Confirmed',default=False)
     classification = fields.Selection([
         ('overseas', 'Overseas'),
+        ('sister', 'Sister Company'),
         ('local vendor', 'Local Vendor')], string='Vendor Classification', default='local vendor', copy=False)
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -203,6 +204,15 @@ class ResPartner(models.Model):
     # is_customer = fields.Boolean('Is Customer')
     # is_vendor = fields.Boolean('Is Vendor')
     # is_employee = fields.Boolean('Is Employee',default=True)
+
+
+    @api.onchange('classification')
+    def onchange_classification(self):
+        for rec in self:
+            # raise UserError(self.env.company.sister_company_receivable_account.name)
+            if rec.classification == 'sister':
+                rec.property_account_receivable_id  = self.env.company.sister_company_receivable_account.id
+                rec.property_account_payable_id  = self.env.company.sister_company_payable_account.id
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -611,7 +621,19 @@ class SaleOrder(models.Model):
     #                 line.pickup_store_details  = rec.pickup_store_details
                 
 
+class Company(models.Model):
+    _inherit = "res.company"
 
+    sister_company_receivable_account = fields.Many2one('account.account', string="Sister Company Receivable Account")
+    sister_company_payable_account = fields.Many2one('account.account', string="Sister Company Payable Account")
+
+
+class KSResConfigSettings(models.TransientModel):
+    _inherit = 'res.config.settings'
+
+    sister_company_receivable_account = fields.Many2one('account.account', string="Sister Company Receivable Account", related='company_id.sister_company_receivable_account', readonly=False)
+    sister_company_payable_account = fields.Many2one('account.account', string="Sister Company Payable Account", related='company_id.sister_company_payable_account', readonly=False)
+    
 
 
 
