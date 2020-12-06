@@ -153,7 +153,7 @@
                     </button>
                 </button>
                 <xpath expr="//button[@name='action_cancel']" position="after"> 
-                    <button name="create_vendor_bill" string="Create Shipping Vendor Bill" type="object" states="sale"/>
+                    <button name="create_vendor_bill" string="Create Shipping Vendor Bill" invisible="1" type="object" states="sale"/>
                 </xpath>
                 <xpath expr="//field[@name='state']" position="before"> 
                     <field name="woo_status" widget="statusbar" statusbar_visible="completed,cancelled"/>

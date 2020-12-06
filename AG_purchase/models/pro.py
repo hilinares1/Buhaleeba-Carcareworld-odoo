@@ -401,6 +401,9 @@ class StockPicking(models.Model):
                     land = self.env['stock.landed.cost'].search([('picking_ids','in',self.id)])
                     # raise UserError('test')
                     land.button_validate()
+            if res.state == 'in_transit':
+                if self.sale_id:
+                    self.sale_id.create_vendor_bill()
         return result
 
     def action_approve(self):
