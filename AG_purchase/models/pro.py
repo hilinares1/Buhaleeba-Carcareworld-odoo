@@ -561,7 +561,7 @@ class SaleOrder(models.Model):
                 }
                 
                 invoice.create(vals)
-                self.vendor_flag = 1
+                self.vender_flag = 1
             else:
                 raise UserError('No shipping to create for this order')
 
