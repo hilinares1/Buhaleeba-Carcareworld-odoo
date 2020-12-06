@@ -509,6 +509,7 @@ class SaleOrder(models.Model):
         ('refunded', 'Refunded'),
         ('failed', 'Failed'),
         ('completed', 'Completed'),
+        ('cancel-request', 'Cancelled'),
         ('cancelled', 'Cancelled')
     ], string='Woo-commerce Status', readonly=True, index=True,store=True, copy=False, compute="_get_woo_status", tracking=True)
     inv_count = fields.Float('Count',compute="_land_count")
