@@ -158,6 +158,7 @@
                 <xpath expr="//field[@name='state']" position="before"> 
                     <field name="woo_status" widget="statusbar" statusbar_visible="completed,cancelled"/>
                     <field name="inv_count" invisible="1"/>
+                    <field name="vender_flag" invisible="1"/>
                 </xpath>
                 <xpath expr="//field[@name='margin']" position="replace"> 
                     <!-- <attribute name="widget">date</attribute> -->
