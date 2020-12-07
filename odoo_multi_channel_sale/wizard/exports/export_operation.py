@@ -88,7 +88,7 @@ class ExportOperation(models.TransientModel):
 				# oauth1a_3leg=False,
 				# no_auth=False,
 				# version=version,
-				wp_user="admin",
+				wp_user="ccwmanager",
 				wp_pass="appsgate@2020",
 				# timeout=40,
 				# query_string_auth=False,
