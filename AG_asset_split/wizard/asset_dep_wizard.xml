@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_asset_depreciation_confirmation_wizard_inherit" model="ir.ui.view">
+        <field name="name">asset.depreciation.confirmation.wizard.inherit</field>
+        <field name="model">asset.depreciation.confirmation.wizard</field>
+        <field name="inherit_id" ref="om_account_asset.view_asset_depreciation_confirmation_wizard"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date']" position="after">
+                    <field name="asset_categ_id"/>
+             </xpath>
+
+         </field>
+    </record>
+</odoo>

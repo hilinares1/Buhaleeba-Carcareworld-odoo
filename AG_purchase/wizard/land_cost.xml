@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="Land_cost_generator_view_form" model="ir.ui.view">
+        <field name="name">Land.cost.generator.form</field>
+        <field name="model">landed.cost.generator</field>
+        <field name="arch" type="xml">
+            <form string="Validate and create landed cost">
+                <group col="4">
+                    <field name="validate" invisible="1" />
+                    <button
+                        class="btn btn-sm btn-primary"
+                        name="Validate"
+                        string="Validate GRN"
+                        type="object"
+                    />
+                    <button
+                        class="btn btn-sm btn-primary"
+                        name="Create_landcost"
+                        string="Create Landed Cost"
+                        type="object"
+                    />
+                </group>
+                <footer>
+                    <!-- <button
+                        class="btn btn-sm btn-primary"
+                        name="action_apply"
+                        string="Submit"
+                        type="object"
+                    /> -->
+                    <button
+                        class="btn btn-sm btn-default"
+                        special="cancel"
+                        string="Cancel"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="Land_cost_generator_action" model="ir.actions.act_window">
+        <field name="name">Generate Land cost</field>
+        <field name="res_model">landed.cost.generator</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="Land_cost_generator_view_form" />
+        <field name="target">new</field>
+    </record>
+    <!-- <menuitem
+        action="date_range_generator_action"
+        id="menu_date_range_generator_action"
+        parent="menu_date_range"
+    /> -->
+</odoo>

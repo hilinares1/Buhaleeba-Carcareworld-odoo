@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="slow_fast_moving_report_wiz_view_id">
+            <field name="name">Slow Fast Moving Report Wiz</field>
+            <field name="model">slow.fast.moving.report.wiz</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group string="Date">
+                            <field name="from_date"/>
+                        </group>
+
+                        <group string="Product Details">
+                            <group>
+                                <field name="pr_category"/>
+                                <field name="sub_pr_category"/>
+                                <field name="pr_type"/>
+                            </group>
+                            <group>
+                                <field name="sub_pr_type"/>
+                                <field name="pr_brand"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" default_focus="1"
+                                class="oe_highlight"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="slow_fast_moving_report_wiz_action">
+            <field name="name">Slow Fast Moving Report</field>
+            <field name="res_model">slow.fast.moving.report.wiz</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+
+        </record>
+
+        <menuitem id="slow_fast_moving_report_wiz_wiz_menu" name="Slow Fast Moving Report"
+                  parent="stock.menu_warehouse_report" sequence="501"
+                  action="slow_fast_moving_report_wiz_action"/>
+
+
+        <!--        ///////////////////////////////////////////////////////////////////////////////////////-->
+
+        <record id="slow_fast_moving_report_line_tree" model="ir.ui.view">
+            <field name="name">slow.fast.moving.report.line.tree</field>
+            <field name="model">slow.fast.moving.report</field>
+            <field name="arch" type="xml">
+                <tree string="Slow Fast Moving Report">
+                    <field name="product_id"/>
+                    <field name="pr_category"/>
+                    <field name="sub_pr_category"/>
+                    <field name="pr_brand"/>
+                    <field name="sale_qty"/>
+                    <field name="on_hand"/>
+                    <field name="sale_last_date"/>
+                    <field name="indication"/>
+                </tree>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="view_slow_fast_moving_report_pivot">
+            <field name="name">slow.fast.moving.report.pivot</field>
+            <field name="model">slow.fast.moving.report</field>
+            <field name="arch" type="xml">
+                <pivot string="Slow Fast Moving" disable_linking="True" display_quantity="true">
+                    <field name="product_id" type="row" string="Product"/>
+                    <field name="pr_category" type="row" string="Category"/>
+                    <field name="sub_pr_category" type="row" string="Sub Category"/>
+                    <field name="pr_brand" type="row" string="Brand"/>
+                    <field name="sale_qty" type="measure"/>
+                    <field name="on_hand" type="measure"/>
+                    <field name="sale_last_date" type="row" string="Sale Last Date"/>
+                    <field name="indication" type="row" string="Indication"/>
+                </pivot>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_inherit_return_reason" model="ir.ui.view">
+        <field name="name">stock.picking.inherit.return.reason</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+           <xpath expr="//field[@name='origin']/.." position="inside">
+                <field name="custom_return_reason" attrs="{'invisible': [('custom_is_returned_picking', '=', False)], 'readonly': [('state', 'in', ['done', 'cancel'])]}"/>
+                <field name="custom_picking_approve" readonly="1" attrs="{'invisible': [('custom_is_returned_picking', '=', False)]}"/>
+                <field name="custom_picking_reject" readonly="1" attrs="{'invisible': [('custom_is_returned_picking', '=', False)]}"/>
+                <field name="custom_is_returned_picking" invisible="1"/>
+            </xpath>
+            <xpath expr="//button[@name='button_validate']" position="after">
+                <button name="action_custom_button_approve" string="Approve" type="object" groups="AG_purchase.group_purchase_operation_manager" class="oe_highlight" attrs="{'invisible': ['|', '|', ('custom_is_returned_picking', '=', False), ('state', '=', 'confirmed'), ('custom_picking_approve', '=', True)]}"/>
+                <button name="action_custom_button_reject" string="Reject" type="object" groups="AG_purchase.group_purchase_operation_manager" attrs="{'invisible': ['|', '|', ('custom_is_returned_picking', '=', False), ('state', '=', 'confirmed'), ('custom_picking_approve', '=', True)]}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="product_template_inh_form_state" model="ir.ui.view">
+            <field name="name">product.template.inh.form_state</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="inside">
+                    <button name="action_submit" type="object" string="Submit" states="draft"/>
+                    <button name="action_approve" type="object" string="Approve" states="approve" groups="account.group_account_manager"/>
+                    <button name="action_reject" type="object" string="Reject" states="approve" groups="account.group_account_manager"/>
+                    <button name="set_to_draft" type="object" string="Set to Draft" states="reject" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
+                </xpath>
+                <xpath expr="//button[@name='%(product.product_attribute_value_action)d']" position="replace">
+                    <button string="Configure Variants" type="action"
+                            name="%(product.product_attribute_value_action)d"
+                            attrs="{'invisible': ['|', ('attribute_line_ids', '&lt;=', 0),'|',('state','!=','confirmed'), ('is_product_variant', '=', True)]}"
+                            groups="product.group_product_variant"/>
+                </xpath>
+                
+            </field>
+        </record>
+        
+
+        <record model="ir.ui.view" id="delivery.product_template_hs_code">
+            <field name="name">product.template.form.hs_code</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="arch" type="xml">
+                   <xpath expr="//group[@name='group_lots_and_weight']" position="inside">
+                    <field name="hs_code" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+
+
+        <record id="product_template_inh_form" model="ir.ui.view">
+            <field name="name">product.template.inh.form</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='default_code']" position="replace">
+                    <field name="default_code"/>
+                    <field name="internal_ref" />
+                    <field name="is_confirm" invisible="1" />
+                    <field name="is_manager" invisible="1" />
+                </xpath>
+
+                <xpath expr="//field[@name='list_price']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','confirmed'),('is_manager','!=',1)]}</attribute>
+                </xpath>
+
+                
+                <xpath expr="//button[@name='action_update_quantity_on_hand']" position="replace">
+                    <button string="Update Quantity" type="object"
+                            groups="stock.group_stock_manager"
+                            name="action_update_quantity_on_hand"
+                            attrs="{'invisible': ['|',('type', '!=', 'product'),('state','!=','confirmed')]}"/>
+                </xpath>
+                <xpath expr="//button[@name='%(stock.action_product_replenish)d']" position="replace">
+                    <button string="Replenish" type="action"
+                            name="%(stock.action_product_replenish)d"
+                            context="{'default_product_tmpl_id': id}"
+                            groups="stock.group_stock_user"
+                            attrs="{'invisible': ['|',('type', '!=', 'product'),('state','!=','confirmed')]}"/>
+                </xpath>
+                <xpath expr="//page[@name='variants']" position="after">
+                    <page name="additional_information" string="More Info">
+                        <group>
+                            <group>
+                                <field name="pr_category" attrs="{'required': [('type', '=', 'product')]}"/>
+                                <field name="pr_type" attrs="{'required': [('type', '=', 'product')]}"/>
+                                <field name="pr_brand" attrs="{'required': [('type', '=', 'product')]}"/>
+                            </group>
+                            <group>
+                                <field name="sub_pr_category" attrs="{'required': [('type', '=', 'product')]}"/>
+                                <field name="sub_pr_type" attrs="{'required': [('type', '=', 'product')]}"/>
+                                
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+
+        
+
+        <record id="product_product_inh_form" model="ir.ui.view">
+            <field name="name">product.product.inh.form</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='default_code']" position="after">
+                    <field name="internal_ref"/>
+                </xpath>
+            </field>
+        </record>
+
+
+        <record id="purchase_order_inh_form" model="ir.ui.view">
+            <field name="name">purchase.order.inh.form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='order_line']/tree//field[@name='product_id']" position="attributes">
+                    <attribute name="domain">[('purchase_ok', '=', True),('is_confirm','=',True), '|', ('company_id', '=', False), ('company_id', '=', parent.company_id)]</attribute>
+                </xpath>
+            </field>
+        </record>
+
+
+
+
+
+        <record id="product_categories_form" model="ir.ui.view">
+            <field name="name">product.categories.form</field>
+            <field name="model">product.categories</field>
+            <field name="arch" type="xml">
+                <form string="Product Categories">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" />
+                                <field name="parent_id" />
+                            </group>
+                            <group>
+                                <field name="slug" />
+                                <field name="display_type" />   
+                            </group>
+                        </group>
+                        <label for="description" /><br />
+                        <field name="description" />
+
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="product_categories_tree" model="ir.ui.view">
+            <field name="name">product.categories.tree</field>
+            <field name="model">product.categories</field>
+            <field name="arch" type="xml">
+                <tree string="Product Categories">
+                    <field name="name" />
+                    <field name="slug" />
+                    <field name="parent_id" />
+                    <field name="display_type" />
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_product_categories_form">
+            <field name="name">Product Categories</field>
+            <field name="res_model">product.categories</field>
+            <field name="view_mode">tree,form</field>
+            <!-- <field name="view_type">form</field> -->
+        </record>
+
+
+
+        <record id="product_type_form" model="ir.ui.view">
+            <field name="name">product.type.form</field>
+            <field name="model">product.type</field>
+            <field name="arch" type="xml">
+                <form string="Product Type">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" />
+                                <field name="parent_id" />
+                            </group>
+                            <group>
+                                <field name="slug" />  
+                            </group>
+                        </group>
+                        <label for="description" /><br />
+                        <field name="description" />
+
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="product_type_tree" model="ir.ui.view">
+            <field name="name">product.type.tree</field>
+            <field name="model">product.type</field>
+            <field name="arch" type="xml">
+                <tree string="Product Type">
+                    <field name="name" />
+                    <field name="slug" />
+                    <field name="parent_id" />
+                </tree> 
+            </field>
+        </record>
+
+
+        <record model="ir.actions.act_window" id="action_product_type_form">
+            <field name="name">Product Type</field>
+            <field name="res_model">product.type</field>
+            <field name="view_mode">tree,form</field>
+            <!-- <field name="view_type">form</field> -->
+        </record>
+
+
+
+        <record id="product_brand_form" model="ir.ui.view">
+            <field name="name">product.brand.form</field>
+            <field name="model">product.brand</field>
+            <field name="arch" type="xml">
+                <form string="Product Brand">
+                    <sheet>
+                        <label for="name" /><br />
+                        <field name="name" /><br />
+                        <label for="description" /><br />
+                        <field name="description" />
+
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="product_brand_tree" model="ir.ui.view">
+            <field name="name">product.brand.tree</field>
+            <field name="model">product.brand</field>
+            <field name="arch" type="xml">
+                <tree string="Product Brand">
+                    <field name="name" />
+                </tree> 
+            </field>
+        </record>
+
+
+        <record model="ir.actions.act_window" id="action_product_brand_form">
+            <field name="name">Product Brand</field>
+            <field name="res_model">product.brand</field>
+            <field name="view_mode">tree,form</field>
+            <!-- <field name="view_type">form</field> -->
+        </record>
+
+        <menuitem parent="stock.menu_stock_config_settings" 
+                id="menu_action_categories"
+                name="Categories"
+                sequence="101" />
+        <menuitem parent="menu_action_categories" 
+                id="menu_action_product_categories_form" 
+                name="Product Catgories"
+                action="action_product_categories_form" 
+                sequence="101" />
+        <menuitem parent="menu_action_categories" 
+                id="menu_action_product_type_form"
+                name="Product Type"
+                action="action_product_type_form" 
+                sequence="101" />
+        <menuitem parent="menu_action_categories" 
+                id="menu_action_product_brand_form" 
+                action="action_product_brand_form"
+                name="Brands"
+                sequence="101" />
+
+    </data>
+</odoo>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- QWeb Reports -->
+        <report
+            id="requisition_report_customis"
+            model="material.requisition"
+            string="Requisition"
+            report_type="qweb-pdf"
+            name="AG_buhaleeba_reports.report_purchasrequisition"
+            file="AG_buhaleeba_reports.report_purchasrequisition"
+        />
+
+
+    </data>
+</odoo>

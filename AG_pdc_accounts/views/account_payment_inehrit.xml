@@ -1,0 +1,77 @@
+<openerp>
+	<data> 
+		<!--supplier/customer payment-->
+    	<record model="ir.ui.view" id="account_payment_form_inherit_impps">
+            <field name="name">account.payment.imp.form</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_form"/>
+            <field name="arch" type="xml">
+				<xpath expr="//field[@name='payment_date']" position="after">
+					<field name="effective_date" attrs="{'invisible': [('payment_method_code', '!=', 'pdc')],                        'required': [('payment_method_code', '=', 'pdc')],                        'readonly': [('state', 'not in', ('draft'))]}"/>
+					<field name="bank_reference" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                	<field name="cheque_reference" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+				</xpath>
+				<xpath expr="//field[@name='effective_date']" position="replace"/>
+				<xpath expr="//field[@name='bank_reference']" position="replace"/>
+				<xpath expr="//field[@name='cheque_reference']" position="replace"/>
+				<button  name="action_draft" position="replace">
+					<button name="reverse_moves" class="btn btn-secondary" attrs="{'invisible': [('state', 'not in', ['posted','release'])]}" string="Reversal" type="object"/>
+					<button name="relase" class="btn btn-secondary" attrs="{'invisible': ['|',('payment_method_code', '!=', 'pdc'),('state', '!=', 'posted')]}" string="Release" type="object"/>
+				</button>
+				<xpath expr="//field[@name='state']" position="replace">
+					<field name="state" widget="statusbar" statusbar_visible="draft,posted,release,reverse,reconciled,cancelled"/>
+				</xpath>
+				<xpath expr="//field[@name='amount']" position="after">
+					<field name="currency_rate" attrs="{'readonly': [('state', 'not in', ['draft'])]}"/>
+				</xpath>
+				<button name="button_journal_entries" position="replace">
+					<button class="oe_stat_button" name="button_journal_entries" string="Journal Items" type="object" groups="account.group_account_user" attrs="{'invisible':[('move_line_ids','=',[])]}" icon="fa-bars"></button>
+
+				</button>
+				<button name="button_journal_entries" position="after">
+					<button class="oe_stat_button" name="button_reversal_journal_entries" string="Reversal Items" type="object" groups="account.group_account_user" attrs="{'invisible':[('move_line_ids','=',[])]}" icon="fa-bars"></button>
+				</button>
+				<button name="button_journal_entries" position="after">
+					<button class="oe_stat_button" name="button_release_journal_entries" string="Release Items" type="object" groups="account.group_account_user" attrs="{'invisible':[('move_line_ids','=',[])]}" icon="fa-bars"></button>
+				</button>
+				<xpath expr="//group[1]" position="after">
+					<notebook> 
+						<page string="Invoice Lines" attrs="{'invisible': [('invoice_lines', '=', False)]}">
+							<button name="update_invoice_lines" string="Update Invoice" type="object" class="btn-primary" attrs="{'invisible':[('state', '=', 'posted')]}"/>  
+							<field name="invoice_lines" attrs="{'readonly':[('state', '!=', 'draft')]}">
+								<tree create="false" editable="bottom">
+									<field name="sequence" widget="handle" />
+									<field name="invoice_id" invisible="1"/>
+									<field name="account_id" invisible="1"/>
+									<field name="invoice" readonly="1"/> 
+									<field name="date" readonly="True"/> 
+									<field name="due_date" readonly="True"/>
+									<field name="total_amount" readonly="True" sum="Total Amount"/> 
+									<field name="open_amount" readonly="True" sum="Due Amount"/> 
+									<field name="allocate"/> 
+									<field name="allocation" sum="Allocated Amount"/>
+								</tree>
+								<form string="Invoice" create="false">
+									<group>
+										<field name="invoice_id" invisible="1"/>
+										<field name="invoice"/> 
+										<field name="date" readonly="True"/>  
+										<field name="due_date" readonly="True"/>
+										<field name="total_amount" readonly="True"/> 
+										<field name="open_amount" readonly="True"/> 
+										<field name="allocate"/> 
+										<field name="allocation" />
+									</group>
+								</form>
+							</field>
+								
+						</page> 
+					</notebook> 
+				</xpath> 
+				<xpath expr="//field[@name='payment_method_id']" position="after">
+                    <field name="pdc_account" attrs="{'invisible': [('payment_method_code', '!=', 'pdc')],'required': [('payment_method_code', '=', 'pdc')],'readonly': [('state', 'not in', ('draft'))]}"/>
+				</xpath> 
+			</field>
+    	</record>  
+	</data>
+</openerp>

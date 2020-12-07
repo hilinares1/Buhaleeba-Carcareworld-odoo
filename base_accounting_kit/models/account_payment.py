@@ -104,17 +104,17 @@ class AccountPayment(models.Model):
             self.write({'state': 'sent'})
             return self.do_print_checks()
 
-    def _prepare_payment_moves(self):
-        """ supered function to set effective date """
-        res = super(AccountPayment, self)._prepare_payment_moves()
-        inbound_pdc_id = self.env.ref(
-            'base_accounting_kit.account_payment_method_pdc_in').id
-        outbound_pdc_id = self.env.ref(
-            'base_accounting_kit.account_payment_method_pdc_out').id
-        if self.payment_method_id.id == inbound_pdc_id or \
-                self.payment_method_id.id == outbound_pdc_id \
-                and self.effective_date:
-            res[0]['date'] = self.effective_date
-            for line in res[0]['line_ids']:
-                line[2]['date_maturity'] = self.effective_date
-        return res
+    # def _prepare_payment_moves(self):
+    #     """ supered function to set effective date """
+    #     res = super(AccountPayment, self)._prepare_payment_moves()
+    #     inbound_pdc_id = self.env.ref(
+    #         'base_accounting_kit.account_payment_method_pdc_in').id
+    #     outbound_pdc_id = self.env.ref(
+    #         'base_accounting_kit.account_payment_method_pdc_out').id
+    #     if self.payment_method_id.id == inbound_pdc_id or \
+    #             self.payment_method_id.id == outbound_pdc_id \
+    #             and self.effective_date:
+    #         res[0]['date'] = self.effective_date
+    #         for line in res[0]['line_ids']:
+    #             line[2]['date_maturity'] = self.effective_date
+    #     return res

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- 
+    <template id="report_assets_common_custom_fonts" name="qweb_fonts less backend assets" inherit_id="web.report_assets_common">
+        <xpath expr="." position="inside">
+        <link href="/AG_buhaleeba_reports/static/src/css/cus.css" rel="stylesheet" type="text/less"/>
+        </xpath>
+    </template>  -->
+
+    
+
+    <template id="report_assets_common_custom_fonts" inherit_id="stock.report_delivery_document">
+        	
+        
+          
+        <xpath expr="//div[@class='page'] /h2"  position="replace">
+
+        </xpath>
+
+        
+         <xpath expr="//div[@class='page']" position="before">
+
+            <div style="width: 40%; float: right;">
+
+                <h2  style="margin-left : 5%">
+                    <span t-field="o.name"/>
+
+                </h2>
+                <br/>
+                <br/>
+                <div style="margin-left : 5%">
+                    <div class="text-nowrap"><strong class="text-nowrap">Payment Terms:</strong><p t-field="o.sale_id.payment_term_id"/></div>
+                    <div class="text-nowrap"><strong class="text-nowrap">Delivery Mothod:</strong><p t-field="o.sale_id.picking_policy"/></div>
+                </div>
+            </div>
+
+
+
+            <div style="width: 50%;  float: left;" >
+
+                <span t-field="o.partner_id.name"/><br></br>
+                <span t-field="o.partner_id.street"/><br></br>
+                <span t-field="o.partner_id.city"/><br></br>
+                <span t-field="o.partner_id.country_id"/><br></br>
+                <span t-field="o.partner_id.phone"/><br></br>      
+                <span t-field="o.partner_id.email"/><br></br>
+                <div t-if="o.partner_id.vat" class="mt16">
+                            <t t-if="o.company_id.country_id.vat_label" t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
+                            <t t-else="">VAT</t>: <span t-field="o.partner_id.vat"/></div>
+                <span t-field="o.partner_id.website"/><br></br>
+                <br></br>
+                <br></br>
+            </div>
+
+        </xpath>
+         
+        <xpath expr="//div[@t-esc='partner']" position="replace">
+
+        
+
+            <!-- <t t-set="address">
+                <div t-esc="partner"   style="margin-right : 40%;"
+                    t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}'/>
+            </t> -->
+
+            
+
+         </xpath>
+
+
+
+        <xpath expr="//div[@class='row mt32 mb32']" position="inside">
+            <div class="col-auto" name="div_sale_id">
+                    <strong>Order Date:</strong>
+                    <p t-field="o.sale_id.date_order"/>
+            </div>
+        
+         
+        
+        </xpath>
+
+
+        <!-- add item to table  -->
+
+        <xpath expr="//table[@class='table table-sm']" position="replace">
+
+        
+            <table class="table table-sm" t-if="o.state!='done'" name="stock_move_table_inhert">
+                        <thead>
+                            <tr>
+                                <th name="th_sml_product"><strong>Product Code</strong></th>
+                                <th name="th_sm_product"><strong>Product</strong></th>
+                                <th name="th_sm_quantity"><strong>Quantity</strong></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="lines" t-value="o.move_lines.filtered(lambda x: x.product_uom_qty)"/>
+                            <tr t-foreach="lines" t-as="move">
+                                <td>
+                                    <span t-field="move.product_id.default_code"/>
+                                </td>
+                                <td>
+                                    
+                                    <span t-field="move.product_id"/>
+                                    <p t-if="move.description_picking != move.product_id.name">
+                                        <span t-field="move.description_picking"/>
+                                    </p>
+                                </td>
+                                <td>
+                                    
+                                    <span t-field="move.product_uom_qty"/>
+                                    <span t-field="move.product_uom"/>
+                                </td>
+                            </tr>
+                        </tbody>
+            </table>
+            <table class="table table-sm mt48" t-if="o.move_line_ids and o.state=='done'" name="stock_move_line_table_inhert">
+                    <t t-set="has_serial_number" t-value="o.move_line_ids.mapped('lot_id')" />
+                    <thead>
+                        <tr>
+                            <th name="th_sml_product"><strong>Product Code</strong></th>
+                            <th name="th_sml_product"><strong>Product</strong></th>
+                            <th name="lot_serial" t-if="has_serial_number" groups="stock.group_lot_on_delivery_slip">
+                                Lot/Serial Number
+                            </th>
+                            <th name="th_sml_quantity" class="text-center"><strong>Quantity</strong></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="o.move_line_ids" t-as="move_line">
+                            <td>
+                                <span t-field="move_line.product_id.default_code"/>
+                                
+                            </td>
+                            <td>
+                                <span t-field="move_line.product_id"/>
+                                <p t-if="move_line.move_id.description_picking != move_line.product_id.name">
+                                    <span t-field="move_line.move_id.description_picking"/>
+                                </p>
+                            </td>
+                            <td t-if="has_serial_number and move_line.lot_name" groups="stock.group_lot_on_delivery_slip">
+                                <span t-field="move_line.lot_name"/>
+                            </td>
+                            <td t-elif="has_serial_number" groups="stock.group_lot_on_delivery_slip">
+                                <span t-field="move_line.lot_id.name"/>
+                            </td>
+                            <td class="text-center">
+                                <span t-field="move_line.qty_done"/>
+                                <span t-field="move_line.product_uom_id"/>
+                            </td>
+                        </tr>
+                    </tbody>
+            </table>
+
+
+        </xpath>
+
+
+
+
+
+
+
+
+
+        <xpath expr="//table[@class='table table-sm mt48']" position="after">
+        
+            <div style="margin-left : 70%">
+                <br/>
+                <strong>Reciever Name:</strong><br></br>
+                <br></br>
+               
+                <strong>Reciever Signature:</strong>
+            </div>
+
+
+            <!-- <tr t-foreach="o.move_line_ids" t-as="move_line">
+            <tr t-foreach="move_line.product_id" t-as="line">
+                <div>
+                <br></br>
+                    <span style="margin : 10px">Product Code:  <span t-field="line.code"/></span>
+                    <span  style="margin : 10px">Product Description:<span t-field="line.description"/></span> 
+                    <span  style="margin : 10px">Quantity:<span t-field="line.qty_available"/></span>
+                <br></br>
+                </div>
+            </tr>
+            </tr> -->
+            
+        
+
+            
+
+
+            <div>
+            <strong>Terms and Conditions:</strong>
+              
+            </div>
+
+             <br></br>
+             <br></br>
+             <br></br>
+             <br></br>
+             <br></br>
+            
+        
+
+            <div>
+                <span style="margin : 5px">Order Printer By:  <span t-field="user.name"/></span>
+                  <br/>
+                <br/>
+                <span style="margin : 5px">Order Printed Time: <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/> </span>
+                
+            </div>
+        
+        </xpath>
+    </template>
+
+
+
+
+</odoo>

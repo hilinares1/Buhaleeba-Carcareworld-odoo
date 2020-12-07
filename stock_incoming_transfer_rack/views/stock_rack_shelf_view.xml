@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="view_stock_rack_shelf_form">
+        <field name="name">stock.rack.shelf.form</field>
+        <field name="model">stock.rack.shelf</field>
+        <field name="arch" type="xml">
+            <form string="Stock Rack Shelf">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="1"/>
+                            <field name="code" required="1"/>
+                        </group>
+                        <group>
+                            <field name="parent_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_stock_rack_shelf_tree">
+        <field name="name">stock.rack.shelf.tree</field>
+        <field name="model">stock.rack.shelf</field>
+        <field name="arch" type="xml">
+            <tree string="Stock Rack Shelf List">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="parent_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_stock_rack_shelf">
+        <field name="name">Stock Rack Shelf</field>
+        <field name="res_model">stock.rack.shelf</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_stock_rack_shelf" name="Stock Rack Shelf" parent="stock.menu_stock_inventory_control" action="action_stock_rack_shelf"/>
+
+
+</odoo>

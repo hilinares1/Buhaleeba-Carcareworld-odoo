@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+       <record id="print_invoice_wizard" model="ir.ui.view">
+          <field name="name">invoice.wizard.wizard</field>
+          <field name="model">invoice.wizard</field>
+          <field name="arch" type="xml">
+              <form string="wizard order">
+              <group>
+                    <group>
+                        <field name="start_date"/>
+                    </group>
+                    <group>
+                        <field name="end_date"/>
+                    </group>
+                    <group>
+                        <field name='report_type'/>
+                        <field name="name" invisible="0"/>
+                        <field name="xls_output" filename='name' readonly='1'/>
+                    </group>
+              </group>
+                <footer>
+                    <button name="print_invoie_report" string="Print" type="object" class="oe_highlight"/> or 
+                    <button name="export_invoice" string="Print in Excel" type="object" class="oe_highlight"/> or 
+                    <button special="cancel" string="Cancel" class="btn-default"/>
+                </footer>
+              </form>
+          </field>
+      </record>
+
+      <record model="ir.actions.act_window" id="wizard_print_invoice_wizard">
+          <field name="name">Print Customer VAT</field>
+          <field name="res_model">invoice.wizard</field>
+          <field name="view_mode">form</field>
+          <field name="target">new</field>
+      </record>
+
+       <menuitem id="menu_invoice_report" name="VAT Report" parent="account.menu_finance_reports" action="wizard_print_invoice_wizard"/>
+
+  </data>
+</odoo>

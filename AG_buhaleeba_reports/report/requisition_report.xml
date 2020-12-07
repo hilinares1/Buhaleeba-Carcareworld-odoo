@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_custom_css">
+        <style type="text/css">
+            .cols
+            {
+            border: 1px solid #dfe6e9 !important;
+            border-spacing:1px;
+            border-collapse:separate;
+            padding:10px 10px !important;
+            vertical-align:middle;
+            width:auto;
+            }
+        </style>
+    </template>
+
+    <template id="report_purchasrequisition_document">
+   
+        <t t-call="AG_buhaleeba_reports.report_custom_css"/>
+
+        <h1 class="text-center">Purchase Requisition</h1>
+        <br/>
+        <br/>
+
+
+        <div class="row">
+            <div class="col-6">
+                <span class="col-6">Requisition No : <span class="col-6" t-field="o.sequence"/></span>
+            </div>
+            <div class="col-6">
+               <span class="col-6">Purchase Quote Created : <span class="col-6" t-field="o.requisition_line_ids.product_id.code"/></span> 
+            </div>
+        </div>
+
+
+        <br/>
+        <div class="row">
+            <div class="col-6">
+                <span class="col-6">Location  Code :<span class="col-6" t-field="o.source_location_id"/></span>
+            </div>
+            <div class="col-6">
+               <span class="col-6">Document Date           : <span class="col-6" t-field="o.requisition_date"/></span> 
+            </div>
+        </div>
+
+        <br/>
+        <div class="row">
+            <div class="col-6">
+                <span class="col-6">Status : <span class="col-6" t-field="o.state"/></span>
+            </div>
+            <div class="col-6">
+               <span class="col-6">User Id : <span class="col-6" t-field="o.employee_id"/></span>
+            </div>
+        </div>
+        <br/>
+        <br/>
+        <!-- table -->
+
+        <div class="row" style="padding-top:15px;">
+            <div class="col-12">
+                <t t-set="i" t-value="1" />
+                <table  width="100%" border="0" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th class="cols text-center" style="background-color:#A9A9A9; color:white;">Sr No</th>
+<!--                            <th class="cols text-center" style="background-color:#A9A9A9; color:white;">Date Of Delivery</th>-->
+<!--                            <th class="cols text-center" style="background-color:#A9A9A9; color:white;">Type</th>-->
+                            <th class="cols text-center" style="background-color:#A9A9A9; color:white;">Code</th>
+                            <th class="cols text-center" style="background-color:#A9A9A9; color:white;">Description</th>
+                            <th class="cols text-left"  style="background-color:#A9A9A9; color:white;">Quantity</th>
+                            <th class="cols text-left"  style="background-color:#A9A9A9; color:white;">UOM</th>
+                            <th class="cols text-left"  style="background-color:#A9A9A9; color:white;">Available Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="o.requisition_line_ids" t-as="requisition_line">
+                            <tr>
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
+                                 <span t-esc="i"/> 
+                                    <t t-set="i" t-value="i+1"/>
+                                </td>
+<!--                                <td class="cols text-center">-->
+<!--                                    <span t-field="o.received_date"/> -->
+<!--                                </td>-->
+<!--                                <td class="cols text-center">-->
+<!--                                    <span ></span>-->
+<!--                                </td>-->
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
+                                    <span t-field="requisition_line.product_id.code"/> 
+                                </td>
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
+                                    <span t-field="requisition_line.description"/> 
+                                </td>
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
+                                    <span t-field="requisition_line.qty"/>
+                                </td>
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
+                                    <span t-field="requisition_line.uom_id" />
+                                </td>
+
+                                <td class="cols text-center" style="background-color:#FFFFFF; color:black;">
+                                    <span t-field="requisition_line.available_qty"/> 
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <br/>
+        <br/>
+        <div style="row">
+            <div class="col-12" style="">
+                <span class="col-6" style="font-weight:bold;padding-left:0px;">Reason For Requisition : <span class="col-6" t-esc="o.reason_for_requisition"/></span>
+            </div>
+        </div>
+        <div class="row" style="padding:70px 20px 0px 50px;">
+            <div class="col-6">
+                <span class="col-6">Print On : <span class="col-6" t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/></span>
+            </div>
+            <div class="col-6">
+               <span class="col-6">User : <span class="col-6" t-field="user.name"/></span> 
+            </div>
+        </div>
+
+      
+        <div class="oe_structure"/>
+      
+   
+</template>
+
+<template id="report_purchasrequisition">
+    <t t-call="web.external_layout">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="AG_buhaleeba_reports.report_purchasrequisition_document" />
+            </t>
+        </t>
+    </t>
+</template>
+</odoo>

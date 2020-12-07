@@ -421,9 +421,9 @@ class DashBoard(models.Model):
 
         states_arg = ""
         if post != ('posted',):
-            states_arg = """ state in ('posted', 'draft')"""
+            states_arg = """ account_move.state in ('posted', 'draft')"""
         else:
-            states_arg = """ state = 'posted'"""
+            states_arg = """ account_move.state = 'posted'"""
 
         self._cr.execute(('''  select res_partner.name as partner, res_partner.commercial_partner_id as res  ,
                             account_move.commercial_partner_id as parent, sum(account_move.amount_total) as amount
@@ -470,9 +470,9 @@ class DashBoard(models.Model):
 
         states_arg = ""
         if post != ('posted',):
-            states_arg = """ state in ('posted', 'draft')"""
+            states_arg = """ account_move.state in ('posted', 'draft')"""
         else:
-            states_arg = """ state = 'posted'"""
+            states_arg = """ account_move.state = 'posted'"""
 
         self._cr.execute((''' select res_partner.name as partner, res_partner.commercial_partner_id as res  ,
                              account_move.commercial_partner_id as parent, sum(account_move.amount_total) as amount
@@ -513,9 +513,9 @@ class DashBoard(models.Model):
 
         states_arg = ""
         if post[0] != 'posted':
-            states_arg = """ state in ('posted', 'draft')"""
+            states_arg = """ account_move.state in ('posted', 'draft')"""
         else:
-            states_arg = """ state = 'posted'"""
+            states_arg = """ account_move.state = 'posted'"""
 
         company_id = self.get_current_company_value()
         if post[1] == 'this_month':
@@ -573,9 +573,9 @@ class DashBoard(models.Model):
 
         states_arg = ""
         if post[0] != 'posted':
-            states_arg = """ state in ('posted', 'draft')"""
+            states_arg = """ account_move.state in ('posted', 'draft')"""
         else:
-            states_arg = """ state = 'posted'"""
+            states_arg = """ account_move.state = 'posted'"""
 
         if post[1] == 'this_month':
             self._cr.execute((''' 
@@ -632,9 +632,9 @@ class DashBoard(models.Model):
 
         states_arg = ""
         if post[0] != 'posted':
-            states_arg = """ state in ('posted', 'draft')"""
+            states_arg = """ account_move.state in ('posted', 'draft')"""
         else:
-            states_arg = """ state = 'posted'"""
+            states_arg = """ account_move.state = 'posted'"""
         if post[1] == 'this_month':
             self._cr.execute((''' select res_partner.name as customers, account_move.commercial_partner_id as parent, 
                                     sum(account_move.amount_total) as amount from account_move, res_partner
@@ -721,9 +721,9 @@ class DashBoard(models.Model):
 
         states_arg = ""
         if post != ('posted',):
-            states_arg = """ state in ('posted', 'draft')"""
+            states_arg = """ account_move.state in ('posted', 'draft')"""
         else:
-            states_arg = """ state = 'posted'"""
+            states_arg = """ account_move.state = 'posted'"""
 
         self._cr.execute(('''select sum(amount_total) as customer_invoice from account_move where type ='out_invoice'
                             AND  %s  AND account_move.company_id = ''' + str(company_id) + '''           
@@ -759,9 +759,9 @@ class DashBoard(models.Model):
 
         states_arg = ""
         if post != ('posted',):
-            states_arg = """ state in ('posted', 'draft')"""
+            states_arg = """ account_move.state in ('posted', 'draft')"""
         else:
-            states_arg = """ state = 'posted'"""
+            states_arg = """ account_move.state = 'posted'"""
 
         self._cr.execute(('''select sum(amount_total_signed) as customer_invoice from account_move where type ='out_invoice'
                             AND   %s                               
@@ -848,9 +848,9 @@ class DashBoard(models.Model):
 
         states_arg = ""
         if post != ('posted',):
-            states_arg = """ state in ('posted', 'draft')"""
+            states_arg = """ account_move.state in ('posted', 'draft')"""
         else:
-            states_arg = """ state = 'posted'"""
+            states_arg = """ account_move.state = 'posted'"""
 
         self._cr.execute(('''select sum(amount_total_signed) as customer_invoice from account_move where type ='out_invoice'
                                     AND   %s                               
@@ -942,9 +942,9 @@ class DashBoard(models.Model):
 
         states_arg = ""
         if post != ('posted',):
-            states_arg = """ state in ('posted', 'draft')"""
+            states_arg = """ account_move.state in ('posted', 'draft')"""
         else:
-            states_arg = """ state = 'posted'"""
+            states_arg = """ account_move.state = 'posted'"""
 
         self._cr.execute(('''select sum(amount_total) from account_move where type = 'out_invoice' 
                             AND %s
