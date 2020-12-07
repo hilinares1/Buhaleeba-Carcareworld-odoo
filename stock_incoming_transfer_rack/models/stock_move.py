@@ -26,7 +26,7 @@ class StockMoveLine(models.Model):
     )#SMA13
     custom_source_rack_shelf_id = fields.Many2one(
         'stock.rack.shelf',
-        string='Source Rack / Shelf',domain=lambda self: self.get_shelf()
+        string='Source Rack / Shelf',search="get_shelf"
     )#SMA13
 
     def get_shelf(self):
