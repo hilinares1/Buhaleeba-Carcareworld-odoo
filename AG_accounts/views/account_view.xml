@@ -21,6 +21,7 @@
                     <field name="store_order_id"  invisible="1"/>
                     <field name="res_model" invisible="1"/>
                     <field name="res_id" invisible="1"/>
+                    <field name="stock_adjustment_id" invisible="1"/>
                 </xpath>
                 <xpath expr="//field[@name='currency_id']" position="before">
                     <field name="points_amt" readonly="1" invisible="1"/>

@@ -261,5 +261,20 @@
                 name="Brands"
                 sequence="101" />
 
+
+
+        <record model="ir.ui.view" id="stock_inventory_line_form_adjustment">
+            <field name="name">stock.inventory.line.form.adjustment</field>
+            <field name="model">stock.inventory.line</field>
+            <field name="inherit_id" ref="stock.stock_inventory_line_tree2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='difference_qty']" position="after">
+                    <field name="product_cost" />
+                    <field name="product_cost_new" />
+                    <field name="cost_difference" />
+                </xpath>
+            </field>
+        </record>
+
     </data>
 </odoo>
