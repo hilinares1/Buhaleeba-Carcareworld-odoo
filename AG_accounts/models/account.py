@@ -139,6 +139,7 @@ class AccountMove(models.Model):
     channel_id = fields.Many2one('multi.channel.sale',string="channel")
     store_order_id = fields.Char('Order_id')
     is_link_sended = fields.Integer('Is Link Sended',default=0)
+    stock_adjustment_id = fields.Many2one('stock.inventory',string="Stock Adjustment ID")
 
 
     def write(self,vals):

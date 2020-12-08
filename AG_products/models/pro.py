@@ -22,6 +22,7 @@
 
 from odoo import api, fields, models
 import odoo.addons.decimal_precision as dp
+from datetime import date
 
 
 class ProductTemplate(models.Model):
@@ -142,6 +143,170 @@ class ProductBrand(models.Model):
 
     name = fields.Char('Name',required=True)
     description = fields.Text('Description')
+
+class StockInventory(models.Model):
+    _inherit = "stock.inventory"
+
+    def action_validate(self):
+        res = super(StockInventory,self).action_validate()
+        self.create_journal()
+        return res
+
+    def create_journal(self):
+        # for rec in self:
+        # if self.vender_flag == 0:
+        # if self.shipping_id:
+        name = ""
+        # for rec in self.product_ids:
+        for line in self.line_ids:
+            invoice = self.env['account.move']
+            # val = []
+            # order_line = {
+            #     'product_id': self.channel_mapping_ids[0].channel_id.delivery_product_id.id,
+            #     'price_unit':   self.shipping_full,
+                
+            # }
+            name = self.name + '-' + line.product_id.name
+            dict = []
+            if line.cost_difference != 0:
+                if line.difference_qty < 0 :
+                    amount = line.cost_difference * line.difference_qty
+                    dict1 = {
+                            # 'move_name': self.name,
+                            'name': name,
+                            'price_unit': abs(line.cost_difference),
+                            'product_id': line.product_id.id,
+                            'quantity': abs(line.difference_qty),
+                            'debit':0.0,
+                            'credit': abs(amount),
+                            # 'debit': self.cost_difference < 0.0 and -self.cost_difference or 0.0,
+                            # 'credit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                            'account_id': line.categ_id.property_stock_valuation_account_id.id,
+                            # 'move_id': self._origin,
+                            # 'date': self.date,
+                            # 'exclude_from_invoice_tab': True,
+                            # 'partner_id': terms_lines.partner_id.id,
+                            'company_id': self.company_id.id,
+                            # 'company_currency_id': self.company_currency_id.id,
+                            }
+                    dict.append((0,0,dict1))
+                    dict2 = {
+                            # 'move_name': self.name,
+                            'name': name,
+                            'price_unit': abs(line.cost_difference),
+                            'product_id': line.product_id.id,
+                            'quantity': abs(line.difference_qty),
+                            'debit': abs(amount),
+                            'credit': 0.0,
+                            # 'debit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                            # 'credit': self.cost_difference < 0.0 and -self.cost_difference or 0.0 ,
+                            'account_id': line.categ_id.property_stock_account_output_categ_id.id,
+                            # 'move_id': self._origin,
+                            # 'date': self.date,
+                            # 'exclude_from_invoice_tab': True,
+                            # 'partner_id': terms_lines.partner_id.id,
+                            'company_id': self.company_id.id,
+                            # 'company_currency_id': self.company_currency_id.id,
+                            }
+                    dict.append((0,0,dict2))
+                if line.difference_qty > 0 :
+                    amount = line.cost_difference * line.difference_qty
+                    dict1 = {
+                            # 'move_name': self.name,
+                            'name': name,
+                            'price_unit': abs(line.cost_difference),
+                            'product_id': line.product_id.id,
+                            'quantity': abs(line.difference_qty),
+                            'debit':0.0,
+                            'credit': abs(amount),
+                            # 'debit': self.cost_difference < 0.0 and -self.cost_difference or 0.0,
+                            # 'credit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                            'account_id': line.categ_id.property_stock_account_input_categ_id.id,
+                            # 'move_id': self._origin,
+                            # 'date': self.date,
+                            # 'exclude_from_invoice_tab': True,
+                            # 'partner_id': terms_lines.partner_id.id,
+                            'company_id': self.company_id.id,
+                            # 'company_currency_id': self.company_currency_id.id,
+                            }
+                    dict.append((0,0,dict1))
+                    dict2 = {
+                            # 'move_name': self.name,
+                            'name': name,
+                            'price_unit': abs(line.cost_difference),
+                            'product_id': line.product_id.id,
+                            'quantity': abs(line.difference_qty),
+                            'debit': abs(amount),
+                            'credit': 0.0,
+                            # 'debit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                            # 'credit': self.cost_difference < 0.0 and -self.cost_difference or 0.0 ,
+                            'account_id': line.categ_id.property_stock_valuation_account_id.id,
+                            # 'move_id': self._origin,
+                            # 'date': self.date,
+                            # 'exclude_from_invoice_tab': True,
+                            # 'partner_id': terms_lines.partner_id.id,
+                            'company_id': self.company_id.id,
+                            # 'company_currency_id': self.company_currency_id.id,
+                            }
+                    dict.append((0,0,dict2))
+            # val.append((0,0,order_line))
+            # moveid = False
+            # for move in self.move_ids:
+            #     if move.product_id.id == line.product_id.id:
+            #         moveid = move.id
+            if line.difference_qty != 0:
+                vals = {
+                    # 'partner_id': self.shipping_id.id,
+                    'ref': name,
+                    'type':'entry',
+                    'stock_adjustment_id':self.id,
+                    'date':self.accounting_date or date.today(),
+                    # 'so_link':self.id,
+                    'line_ids':dict,
+                    # 'invoice_line_ids':val,
+                }
+            
+                inv = invoice.create(vals)
+                inv.action_post()
+                # self.vender_flag = 1
+            # else:
+            #     raise UserError('No shipping to create for this order')
+
+    def action_get_account_moves(self):
+        self.ensure_one()
+        action_ref = self.env.ref('account.action_move_journal_line')
+        if not action_ref:
+            return False
+        action_data = action_ref.read()[0]
+        action_data['domain'] = ['|',('stock_move_id.id', 'in', self.move_ids.ids),('stock_adjustment_id','=',self.id)]
+        action_data['context'] = dict(self._context, create=False)
+        return action_data
+
+class StockInventoryLine(models.Model):
+    _inherit = "stock.inventory.line"
+
+    product_cost = fields.Float('Cost',compute="onchange_product_cost",readonly=True)
+    product_cost_new = fields.Float('New Cost',compute="onchange_product_cost_new",store=True,readonly=False)
+    cost_difference = fields.Float('Cost Difference',compute="_cost_difference")
+
+    @api.depends('product_id')
+    def onchange_product_cost(self):
+        for rec in self:
+            rec.product_cost = rec.product_id.standard_price
+
+    @api.depends('product_id')
+    def onchange_product_cost_new(self):
+        for rec in self:
+            rec.product_cost_new = rec.product_id.standard_price
+
+    @api.depends('product_id')
+    @api.onchange('product_cost_new')
+    def _cost_difference(self):
+        for rec in self:
+            rec.cost_difference = rec.product_cost_new - rec.product_cost
+
+
+    
 
     
 
