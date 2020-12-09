@@ -15,7 +15,11 @@ from odoo.tools.float_utils import float_compare, float_is_zero, float_round
 from odoo.addons.stock.models.stock_move import PROCUREMENT_PRIORITIES
 from odoo.tools.misc import formatLang, format_date, get_lang
 
+class ProductCategory(models.Model):
+    _inherit = "product.category"
 
+    discount_account = fields.Many2one('account.account',string="Discount Account")
+    points_discount_account = fields.Many2one('account.account',string="Points Discount Account")
 
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
@@ -30,12 +34,12 @@ class PurchaseOrder(models.Model):
             for line in rec.order_line:
                 GT += line.product_qty * line.price_unit
             for line in rec.order_line:
-                if line.is_percentage == True:
-                    line.discount = (line.product_qty * line.price_unit * rec.total_discount) / GT
-                    line.is_percentage = False
-                else:
-                    line.discount = line.discount + ((line.product_qty * line.price_unit * rec.total_discount) / GT)
-                    line.is_percentage = False
+                # if line.is_percentage == True:
+                #     line.discount = (line.product_qty * line.price_unit * rec.total_discount) / GT
+                #     line.is_percentage = False
+                # else:
+                line.uni_discount = line.uni_discount + ((line.product_qty * line.price_unit * rec.total_discount) / GT)
+                # line.is_percentage = False
 
 
 
@@ -45,8 +49,9 @@ class PurchaseOrderLine(models.Model):
 
     is_percentage = fields.Boolean('Is Discount (%)',default=False)
     discount = fields.Float('Discount')
+    uni_discount = fields.Float('UNI Disc.')
 
-    @api.depends('product_qty', 'price_unit', 'taxes_id','discount','is_percentage')
+    @api.depends('product_qty', 'price_unit', 'taxes_id','discount','uni_discount','is_percentage')
     def _compute_amount(self):
         res = super(PurchaseOrderLine,self)._compute_amount()
         return res
@@ -72,11 +77,11 @@ class PurchaseOrderLine(models.Model):
         # also introduced like in the sales module.
         res = super(PurchaseOrderLine,self)._prepare_compute_all_values()
         price = 0.0
-        if self.discount :
+        if self.discount or self.uni_discount :
             if self.is_percentage == True:
-                price = self.price_unit - (self.price_unit * (self.discount/100))
+                price = self.price_unit - ((self.price_unit * (self.discount/100))+(self.uni_discount/self.product_qty))
             else:
-                price = self.price_unit - self.discount/self.product_qty
+                price = self.price_unit - ((self.discount+self.uni_discount)/self.product_qty)
         else:
             price = self.price_unit
         res['price_unit'] = price
@@ -91,11 +96,11 @@ class PurchaseOrderLine(models.Model):
         is not merged.
         """
         price_unit = False
-        if self.discount :
+        if self.discount or self.uni_discount :
             if self.is_percentage == True:
-                price = self.price_unit - (self.price_unit * (self.discount/100))
+                price = self.price_unit - ((self.price_unit * (self.discount/100))+(self.uni_discount/self.product_qty))
             else:
-                price = self.price_unit - self.discount/self.product_qty
+                price = self.price_unit - ((self.discount+self.uni_discount)/self.product_qty)
         else:
             price = self.price_unit
         # price = self.price_subtotal
@@ -111,9 +116,21 @@ class PurchaseOrderLine(models.Model):
 
     def _prepare_account_move_line(self, move):
         vals = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
-        vals['price_unit'] = self.price_unit
-        vals['discount'] = self.discount
-        vals['is_percentage'] = self.is_percentage
+        if self.uni_discount != 0:
+            if self.is_percentage == True:
+                discount = (self.product_qty * self.price_unit) - self.price_subtotal
+                vals['price_unit'] = self.price_unit
+                vals['discount'] = discount
+                vals['is_percentage'] = False
+            else:
+                discount = (self.product_qty * self.price_unit) - self.price_subtotal
+                vals['price_unit'] = self.price_unit
+                vals['discount'] = discount
+                vals['is_percentage'] = self.is_percentage
+        else:
+            vals['price_unit'] = self.price_unit
+            vals['discount'] = self.discount
+            vals['is_percentage'] = self.is_percentage
         return vals
 
 
@@ -234,7 +251,7 @@ class AccountMove(models.Model):
             if already_exists:
                 for lines in rec.invoice_line_ids:
                     amount = lines.discount
-                    if rec.sales_discount_account_id \
+                    if lines.product_id.categ_id.discount_account \
                             and (rec.type == "out_invoice"
                                 or rec.type == "out_refund")\
                             and amount > 0:
@@ -271,9 +288,10 @@ class AccountMove(models.Model):
         for rec in self:
             type_list = ['out_invoice', 'out_refund', 'in_invoice', 'in_refund']
             for lines in rec.invoice_line_ids:
+                amount = lines.discount
                 if lines.discount > 0 and rec.type in type_list:
                     if rec.is_invoice(include_receipts=True):
-                        in_draft_mode = self != self._origin
+                        in_draft_mode = rec != rec._origin
                         
                         ks_name = "Discount "
                         if lines.discount:
@@ -284,17 +302,17 @@ class AccountMove(models.Model):
                         #           ("Invoice No: " + str(self.ids)
                         #            if self._origin.id
                         #            else (self.display_name))
-                        terms_lines = self.line_ids.filtered(
+                        terms_lines = rec.line_ids.filtered(
                             lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
                         product = 'Discount of %s'%(lines.product_id.name)
-                        already_exists = self.line_ids.filtered(
+                        already_exists = rec.line_ids.filtered(
                                         lambda line: line.name and line.name.find(product) == 0)
                         if already_exists:
-                            amount = lines.discount
-                            if self.sales_discount_account_id \
-                                    and (self.type == "out_invoice"
-                                        or self.type == "out_refund"):
-                                if self.type == "out_invoice":
+                            # amount = lines.discount
+                            if lines.product_id.categ_id.discount_account \
+                                    and (rec.type == "out_invoice"
+                                        or rec.type == "out_refund"):
+                                if rec.type == "out_invoice":
                                     already_exists.update({
                                         'name': ks_name,
                                         'debit': amount > 0.0 and amount or 0.0,
@@ -307,32 +325,32 @@ class AccountMove(models.Model):
                                         'credit': amount > 0.0 and amount or 0.0,
                                     })
                         else:
-                            new_tax_line = self.env['account.move.line']
+                            new_tax_line = rec.env['account.move.line']
                             create_method = in_draft_mode and \
-                                            self.env['account.move.line'].new or\
-                                            self.env['account.move.line'].create
+                                            rec.env['account.move.line'].new or\
+                                            rec.env['account.move.line'].create
 
-                            if self.sales_discount_account_id \
-                                    and (self.type == "out_invoice"
-                                        or self.type == "out_refund"):
-                                amount = lines.discount
+                            if lines.product_id.categ_id.discount_account \
+                                    and (rec.type == "out_invoice"
+                                        or rec.type == "out_refund"):
+                                # amount = lines.discount
                                 dict = {
-                                        'move_name': self.name,
+                                        'move_name': rec.name,
                                         'name': ks_name,
-                                        'price_unit': lines.discount,
+                                        'price_unit': amount,
                                         'product_id': lines.product_id.id,
                                         'quantity': 1,
                                         'debit': amount < 0.0 and -amount or 0.0,
                                         'credit': amount > 0.0 and amount or 0.0,
-                                        'account_id': self.sales_discount_account_id,
-                                        'move_id': self._origin,
-                                        'date': self.date,
+                                        'account_id': lines.product_id.categ_id.discount_account.id,
+                                        'move_id': rec._origin,
+                                        'date': rec.date,
                                         'exclude_from_invoice_tab': True,
                                         'partner_id': terms_lines.partner_id.id,
                                         'company_id': terms_lines.company_id.id,
                                         'company_currency_id': terms_lines.company_currency_id.id,
                                         }
-                                if self.type == "out_invoice":
+                                if rec.type == "out_invoice":
                                     dict.update({
                                         'debit': amount > 0.0 and amount or 0.0,
                                         'credit': amount < 0.0 and -amount or 0.0,
@@ -342,27 +360,30 @@ class AccountMove(models.Model):
                                         'debit': amount < 0.0 and -amount or 0.0,
                                         'credit': amount > 0.0 and amount or 0.0,
                                     })
+                                
                                 if in_draft_mode:
-                                    self.line_ids += create_method(dict)
+                                    rec.line_ids += create_method(dict)
+                                    # raise UserError(amount)
                                     # Updation of Invoice Line Id
                                     product = 'Discount of %s'%(lines.product_id.name)
-                                    duplicate_id = self.invoice_line_ids.filtered(
+                                    duplicate_id = rec.invoice_line_ids.filtered(
                                         lambda line: line.name and line.name.find(product) == 0)
-                                    self.invoice_line_ids = self.invoice_line_ids - duplicate_id
+                                    rec.invoice_line_ids = rec.invoice_line_ids - duplicate_id
                                 else:
+                                    # raise UserError(amount)
                                     dict.update({
                                         'price_unit': 0.0,
                                         'debit': 0.0,
                                         'credit': 0.0,
                                     })
-                                    self.line_ids = [(0, 0, dict)]
+                                    rec.line_ids = [(0, 0, dict)]
 
                             
                         if in_draft_mode:
                             # Update the payement account amount
-                            terms_lines = self.line_ids.filtered(
+                            terms_lines = rec.line_ids.filtered(
                                 lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
-                            other_lines = self.line_ids.filtered(
+                            other_lines = rec.line_ids.filtered(
                                 lambda line: line.account_id.user_type_id.type not in ('receivable', 'payable'))
                             total_balance = sum(other_lines.mapped('balance'))
                             total_amount_currency = sum(other_lines.mapped('amount_currency'))
@@ -372,12 +393,12 @@ class AccountMove(models.Model):
                                         'credit': total_balance > 0.0 and total_balance or 0.0,
                                     })
                         else:
-                            terms_lines = self.line_ids.filtered(
+                            terms_lines = rec.line_ids.filtered(
                                 lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
-                            other_lines = self.line_ids.filtered(
+                            other_lines = rec.line_ids.filtered(
                                 lambda line: line.account_id.user_type_id.type not in ('receivable', 'payable'))
                             product = 'Discount of %s'%(lines.product_id.name)
-                            already_exists = self.line_ids.filtered(
+                            already_exists = rec.line_ids.filtered(
                                 lambda line: line.name and line.name.find(product) == 0)
                             total_balance = sum(other_lines.mapped('balance')) + amount
                             total_amount_currency = sum(other_lines.mapped('amount_currency'))
@@ -389,18 +410,18 @@ class AccountMove(models.Model):
                                     'debit': total_balance < 0.0 and -total_balance or 0.0,
                                     'credit': total_balance > 0.0 and total_balance or 0.0,
                                     }
-                            self.line_ids = [(1, already_exists.id, dict1), (1, terms_lines.id, dict2)]
+                            rec.line_ids = [(1, already_exists.id, dict1), (1, terms_lines.id, dict2)]
                             print()
 
                 elif lines.discount <= 0:
                     product = 'Discount of %s'%(lines.product_id.name)
-                    already_exists = self.line_ids.filtered(
+                    already_exists = rec.line_ids.filtered(
                         lambda line: line.name and line.name.find(product) == 0)
                     if already_exists:
-                        self.line_ids -= already_exists
-                        terms_lines = self.line_ids.filtered(
+                        rec.line_ids -= already_exists
+                        terms_lines = rec.line_ids.filtered(
                             lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
-                        other_lines = self.line_ids.filtered(
+                        other_lines = rec.line_ids.filtered(
                             lambda line: line.account_id.user_type_id.type not in ('receivable', 'payable'))
                         total_balance = sum(other_lines.mapped('balance'))
                         total_amount_currency = sum(other_lines.mapped('amount_currency'))

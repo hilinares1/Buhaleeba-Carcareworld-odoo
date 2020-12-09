@@ -42,7 +42,7 @@ class StockPicking(models.Model):
         # if self.env['stock.production.lot'].search([('name','=',name),('product','=',line.product_id.id)]):
         dates = date.today()
         # random_num = random.randrange(9, 1, -2)
-        origin = self.origin.replace('PO','')
+        origin = self.origin.replace('P0','')
         name = str(origin) + "-%s%s"%(dates.strftime("%d%m%y"),self.id)
         # for line in self.move_line_ids.filtered(
         #         lambda x: (
