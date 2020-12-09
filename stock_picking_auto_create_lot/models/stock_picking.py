@@ -42,7 +42,9 @@ class StockPicking(models.Model):
         # if self.env['stock.production.lot'].search([('name','=',name),('product','=',line.product_id.id)]):
         dates = date.today()
         # random_num = random.randrange(9, 1, -2)
-        origin = self.origin.replace('P0','')
+        origin = ""
+        if self.origin:
+            origin = self.origin.replace('P0','')
         name = str(origin) + "-%s%s"%(dates.strftime("%d%m%y"),self.id)
         # for line in self.move_line_ids.filtered(
         #         lambda x: (
@@ -84,10 +86,10 @@ class StockPicking(models.Model):
                 i = i + 1
                 line.issued_lot = line.lot_id.name
 
-        if self.move_line_ids_without_package:
-            for move in self.move_line_ids_without_package:
-                if move.lot_id.name != move.issued_lot:
-                    raise UserError('The issued lot and assigned lot from system not same for this product %s'%(move.product_id.name))
+        # if self.move_line_ids_without_package:
+        #     for move in self.move_line_ids_without_package:
+        #         if move.lot_id.name != move.issued_lot:
+        #             raise UserError('The issued lot and assigned lot from system not same for this product %s'%(move.product_id.name))
 
         return super().button_validate()
 
