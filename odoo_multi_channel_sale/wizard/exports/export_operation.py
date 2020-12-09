@@ -201,7 +201,7 @@ class ExportOperation(models.TransientModel):
 				}
 				# if parent:
 				# 	category_dict.update({'parent': parent,})
-				return_dict = woocommerce.post('products/attributes/3/terms',category_dict).json()
+				return_dict = woocommerce.post('products/attributes/1/terms',category_dict).json()
 				if 'message' in return_dict:
 					raise UserError(_('Error in Creating brands : '+str(return_dict['message'])))
 				mapping_dict = {
@@ -240,7 +240,7 @@ class ExportOperation(models.TransientModel):
 					# 'parent_id'	: store_brand_id,
 				}
 				woocommerce = connect.get_woocommerce_connection()
-				return_dict = woocommerce.put('products/attributes/3/terms/'+category_map.store_brand_id,category_dict).json()
+				return_dict = woocommerce.put('products/attributes/1/terms/'+category_map.store_brand_id,category_dict).json()
 				if 'message' in return_dict:
 					raise UserError(_('Error in Updating Brands : '+str(return_dict['message'])))
 				category_map.need_sync = 'no'

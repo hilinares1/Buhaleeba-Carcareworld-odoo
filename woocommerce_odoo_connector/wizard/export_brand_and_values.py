@@ -29,7 +29,7 @@ class ExportWoocommercebrand(models.TransientModel):
                 # "has_archives"	: True
             }
             return_dict = woocommerce.post(
-                'products/attributes/3/terms', attribute_dict).json()
+                'products/attributes/1/terms', attribute_dict).json()
             if 'message' in return_dict:
                 raise UserError('Error in Creating Brands :' +
                                 str(return_dict['message']))
@@ -42,7 +42,7 @@ class ExportWoocommercebrand(models.TransientModel):
                 # "order_by"		: "menu_order",
                 # "has_archives"	: True
             }
-            url = "products/attributes/3/terms/%s"% (is_attribute_mapped.store_brand_id)
+            url = "products/attributes/1/terms/%s"% (is_attribute_mapped.store_brand_id)
             return_dict = woocommerce.put(
                 url, attribute_dict).json()
             if 'message' in return_dict:
