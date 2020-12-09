@@ -19,7 +19,7 @@
         <field name="inherit_id" ref="stock.view_stock_move_line_operation_tree" />
         <field name="arch" type="xml">
             <field name="product_uom_qty" position="before">
-                <field name="issued_lot" invisible="not context.get('show_reserved_quantity')" required="1" />
+                <field name="issued_lot" attrs="{'invisible':[('lots_visible','=',False)],'required':[('lots_visible','!=',False)],'column_invisible':[('parent.show_lots_text','=',True)]}"/>
             </field>
         </field>
     </record>
@@ -30,7 +30,7 @@
         <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree" />
         <field name="arch" type="xml">
             <field name="product_uom_qty" position="before">
-                <field name="issued_lot" attrs="{'column_invisible': ['|',('parent.immediate_transfer', '=', True),('parent.picking_type_code','=','incoming')]}" required="1"/>
+                <field name="issued_lot" attrs="{'invisible':[('lots_visible','=',False)],'required':[('lots_visible','!=',False)],'column_invisible':[('parent.show_lots_text','=',True)]}"/>
             </field>
         </field>
     </record>
