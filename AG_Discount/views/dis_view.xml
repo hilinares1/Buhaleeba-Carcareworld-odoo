@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+
+        <record id="product_category_inherits_form_dis" model="ir.ui.view">
+            <field name="name">product.category.inherits.form.dis</field>
+            <field name="model">product.category</field>
+            <field name="inherit_id" ref="product.product_category_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='property_account_expense_categ_id']" position="after">
+                    <field name="discount_account" required="1" />
+                    <field name="points_discount_account" required="1"/>
+                </xpath>
+            </field>
+        </record>
         <record id="purchase_order_inherits_form_dis" model="ir.ui.view">
             <field name="name">purchase.order.inherits.form.dis</field>
             <field name="model">purchase.order</field>
@@ -8,6 +20,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='order_line']/tree//field[@name='taxes_id']" position="before">
                     <field name="discount" />
+                    <field name="uni_discount" />
                     <field name="is_percentage" />
                 </xpath>
                 <xpath expr="//form/sheet/notebook/page[1]/group" position="after">
