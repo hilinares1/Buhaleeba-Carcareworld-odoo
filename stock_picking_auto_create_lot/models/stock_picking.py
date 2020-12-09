@@ -60,7 +60,7 @@ class StockPicking(models.Model):
         #     else:
         #         continue
         # raise UserError(name)
-        
+        ch = 0
         if self.picking_type_id.auto_create_lot:
             i = 1
             lot = {}
@@ -85,6 +85,13 @@ class StockPicking(models.Model):
                     line.lot_id = lot2.id
                 i = i + 1
                 line.issued_lot = line.lot_id.name
+                ch = 1
+        if ch == 0:
+            if self.move_line_ids_without_package:
+                for move in self.move_line_ids_without_package:
+                    if move.lot_id.name != move.issued_lot:
+                        raise UserError('The issued lot and assigned lot from system not same for this product %s'%(move.product_id.name))
+
 
         # if self.move_line_ids_without_package:
         #     for move in self.move_line_ids_without_package:
