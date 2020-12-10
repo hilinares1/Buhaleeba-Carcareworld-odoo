@@ -103,7 +103,8 @@ class MultiChannelSale(models.Model):
 			order_line_dict = {
 					'line_name'				:line['name'],
 					'line_price_unit'		:line['item_unit_price'],
-					'line_discount'         :line['total_discount_amount'],
+					'line_discount'         :self.get_woocommerce_discount_values(line['total_discount_amount'],line['discount_type'],sid),
+					'line_discount_points'  :self.get_woocommerce_discount_values_points(line['total_discount_amount'],line['discount_type'],sid),
 					'line_discount_type'    :self.get_woocommerce_discount_types(line['discount_type'],sid),
 					'line_product_id'		:product_template_id.store_product_id,
 					'line_variant_ids'		:product_template_id.store_variant_id,
@@ -138,6 +139,26 @@ class MultiChannelSale(models.Model):
 				discount = dis.create(voucher_line)
 				l.append(discount.id)
 		return [(6, None, l)]
+
+	def get_woocommerce_discount_values(self,dis_data,data,sid):
+		points = 0
+		dis = self.env['discount.type']
+		if data:
+			for type in data:
+				points_type = type['type']
+				if points_type == "Points":
+    				points += type['order_item_value']
+		return dis_data - points
+
+	def get_woocommerce_discount_values_points(self,dis_data,data,sid):
+    		points = 0
+		dis = self.env['discount.type']
+		if data:
+			for type in data:
+				points_type = type['type']
+				if points_type == "Points":
+    				points += type['order_item_value']
+		return points
 
 
 	def import_woocommerce_orders(self):
