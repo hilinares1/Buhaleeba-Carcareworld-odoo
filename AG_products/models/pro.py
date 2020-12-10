@@ -74,8 +74,8 @@ class ProductTemplate(models.Model):
             related_vals = {}
             # if vals.get('default_code','') == '':
             name = self.env['ir.sequence'].next_by_code('product.template.code') or ' '
-            vals['default_code'] =  name
-            related_vals['default_code'] = vals['default_code']
+            vals['internal_ref'] =  name
+            related_vals['internal_ref'] = vals['internal_ref']
             if related_vals:
                 template.write(related_vals)
             
@@ -96,8 +96,8 @@ class ProductProduct(models.Model):
             related_vals = {}
             # if vals.get('default_code','') == '':
             name = self.env['ir.sequence'].next_by_code('product.template.code') or ' '
-            vals['default_code'] =  name
-            related_vals['default_code'] = vals['default_code']
+            vals['internal_ref'] =  name
+            related_vals['internal_ref'] = vals['internal_ref']
             if related_vals:
                 template.write(related_vals)
         return products

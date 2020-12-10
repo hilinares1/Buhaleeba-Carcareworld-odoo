@@ -41,6 +41,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='tax_ids']" position="before">
                     <field name="discount_value" invisible="1"/>
+                    <field name="point_discount_value" />
                     <field name="discount" />
                     <field name="is_percentage" force_save="1"/>
                     <field name="is_sale" invisible="1" />
@@ -54,6 +55,7 @@
                 <xpath expr="//field[@name='line_ids']/tree//field[@name='account_id']" position="before">
                     <field name="is_percentage" invisible="1" />
                     <field name="discount_value" invisible="1" />
+                    <field name="point_discount_value" invisible="1" />
                     <field name="is_sale" invisible="1" />
                 </xpath>
                 <xpath expr="//field[@name='amount_by_group']" position="after">
@@ -133,6 +135,7 @@
                 <xpath expr="//div[@name='discount']" position="replace" />
                 <xpath expr="//field[@name='order_line']/tree//field[@name='tax_id']" position="before">
                     <field name="discount_value" />
+                    <field name="point_discount_value" />
                     <field name="discount_type" widget="many2many_tags"/>
                     <field name="is_percentage" invisible="1"/>
                 </xpath>
