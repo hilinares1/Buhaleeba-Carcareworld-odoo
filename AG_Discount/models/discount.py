@@ -237,7 +237,7 @@ class AccountMove(models.Model):
 
 
             
-
+    @api.onchange('amount_discount','line_ids')
     def ks_update_universal_discount(self):
         """This Function Updates the Universal Discount through Sale Order"""
         for rec in self:
@@ -285,7 +285,7 @@ class AccountMove(models.Model):
                     print()
 
 
-    @api.onchange('amount_discount','line_ids')
+    
     def _recompute_universal_discount_lines(self,amount,product_id):
         """This Function Create The General Entries for Universal Discount"""
         for rec in self:
