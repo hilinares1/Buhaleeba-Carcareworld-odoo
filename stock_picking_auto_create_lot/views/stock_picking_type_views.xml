@@ -20,7 +20,7 @@
         <field name="arch" type="xml">
             <field name="lot_id" position="before">
                 <field name="lots_visible" invisible="1"/>
-                <field name="issued_lot" attrs="{'invisible':[('lots_visible','=',False)],'required':[('lots_visible','!=',False)]}"/>
+                <field name="issued_lot" attrs="{'invisible':[('lots_visible','=',False)],'required':[('lots_visible','!=',False)],'column_invisible':[('parent.show_lots_text','=',True)]}"/>
             </field>
         </field>
     </record>
@@ -32,7 +32,7 @@
         <field name="arch" type="xml">
             <field name="lot_id" position="before">
                 <field name="lots_visible" invisible="1"/>
-                <field name="issued_lot" attrs="{'invisible':[('lots_visible','=',False)],'required':[('lots_visible','!=',False)]}"/>
+                <field name="issued_lot" attrs="{'invisible':[('lots_visible','=',False)],'required':[('lots_visible','!=',False),'column_invisible':[('parent.show_lots_text','=',True)]]}"/>
             </field>
         </field>
     </record>
