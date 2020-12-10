@@ -31,6 +31,7 @@ OrderFields = [
 	'line_name',
 	'line_price_unit',
 	'line_discount',
+	'line_discount_points',
 	'line_discount_type',
 	'line_product_id',
 	'line_product_default_code',
@@ -159,6 +160,7 @@ class OrderFeed(models.Model):
 		line_name = vals.pop('line_name')
 		line_price_unit = vals.pop('line_price_unit')
 		line_discount = vals.pop('line_discount')
+		line_discount_points = vals.pop('line_discount_points')
 		line_discount_type = vals.pop('line_discount_type')
 		dis_type = []
 		for type in line_discount_type:
@@ -167,6 +169,8 @@ class OrderFeed(models.Model):
 			line_price_unit = parse_float(line_price_unit)
 		if line_discount:
 			line_discount = parse_float(line_discount)
+		if line_discount_points:
+			line_discount_points = parse_float(line_discount_points)
 		line_product_id = vals.pop('line_product_id')
 		line_variant_ids = vals.pop('line_variant_ids')
 		line_product_uom_qty = vals.pop('line_product_uom_qty')
@@ -202,6 +206,9 @@ class OrderFeed(models.Model):
 					line_discount = line_id.line_discount
 					if line_discount:
 						line_discount = parse_float(line_discount)
+					line_discount_points = line_id.line_discount_points
+					if line_discount_points:
+						line_discount_points = parse_float(line_discount_points)
 					dis_type = []
 					line_discount_type = line_id.line_discount_type
 					for type in line_discount_type:
@@ -233,6 +240,7 @@ class OrderFeed(models.Model):
 							name=line_id.line_name,
 							price_unit=line_price_unit,
 							discount_value=line_discount,
+							point_discount_value=line_discount_points,
 							discount_type=[(6, None, dis_type)],
 							product_id=product_id.id,
 							customer_lead=product_id.sale_delay,

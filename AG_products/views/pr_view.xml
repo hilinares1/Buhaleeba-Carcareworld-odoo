@@ -43,7 +43,7 @@
             <field name="inherit_id" ref="product.product_template_only_form_view"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='default_code']" position="replace">
-                    <field name="default_code"/>
+                    <field name="default_code" required="1"/>
                     <field name="internal_ref" />
                     <field name="is_confirm" invisible="1" />
                     <field name="is_manager" invisible="1" />
@@ -94,7 +94,8 @@
             <field name="model">product.product</field>
             <field name="inherit_id" ref="product.product_normal_form_view"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='default_code']" position="after">
+                <xpath expr="//field[@name='default_code']" position="replace">
+                    <field name="default_code" required="1"/>
                     <field name="internal_ref"/>
                 </xpath>
             </field>
