@@ -33,6 +33,22 @@ class account_payment(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('posted', 'Validated'),('release', 'Released'),('approve', 'Reverse Approval'),('reverse', 'Reversed'), ('sent', 'Sent'), ('reconciled', 'Reconciled'), ('cancelled', 'Cancelled')], readonly=True, default='draft', copy=False, string="Status")
     currency_rate = fields.Float('Rate')
 
+
+
+    @api.model
+    def check_the_balance(self):
+        # match = self.search([('state', '=', 'open'), ('type', 'in', ['out_invoice', 'out_refund'])])
+        query = """select sum(balance) as balance from account_move_line where account_id=%s"""%(self.journal_id.default_debit_account_id.id)
+        self.env.cr.execute(query)
+        match = self.env.cr.dictfetchall()
+            
+        for res in match:
+            balance = res['balance']
+            if balance < self.amount:
+                raise UserError("There is no enough balance to proceed with this payment !!!")
+            
+        # return True
+
     @api.onchange('currency_id')
     def _currency_change(self):
         for rec in self:
@@ -855,11 +871,14 @@ class account_payment(models.Model):
         AccountMove = self.env['account.move'].with_context(default_type='entry')
         for rec in self:
 
+
             if rec.state != 'draft':
                 raise UserError(_("Only a draft payment can be posted."))
 
             if any(inv.state != 'posted' for inv in rec.invoice_ids):
                 raise ValidationError(_("The payment cannot be processed because the invoice is not open!"))
+
+            self.check_the_balance()
 
             # keep the name in case of a payment reset to draft
             if not rec.name:
