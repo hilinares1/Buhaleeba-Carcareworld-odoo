@@ -18,4 +18,22 @@
             <field name="company_id" eval="False"/>
         </record>
     </data>
+    <data>
+        <record model="mail.channel" id="channel_all_confirmed_orders">
+            <field name="name">Confirmed Orders</field>
+            <field name="group_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
+            <field name="description">General announcements for all confirmed orders.</field>
+        </record>
+
+        <record id="email_template_data_to_approve_confirmed_orders" model="mail.template">
+            <field name="name">Applicant: Confirmed Orders</field>
+            <field name="model_id" ref="sale.model_sale_order"/>
+            <field name="email_from">${object.user_id.login}</field>
+            <field name="subject">New Confirmed Orders Generated</field>
+            <field name="body_html" type="html"><p>
+                Hello there are New lead generated Please Check
+                it ${object.name}</p>
+            </field>
+        </record>
+    </data>
 </odoo>

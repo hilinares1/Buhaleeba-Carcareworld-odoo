@@ -530,6 +530,31 @@ class SaleOrder(models.Model):
     inv_count = fields.Float('Count',compute="_land_count")
     vender_flag = fields.Integer('vendor flag',default=0)
 
+   
+    def email_after_confirm(self):
+        for rec in self:
+            # rec.submit_leadd = True
+            channel_all_employees = self.env.ref('AG_purchase.channel_all_confirmed_orders').read()[0]
+            template_new_employee = self.env.ref('AG_purchase.email_template_data_to_approve_confirmed_orders').read()[0]
+            # raise ValidationError(_(template_new_employee))
+            if template_new_employee:
+                # MailTemplate = self.env['mail.template']
+                body_html = template_new_employee['body_html']
+                subject = template_new_employee['subject']
+                # raise ValidationError(_('%s %s ') % (body_html,subject))
+                ids = channel_all_employees['id']
+                channel_id = self.env['mail.channel'].search([('id', '=', ids)])
+                message = """ Hello Inventory team
+                            This order [%s] is confirmed from the sales team 
+                            
+                            Thanks"""%(rec.name)
+                channel_id.message_post(body=message, subject='Confirmed Sale Order',subtype='mail.mt_comment')
+            
+    def action_confirm(self):
+        res = super(SaleOrder,self).action_confirm()
+        self.email_after_confirm()
+        return res
+
     def _land_count(self):
         for each in self:
             land = self.env['account.move'].search([('so_link','=',self.id)])
