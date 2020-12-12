@@ -15,7 +15,7 @@
 				<xpath expr="//field[@name='bank_reference']" position="replace"/>
 				<xpath expr="//field[@name='cheque_reference']" position="replace"/>
 				<button  name="action_draft" position="replace">
-					<button name="reverse_moves" class="btn btn-secondary" attrs="{'invisible': [('state', 'not in', ['approve'])]}" string="Approve the Reversal" type="object"/>
+					<button name="reverse_moves" class="btn btn-secondary" attrs="{'invisible': [('state', 'not in', ['approve'])]}" string="Approve the Reversal" type="object" groups="AG_accounts.group_operation_manager"/>
 					<button name="reversal_approve" class="btn btn-secondary" attrs="{'invisible': [('state', 'not in', ['posted','release'])]}" string="Reversal" type="object"/>
 					<button name="relase" class="btn btn-secondary" attrs="{'invisible': ['|',('payment_method_code', '!=', 'pdc'),('state', '!=', 'posted')]}" string="Release" type="object"/>
 				</button>
