@@ -38,14 +38,15 @@ class account_payment(models.Model):
     @api.model
     def check_the_balance(self):
         # match = self.search([('state', '=', 'open'), ('type', 'in', ['out_invoice', 'out_refund'])])
-        query = """select sum(balance) as balance from account_move_line where account_id=%s"""%(self.journal_id.default_debit_account_id.id)
-        self.env.cr.execute(query)
-        match = self.env.cr.dictfetchall()
-            
-        for res in match:
-            balance = res['balance']
-            if balance < self.amount:
-                raise UserError("There is no enough balance to proceed with this payment !!!")
+        if self.payment_type == "outbound" :
+            query = """select sum(balance) as balance from account_move_line where account_id=%s"""%(self.journal_id.default_debit_account_id.id)
+            self.env.cr.execute(query)
+            match = self.env.cr.dictfetchall()
+                
+            for res in match:
+                balance = res['balance']
+                if balance < self.amount:
+                    raise UserError("There is no enough balance to proceed with this payment !!!")
             
         # return True
 
