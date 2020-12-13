@@ -24,6 +24,7 @@
 				</xpath>
 				<xpath expr="//field[@name='amount']" position="after">
 					<field name="currency_rate" attrs="{'readonly': [('state', 'not in', ['draft'])]}"/>
+					<field name="check_pay" invisible="1"/>
 				</xpath>
 				<button name="button_journal_entries" position="replace">
 					<button class="oe_stat_button" name="button_journal_entries" string="Journal Items" type="object" groups="account.group_account_user" attrs="{'invisible':[('move_line_ids','=',[])]}" icon="fa-bars"></button>

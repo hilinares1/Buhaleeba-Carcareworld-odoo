@@ -32,6 +32,7 @@ class account_payment(models.Model):
                                  default=False)
     state = fields.Selection([('draft', 'Draft'), ('posted', 'Validated'),('release', 'Released'),('approve', 'Reverse Approval'),('reverse', 'Reversed'), ('sent', 'Sent'), ('reconciled', 'Reconciled'), ('cancelled', 'Cancelled')], readonly=True, default='draft', copy=False, string="Status")
     currency_rate = fields.Float('Rate')
+    check_pay = fields.Integer('Check',default=0)
 
 
 
@@ -109,38 +110,51 @@ class account_payment(models.Model):
 
     @api.onchange('partner_id', 'currency_id')
     def onchange_partner_id(self):
-        if self.partner_id and self.payment_type != 'transfer':
-            vals = {}
-            line = [(6, 0, [])]
-            invoice_ids = []
-            if self.payment_type == 'outbound' and self.partner_type == 'supplier':
-                invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
-                                                                  ('state', '=','posted'),
-                                                                  ('type','=', 'in_invoice'),('amount_residual','!=',0.0),
-                                                                  ('currency_id', '=', self.currency_id.id)])
-            if self.payment_type == 'inbound' and self.partner_type == 'supplier':
-                invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
-                                                                  ('state', '=','posted'),
-                                                                  ('type','=', 'in_refund'),('amount_residual','!=',0.0),
-                                                                  ('currency_id', '=', self.currency_id.id)])
-            if self.payment_type == 'inbound' and self.partner_type == 'customer':
-                invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
-                                                                  ('state', '=','posted'),
-                                                                  ('type','=', 'out_invoice'),('amount_residual','!=',0.0),
-                                                                  ('currency_id', '=', self.currency_id.id)])
-            if self.payment_type == 'outbound' and self.partner_type == 'customer':
-                invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
-                                                                  ('state', '=','posted'),
-                                                                  ('type','=', 'out_refund'),('amount_residual','!=',0.0),
-                                                                  ('currency_id', '=', self.currency_id.id)])
+        if not self.invoice_ids or self.check_pay == 1:
+            if self.partner_id and self.payment_type != 'transfer':
+                vals = {}
+                line = [(6, 0, [])]
+                invoice_ids = []
+                if self.payment_type == 'outbound' and self.partner_type == 'supplier':
+                    invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
+                                                                    ('state', '=','posted'),
+                                                                    ('type','=', 'in_invoice'),('amount_residual','!=',0.0),
+                                                                    ('currency_id', '=', self.currency_id.id)])
+                if self.payment_type == 'inbound' and self.partner_type == 'supplier':
+                    invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
+                                                                    ('state', '=','posted'),
+                                                                    ('type','=', 'in_refund'),('amount_residual','!=',0.0),
+                                                                    ('currency_id', '=', self.currency_id.id)])
+                if self.payment_type == 'inbound' and self.partner_type == 'customer':
+                    invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
+                                                                    ('state', '=','posted'),
+                                                                    ('type','=', 'out_invoice'),('amount_residual','!=',0.0),
+                                                                    ('currency_id', '=', self.currency_id.id)])
+                if self.payment_type == 'outbound' and self.partner_type == 'customer':
+                    invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
+                                                                    ('state', '=','posted'),
+                                                                    ('type','=', 'out_refund'),('amount_residual','!=',0.0),
+                                                                    ('currency_id', '=', self.currency_id.id)])
 
-            for inv in invoice_ids[::-1]:
-                vals = {
-                       'invoice_id': inv.id,
-                       }
-                line.append((0, 0, vals))
-            self.invoice_lines = line
-            self.onchnage_amount() 
+                for inv in invoice_ids[::-1]:
+                    vals = {
+                        'invoice_id': inv.id,
+                        }
+                    line.append((0, 0, vals))
+                self.invoice_lines = line
+                self.onchnage_amount() 
+                self.check_pay = 1
+        # else:
+            # self.check_pay = 1
+        #     # line = [(6, 0, [])]
+        #     for inv in self.invoice_ids:
+        #         vals = {
+        #             'invoice_id': inv.id,
+        #             }
+        #         line.append((0, 0, vals))
+        #         self.invoice_lines = line
+        #         self.onchnage_amount() 
+
         
     @api.onchange('payment_type')
     def _onchange_payment_type(self):
