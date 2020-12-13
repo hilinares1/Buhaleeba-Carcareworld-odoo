@@ -277,5 +277,88 @@
             </field>
         </record>
 
+
+        <record id="stock_production_type_kanban_inherit" model="ir.ui.view">
+            <field name="name">stock.picking.type.kanban.inherit</field>
+            <field name="model">stock.picking.type</field>
+            <field name="inherit_id" ref="stock.stock_picking_type_kanban"/>
+            <field name="arch" type="xml">
+                <field name="code" position="after">
+                    <field name="count_picking_in_progress"/>
+                </field>
+
+                <!-- <xpath expr='//button[@name="get_action_picking_tree_ready"]' position="replace">
+                    <button class="btn btn-primary" name="get_action_picking_tree_ready" type="object">
+                        <span t-if="record.code.raw_value =='incoming'"><t t-esc="record.count_picking_ready.value"/> To Process</span>
+                        <span t-if="record.code.raw_value =='outgoing'"><t t-esc="record.count_picking_in_progress.value"/> To Process</span>
+                        <span t-if="record.code.raw_value =='internal'"><t t-esc="record.count_picking_ready.value"/> To Process</span>
+                    </button>
+                </xpath> -->
+
+                <xpath expr='//div[@class="col-6 o_kanban_primary_right"]' position="inside">
+                    <div t-if="record.count_picking_in_progress.raw_value > 0" class="row">
+                        <div class="col-9">
+                            <a name="get_action_picking_tree_progress" type="object">
+                                In Progress
+                            </a>
+                        </div>
+                        <div class="col-3">
+                            <field name="count_picking_in_progress"/>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_picking_internal_search_inherit" model="ir.ui.view">
+            <field name="name">view.picking.internal.search.inherit</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_internal_search"/>
+            <field name="arch" type="xml">
+                <!-- <field name="code" position="after">
+                    <field name="count_picking_in_progress"/>
+                </field> -->
+
+                <xpath expr='//filter[@name="available"]' position="after">
+                    <filter name="progress" string="In Progress" domain="[('state', '=', 'in_progress')]" help="In Progress Moves"/>
+
+                </xpath>
+            </field>
+        </record>
+
+        <record id="action_picking_tree_progress" model="ir.actions.act_window">
+            <field name="name">To Do</field>
+            <field name="res_model">stock.picking</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_mode">tree,kanban,form,calendar</field>
+            <field name="domain"></field>
+            <field name="context">{'contact_display': 'partner_address','search_default_progress':1}</field>
+            <field name="search_view_id" ref="stock.view_picking_internal_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create a new transfer
+                </p><p>
+                    Transfers allow you to move products from one location to another.
+                </p>
+            </field>
+       </record>
+
+       <record id="stock.action_picking_tree_ready" model="ir.actions.act_window">
+            <field name="name">To Do</field>
+            <field name="res_model">stock.picking</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_mode">tree,kanban,form,calendar</field>
+            <field name="domain"></field>
+            <field name="context">{'contact_display': 'partner_address', 'search_default_available': 1}</field>
+            <field name="search_view_id" ref="stock.view_picking_internal_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create a new transfer
+                </p><p>
+                    Transfers allow you to move products from one location to another.
+                </p>
+            </field>
+       </record>
+
     </data>
 </odoo>
