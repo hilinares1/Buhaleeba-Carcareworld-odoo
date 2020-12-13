@@ -466,6 +466,7 @@ class OrderFeed(models.Model):
 		else:		
 			# raise UserWarning("22222")
 			vals['shipping_id'] = channel_id.shipping_id.id
+			vals['partner_invoice_id'] = channel_id.shipping_id.id
 			vals['shipping_full'] = vals.pop('shipping_full')
 
 
