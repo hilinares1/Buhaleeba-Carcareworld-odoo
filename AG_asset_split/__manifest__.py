@@ -26,7 +26,7 @@
 
         'views/asset_split.xml',
         'views/account_view.xml',
-        'wizard/asset_dep_wizard.xml'
+        'wizard/asset_dep_wizard.xml',
     ],
     'demo': [
     ],
