@@ -39,6 +39,7 @@ class AccountAssetAssetInherit(models.Model):
     _inherit = 'account.asset.asset'
 
     sales_value = fields.Float(string='Sale Value')
+    #parent_id = fields.Many2one('account.asset.asset', help="An asset has a parent when it is the result of gaining value")
 
 class AccountAssetDepreciationLine(models.Model):
     _inherit = 'account.asset.depreciation.line'
@@ -55,7 +56,7 @@ class AccountAssetDepreciationLine(models.Model):
         prec = company_currency.decimal_places
         amount = current_currency._convert(
             line.amount, company_currency, line.asset_id.company_id, depreciation_date)
-        asset_name = line.asset_id.name + ' (%s/%s)' % (line.sequence, len(line.asset_id.depreciation_line_ids))
+        asset_name = line.asset_id.name + ' (%s/%s)' % (line.sequence, len(line.asset_id.depreciation_line_ids))+ '/' +line.asset_id.asset_code
         move_line_1 = {
             'name': asset_name,
             # 'asset_category_id': category_id.id,
@@ -81,7 +82,7 @@ class AccountAssetDepreciationLine(models.Model):
             'amount_currency': company_currency != current_currency and line.amount or 0.0,
         }
         move_vals = {
-            'ref': line.asset_id.code,
+            'ref': line.asset_id.name + '/' + line.asset_id.asset_code,
             'date': depreciation_date or False,
             'journal_id': category_id.journal_id.id,
             'categ_asset_id': category_id.id,
