@@ -140,6 +140,9 @@ class AccountMove(models.Model):
     store_order_id = fields.Char('Order_id')
     is_link_sended = fields.Integer('Is Link Sended',default=0)
     stock_adjustment_id = fields.Many2one('stock.inventory',string="Stock Adjustment ID")
+    prepare = fields.Char('Prepared by')
+    approved = fields.Char('Approved by')
+
 
 
     def write(self,vals):
@@ -275,6 +278,9 @@ class AccountMove(models.Model):
                 res._currency_change()
             else:
                 res.currency_rate = res.currency_id.rate
+            user = self.env['res.users'].search([('id','=',self.env.user.id)])
+            # raise UserError(user.name)
+            res.prepare = user.name
         return reses
 
     def send_to_approve(self):
@@ -283,6 +289,9 @@ class AccountMove(models.Model):
 
     def action_approve(self):
         for rec in self:
+            user = self.env['res.users'].search([('id','=',self.env.user.id)])
+            # raise UserError(user.name)
+            rec.approved = user.name
             rec.action_post()
             # rec.write({'state':'draft'})
     
