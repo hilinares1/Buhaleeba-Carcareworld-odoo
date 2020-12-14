@@ -412,6 +412,7 @@ class PurchaseRequisition(models.Model):
 	state = fields.Selection(PURCHASE_REQUISITION_STATES_IN,
 					                          	'Status', track_visibility='onchange', required=True,
 					                         	copy=False, default='draft')
+	date_end = fields.Date(string='Agreement Deadline', tracking=True)
 	# analytic_id =fields.Many2one('account.analytic.account',string="Project")
 	# task_id = fields.Many2one('project.task', string="Task")
 
