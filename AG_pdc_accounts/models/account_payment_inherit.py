@@ -43,10 +43,10 @@ class account_payment(models.Model):
             query = """select sum(balance) as balance from account_move_line where account_id=%s"""%(self.journal_id.default_debit_account_id.id)
             self.env.cr.execute(query)
             match = self.env.cr.dictfetchall()
-                
+            balance = 0.0
             for res in match:
                 balance = res['balance']
-                if balance < self.amount:
+                if float(balance) < self.amount:
                     raise UserError("There is no enough balance to proceed with this payment !!!")
             
         # return True
