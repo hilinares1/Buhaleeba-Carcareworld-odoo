@@ -204,6 +204,11 @@ class ImportWoocommerceOrders(models.TransientModel):
                 #  + str(line['address']) + str(line['city']) +str(line['phone'])+str(line['store_country'])
         else:
             ship = False
+        # raise UserError("%s %s"%(order['status'],order['payment_method_title']))
+        if order['status'] == 'pending processing' and order['payment_method_title'] == 'Cash on delivery':
+            shiping = True
+        else:
+            shiping = False
         
         order_dict = {
             'store_id': order['id'],
@@ -218,6 +223,7 @@ class ImportWoocommerceOrders(models.TransientModel):
             'points_amt'  : order['ysg_order_earned_points'],
             'pickup_store_details'  : pickup_store_detail,
             'states_ship'    : ship,
+            'states_shiping'    : shiping,
             'currency': order['currency'],
             'customer_name': order['billing']['first_name']+" "+order['billing']['last_name'],
             'customer_email': order['billing']['email'],
