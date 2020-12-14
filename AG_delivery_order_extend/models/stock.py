@@ -23,7 +23,7 @@ class Stock(models.Model):
              " * Ready: The transfer is ready to be processed.\n(a) The shipping policy is \"As soon as possible\": at least one product has been reserved.\n(b) The shipping policy is \"When all products are ready\": all product have been reserved.\n"
              " * Done: The transfer has been processed.\n"
              " * Cancelled: The transfer has been cancelled.")
-    store_id = fields.Char('Woocommerce Store Id',readonly=True)
+    store_id = fields.Char('Woocommerce Id',readonly=True)
     payment_method = fields.Char('Payment Method',readonly=True)
 
     #Code from Bincy commit on 28th Nov added status on delivery
