@@ -322,6 +322,7 @@ class StockPicking(models.Model):
             if rec.sale_id:
                 rec.pickup_store_details = rec.sale_id.pickup_store_details
                 rec.store_id = rec.sale_id.store_id
+                rec.payment_method = rec.sale_id.payment_method
             else:
                 rec.pickup_store_details = ""
 
