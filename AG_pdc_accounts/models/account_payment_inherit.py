@@ -45,9 +45,10 @@ class account_payment(models.Model):
             match = self.env.cr.dictfetchall()
             balance = 0.0
             for res in match:
-                balance = res['balance']
-                if float(balance) < self.amount:
-                    raise UserError("There is no enough balance to proceed with this payment !!!")
+                if res['balance']:
+                    balance = res['balance']
+                    if float(balance) < self.amount:
+                        raise UserError("There is no enough balance to proceed with this payment !!!")
             
         # return True
 
