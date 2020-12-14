@@ -24,6 +24,20 @@ from odoo import api, fields, models
 import odoo.addons.decimal_precision as dp
 from datetime import date
 
+from odoo.exceptions import except_orm, ValidationError ,UserError
+
+from ast import literal_eval
+from itertools import groupby
+from operator import itemgetter
+import time
+import dateutil.parser
+
+from odoo.osv import expression
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from odoo.tools.float_utils import float_compare, float_is_zero, float_round
+from odoo.addons.stock.models.stock_move import PROCUREMENT_PRIORITIES
+from odoo.tools.misc import formatLang, format_date, get_lang
+
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
@@ -170,13 +184,13 @@ class StockInventory(models.Model):
             dict = []
             if line.cost_difference != 0:
                 if line.difference_qty < 0 :
-                    amount = line.cost_difference * line.difference_qty
+                    amount = line.cost_difference * line.product_qty
                     dict1 = {
                             # 'move_name': self.name,
                             'name': name,
                             'price_unit': abs(line.cost_difference),
                             'product_id': line.product_id.id,
-                            'quantity': abs(line.difference_qty),
+                            'quantity': abs(line.product_qty),
                             'debit':0.0,
                             'credit': abs(amount),
                             # 'debit': self.cost_difference < 0.0 and -self.cost_difference or 0.0,
@@ -195,7 +209,7 @@ class StockInventory(models.Model):
                             'name': name,
                             'price_unit': abs(line.cost_difference),
                             'product_id': line.product_id.id,
-                            'quantity': abs(line.difference_qty),
+                            'quantity': abs(line.product_qty),
                             'debit': abs(amount),
                             'credit': 0.0,
                             # 'debit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
@@ -210,13 +224,13 @@ class StockInventory(models.Model):
                             }
                     dict.append((0,0,dict2))
                 if line.difference_qty > 0 :
-                    amount = line.cost_difference * line.difference_qty
+                    amount = line.cost_difference * line.product_qty
                     dict1 = {
                             # 'move_name': self.name,
                             'name': name,
                             'price_unit': abs(line.cost_difference),
                             'product_id': line.product_id.id,
-                            'quantity': abs(line.difference_qty),
+                            'quantity': abs(line.product_qty),
                             'debit':0.0,
                             'credit': abs(amount),
                             # 'debit': self.cost_difference < 0.0 and -self.cost_difference or 0.0,
@@ -235,7 +249,7 @@ class StockInventory(models.Model):
                             'name': name,
                             'price_unit': abs(line.cost_difference),
                             'product_id': line.product_id.id,
-                            'quantity': abs(line.difference_qty),
+                            'quantity': abs(line.product_qty),
                             'debit': abs(amount),
                             'credit': 0.0,
                             # 'debit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
@@ -249,12 +263,52 @@ class StockInventory(models.Model):
                             # 'company_currency_id': self.company_currency_id.id,
                             }
                     dict.append((0,0,dict2))
+                if line.difference_qty == 0 and line.cost_difference != 0:
+                    amount = line.cost_difference * line.product_qty
+                    dict1 = {
+                            # 'move_name': self.name,
+                            'name': name,
+                            'price_unit': abs(line.cost_difference),
+                            'product_id': line.product_id.id,
+                            'quantity': abs(line.product_qty),
+                            'debit':0.0,
+                            'credit': abs(amount),
+                            # 'debit': self.cost_difference < 0.0 and -self.cost_difference or 0.0,
+                            # 'credit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                            'account_id': line.categ_id.property_stock_valuation_account_id.id,
+                            # 'move_id': self._origin,
+                            # 'date': self.date,
+                            # 'exclude_from_invoice_tab': True,
+                            # 'partner_id': terms_lines.partner_id.id,
+                            'company_id': self.company_id.id,
+                            # 'company_currency_id': self.company_currency_id.id,
+                            }
+                    dict.append((0,0,dict1))
+                    dict2 = {
+                            # 'move_name': self.name,
+                            'name': name,
+                            'price_unit': abs(line.cost_difference),
+                            'product_id': line.product_id.id,
+                            'quantity': abs(line.product_qty),
+                            'debit': abs(amount),
+                            'credit': 0.0,
+                            # 'debit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                            # 'credit': self.cost_difference < 0.0 and -self.cost_difference or 0.0 ,
+                            'account_id': line.categ_id.property_stock_account_output_categ_id.id,
+                            # 'move_id': self._origin,
+                            # 'date': self.date,
+                            # 'exclude_from_invoice_tab': True,
+                            # 'partner_id': terms_lines.partner_id.id,
+                            'company_id': self.company_id.id,
+                            # 'company_currency_id': self.company_currency_id.id,
+                            }
+                    dict.append((0,0,dict2))
             # val.append((0,0,order_line))
             # moveid = False
             # for move in self.move_ids:
             #     if move.product_id.id == line.product_id.id:
             #         moveid = move.id
-            if line.difference_qty != 0:
+            if line.difference_qty != 0 or line.cost_difference != 0:
                 vals = {
                     # 'partner_id': self.shipping_id.id,
                     'ref': name,

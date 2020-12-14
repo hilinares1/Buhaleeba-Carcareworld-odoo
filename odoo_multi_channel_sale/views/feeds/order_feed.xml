@@ -167,6 +167,11 @@
 									name       ="states_ship"
 									readonly   = "1"
 								/>
+								<field
+									name       ="states_shiping"
+									invisible="1"
+									readonly   = "1"
+								/>
 							</group>
 						</group>
 						<notebook name='info'>

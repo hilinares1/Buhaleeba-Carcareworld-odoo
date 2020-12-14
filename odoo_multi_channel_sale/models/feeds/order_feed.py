@@ -26,6 +26,7 @@ OrderFields = [
 	'points_amt',
 	'pickup_store_details',
 	'states_ship',
+	'states_shiping',
 	'confirmation_date',
 	'line_ids',
 	'line_name',
@@ -94,6 +95,7 @@ class OrderFeed(models.Model):
 	points_amt = fields.Float('Points')
 	pickup_store_details = fields.Text('Pickup store Details')
 	states_ship = fields.Boolean('status')
+	states_shiping = fields.Boolean('status')
 
 	same_shipping_billing = fields.Boolean(
 		string  = 'Shipping Address Same As Billing',
@@ -466,8 +468,12 @@ class OrderFeed(models.Model):
 		else:		
 			# raise UserWarning("22222")
 			vals['shipping_id'] = channel_id.shipping_id.id
-			vals['partner_invoice_id'] = channel_id.shipping_id.id
+			
 			vals['shipping_full'] = vals.pop('shipping_full')
+		# statess = vals.pop('order_state')
+		# payment_method = vals.pop('payment_method_title')
+		if vals.pop('states_shiping') == True:
+			vals['partner_invoice_id'] = channel_id.shipping_id.id
 
 
 		if match and match.order_name:
