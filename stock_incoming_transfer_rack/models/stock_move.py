@@ -18,7 +18,7 @@ class StockMoveLine(models.Model):
 
     rack_shelf_id = fields.Many2one(
         'stock.rack.shelf',
-        string='Rack / Shelf',compute='onchange_lot_id',store=True
+        string='Rack / Shelf'
     )#SMA13
     custom_quant_id = fields.Many2one(
         'stock.quant',
@@ -45,7 +45,7 @@ class StockMoveLine(models.Model):
             if rack:
                 rec.rack_shelf_id = rack[0].rack_shelf_id.id
             else:
-                ec.rack_shelf_id = False
+                rec.rack_shelf_id = False
 
 
 
