@@ -40,6 +40,16 @@
                     <field name="tax_ids" string="VAT" widget="many2many_tags" domain="[('type_tax_use', '=?', parent.invoice_filter_type_domain), ('company_id', '=', parent.company_id)]" context="{'append_type_to_tax_name': not parent.invoice_filter_type_domain}" options="{'no_create': True}" optional="show"/>
                     <!--<field name="price_tax" invisible="""/>-->
                 </xpath>
+                <xpath expr="//group[1]" position="after">
+                    <group aattrs="{'invisible': [('type', '!=', 'entry')]}">
+                        <group>
+                            <field name="prepare" />
+                        </group>
+                        <group>
+                            <field name="approved"/>
+                        </group>
+                    </group>       
+                </xpath>
                 
             </field>
         </record>

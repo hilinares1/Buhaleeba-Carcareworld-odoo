@@ -105,6 +105,42 @@
                       </tr>
                     </tbody>
                 </table>
+
+                <br/><br/>
+            <div class="row" id="journal_information2">
+                    <div class="col-5">
+                        <div>
+                            <strong>Prepared by :</strong>
+                            <p t-field="o.prepare"/>
+                        </div>
+
+                        <!-- <div class="text-left" style="margin-top:250px;">
+                            <strong>Checked by:</strong>
+                            <p t-field="o.checked"/>
+                        </div> -->
+                        <!--<div class="text-left" style="margin-top:250px;">-->
+                        <!--    <strong>Verified by:</strong>-->
+                        <!--    <p t-field="o.verified"/>-->
+                        <!--</div>-->
+                    </div>  
+               
+                    <div class="col-5">
+                        <div>
+                            <strong>Approved by :</strong>
+                            <p t-field="o.approved"/>
+                        </div>
+                        <!-- <div class="text-left" style="margin-top:250px;">
+                            <strong>Received by :</strong>
+                            <p t-field="o.received"/>
+                        </div> -->
+                    </div>  
+                    <div class="col-5">
+                        <!-- <div class="text-left" style="margin-top:250px;">
+                            <strong>Verified by:</strong>
+                            <p t-field="o.verified"/>
+                        </div> -->
+                    </div> 
+                </div>
               
                 
                
