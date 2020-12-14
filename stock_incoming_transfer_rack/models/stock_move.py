@@ -38,6 +38,14 @@ class StockMoveLine(models.Model):
             
             return [('id','in',rac)]
 
+    @api.onchange('lot_id')
+    def onchange_lot_id(self):
+        for rec in self:
+            rack = self.env['stock.quant'].search([('product_id','=',rec.product_id.id),('lot_id','=',rec.lot_id.id)])
+            if rack:
+                rec.rack_shelf_id = rack[0].rack_shelf_id.id
+
+
 
     def _action_done(self):
         """ This method is called during a move's `action_done`. It'll actually move a quant from

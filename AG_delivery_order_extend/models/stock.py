@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import api, fields, models, SUPERUSER_ID, _
+from odoo.exceptions import except_orm, ValidationError ,UserError
 
 class Stock(models.Model):
     _inherit = 'stock.picking'
@@ -45,6 +46,10 @@ class Stock(models.Model):
         tracking=True)
 
     def custom_picking_delivered(self):
+        if self.move_line_ids_without_package:
+            for move in self.move_line_ids_without_package:
+                if move.lot_id.name != move.issued_lot:
+                    raise UserError('The issued lot and assigned lot from system not same for this product %s'%(move.product_id.name))
         self.state = 'assigned'
 
     def custom_picking_complete(self):
