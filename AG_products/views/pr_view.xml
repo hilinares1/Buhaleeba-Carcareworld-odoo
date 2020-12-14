@@ -20,6 +20,12 @@
                             attrs="{'invisible': ['|', ('attribute_line_ids', '&lt;=', 0),'|',('state','!=','confirmed'), ('is_product_variant', '=', True)]}"
                             groups="product.group_product_variant"/>
                 </xpath>
+                <xpath expr="//notebook/page[@name='general_information']/group[2]" position="replace">
+                    <group string="Woocommerce Long Description">
+                        <field name="description" nolabel="1" placeholder="This note is only for internal purposes."/>
+                    </group>
+                </xpath>
+
                 
             </field>
         </record>

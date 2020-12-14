@@ -57,7 +57,7 @@
                                     <field name="description" />
                                     <field name="qty" />
                                     <field name="available_qty" readonly="1"/>
-                                    <field name="forcasted_qty" readonly="1"/>
+                                    <field name="forcasted_qty" invisible="1" readonly="1"/>
                                     <field name="uom_id" />
                                 </tree>
                             </field>
