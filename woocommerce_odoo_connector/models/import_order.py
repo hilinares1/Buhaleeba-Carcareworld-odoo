@@ -220,6 +220,11 @@ class MultiChannelSale(models.Model):
 										#  + str(line['address']) + str(line['city']) +str(line['phone'])+str(line['store_country'])
 								else:
 									ship = False
+								# raise UserError("%s %s"%(order['status'],order['payment_method_title']))
+								if order['status'] == 'pending processing' and order['payment_method_title'] == 'Cash on delivery':
+									shiping = True
+								else:
+									shiping = False
 								order_dict={
 											'store_id'		 : order['id'],
 											'channel_id'	 : self.id,
@@ -232,6 +237,7 @@ class MultiChannelSale(models.Model):
 											'points_amt'  : order['ysg_order_earned_points'],
 											'pickup_store_details'  : pickup_store_detail,
 											'states_ship'    : ship,
+											'states_shiping'    : shiping,
 											'currency'		 : order['currency'],
 											'customer_name'  : customer['first_name'] +" "+customer['last_name'],
 											'customer_email' : customer['email'],
@@ -344,6 +350,12 @@ class MultiChannelSale(models.Model):
 										#  + str(line['address']) + str(line['city']) +str(line['phone'])+str(line['store_country'])
 								else:
 									ship = False
+
+								# raise UserError("%s %s"%(order['status'],order['payment_method_title']))
+								if order['status'] == 'pending processing' and order['payment_method_title'] == 'Cash on delivery':
+									shiping = True
+								else:
+									shiping = False
 								order_dict={
 											'store_id'		 : order['id'],
 											'channel_id'	 : self.id,
@@ -356,6 +368,7 @@ class MultiChannelSale(models.Model):
 											'points_amt'  : order['ysg_order_earned_points'],
 											'pickup_store_details'  : pickup_store_detail,
 											'states_ship'    : ship,
+											'states_shiping'    : shiping,
 											'currency'		 : order['currency'],
 											'customer_name'  : customer['first_name'] +" "+customer['last_name'],
 											'customer_email' : customer['email'],
