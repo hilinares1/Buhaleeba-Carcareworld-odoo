@@ -26,7 +26,7 @@
                 <xpath expr="//div[@class='oe_title']" position="after">
                     <div name="options_customers">
                         <div>
-                            <field name="partner_type" widget="radio"/>
+                            <field name="partner_type" invisible="1" widget="radio"/>
                             <!-- <label for="partner_type"/> -->
                         </div>
                         <!-- <div>
