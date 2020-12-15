@@ -110,7 +110,7 @@ class StockInventory(models.Model):
         self.env['stock.quant'].flush(
             ['company_id', 'product_id', 'quantity', 'location_id', 'lot_id', 'package_id', 'owner_id'])
         self.env['product.product'].flush(['active'])
-        self.env.cr.execute("""SELECT sq.product_id, sum(sq.quantity) as product_qty, sq.location_id, sq.lot_id as prod_lot_id, sq.package_id, sq.owner_id as partner_id,
+        self.env.cr.execute("""SELECT sq.product_id, sum(sq.quantity) as product_qty, sq.location_id, sq.lot_id as prod_lot_id, sq.package_id, sq.owner_id as partner_id
                FROM stock_quant sq
                LEFT JOIN product_product pp
                ON pp.id = sq.product_id
