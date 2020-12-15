@@ -23,6 +23,9 @@
                     <field name="uni_discount" />
                     <field name="is_percentage" />
                 </xpath>
+                <xpath expr="//field[@name='amount_tax']" position="after">
+                    <field name="dicount_sum" />
+                </xpath>
                 <xpath expr="//form/sheet/notebook/page[1]/group" position="after">
                     <div class="ks_container">
                         <label for="total_discount" string="Discount Amount:" />
