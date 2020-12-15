@@ -21,7 +21,7 @@
     'name': 'Purchase Consigment',
     'category': 'Purchase',
     'summary': "Vendor creation and GRN",
-    'depends': ['stock','purchase','AG_purchase','AG_products','stock_incoming_transfer_rack'],
+    'depends': ['stock','purchase','AG_purchase','AG_products'],
     'data': [
         'views/purchase_consignment.xml',
         'views/product_template.xml',
