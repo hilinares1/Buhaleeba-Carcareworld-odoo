@@ -81,10 +81,10 @@
                                                         <span t-esc="move.product_id.display_name"/>
                                                     </th>
                                                 </tr>
-                                                 <t t-if="move_line.rack_shelf_id">
+                                                 <t t-if="move_line.location_dest_id">
                                                     <tr>
                                                         <td class="text-center align-middle">
-                                                            <span t-esc="move_line.rack_shelf_id.complete_name"/>
+                                                            <span t-esc="move_line.location_dest_id.complete_name"/>
                                                         </td>
                                                     </tr>
                                                 </t>

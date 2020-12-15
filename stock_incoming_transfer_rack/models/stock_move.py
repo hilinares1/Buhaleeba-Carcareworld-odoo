@@ -115,8 +115,8 @@ class StockMoveLine(models.Model):
         for ml in self - ml_to_delete:
             if ml.product_id.type == 'product':
 
-                if ml.picking_id.picking_type_code == 'incoming' and not (ml.rack_shelf_id or ml.custom_source_rack_shelf_id):
-                    raise UserError('Kindly assign Rack/Shelf to product %s' % (ml.product_id.name))
+                # if ml.picking_id.picking_type_code == 'incoming' and not (ml.rack_shelf_id or ml.custom_source_rack_shelf_id):
+                #     raise UserError('Kindly assign Rack/Shelf to product %s' % (ml.product_id.name))
 
                 rounding = ml.product_uom_id.rounding
 
@@ -169,9 +169,9 @@ class StockPicking(models.Model):
 
     def button_validate(self):
 
-        for move in self.move_line_ids:#SMA13
-            if move.picking_id.picking_type_code == 'incoming' and not(move.rack_shelf_id or move.custom_source_rack_shelf_id) :
-                raise UserError('Kindly assign Rack/Shelf to product %s' % (move.product_id.name))
+        # for move in self.move_line_ids:#SMA13
+        #     if move.picking_id.picking_type_code == 'incoming' and not(move.rack_shelf_id or move.custom_source_rack_shelf_id) :
+        #         raise UserError('Kindly assign Rack/Shelf to product %s' % (move.product_id.name))
 
         return super().button_validate()
 

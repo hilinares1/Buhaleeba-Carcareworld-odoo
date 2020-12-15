@@ -34,10 +34,10 @@
             <field name="model">stock.inventory</field>
             <field name="inherit_id" ref="stock.view_inventory_form"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='product_ids']" position="after">
+                <!-- <xpath expr="//field[@name='product_ids']" position="after">
                    <field name="rack_shelf_ids" widget="many2many_tags" options="{'no_create': True}"/>
-                </xpath>
-                 <xpath expr="//field[@name='rack_shelf_ids']" position="after">
+                </xpath> -->
+                 <xpath expr="//field[@name='product_ids']" position="after">
                 <field name="owner_ids" widget="many2many_tags" options="{'no_create': True}"/>
                 </xpath>
                 <xpath expr="//field[@name='accounting_date']" position="attributes">
@@ -46,7 +46,7 @@
             </field>
          </record>
 
-        <record id="stock_inventory_line_inherited_cus_tree" model="ir.ui.view">
+        <!-- <record id="stock_inventory_line_inherited_cus_tree" model="ir.ui.view">
             <field name="name">stock.inventory.line.inherited.cus.tree</field>
             <field name="model">stock.inventory.line</field>
             <field name="inherit_id" ref="stock.stock_inventory_line_tree"/>
@@ -56,7 +56,7 @@
                 </xpath>
 
             </field>
-         </record>
+         </record> -->
 
         <record id="stock_inventory_line_inherited_cus_tree2" model="ir.ui.view">
             <field name="name">stock.inventory.line.inherited.cus.tree2</field>
@@ -64,7 +64,7 @@
             <field name="inherit_id" ref="stock.stock_inventory_line_tree2"/>
 <!--            <field name="groups_id" eval="[(6, 0, [ref('stock.group_stock_user')])]"/>-->
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='location_id']" position="after">
+                <!-- <xpath expr="//field[@name='location_id']" position="after">
                    <field name="rack_id" groups="stock.group_stock_multi_locations"
                        options="{'no_create': True}"
                        invisible="context.get('readonly_rack_id', False)"
@@ -72,7 +72,7 @@
                        attrs="{'readonly': ['|',
                             ('is_editable', '=', False),
                             ('state', '!=', 'confirm')]}"/>
-                </xpath>
+                </xpath> -->
                  <xpath expr="//field[@name='theoretical_qty']" position="attributes">
                    <attribute name="groups">stock.group_stock_manager</attribute>
                 </xpath>

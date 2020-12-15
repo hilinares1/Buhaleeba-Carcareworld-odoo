@@ -12,7 +12,7 @@
     'website': 'www.odoo.com',
     'images': [],
     'live_test_url': '',
-    'depends': ['base', 'stock', 'stock_incoming_transfer_rack'],
+    'depends': ['base', 'stock'],
     'data': [
         'report/inventory_report_extend.xml',
         'report/inventory_picking_report_extend.xml'
