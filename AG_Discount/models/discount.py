@@ -25,6 +25,16 @@ class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
 
     total_discount = fields.Float('Discount')
+    dicount_sum = fields.Float('Total Discount',computed='get_total_discount')
+
+    @api.onchange('order_line')
+    def get_total_discount(self):
+        for rec in self:
+            discount = 0.0
+            for line in rec.order_line:
+                discount += (line.product_qty * line.price_unit) - line.price_subtotal
+            rec.dicount_sum = discount
+
 
     def compute_discount(self):
         for rec in self:
