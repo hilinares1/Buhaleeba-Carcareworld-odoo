@@ -47,9 +47,9 @@ class PurchaseOrder(models.Model):
 class PurchaseOrderLine(models.Model):
     _inherit = "purchase.order.line" 
 
-    is_percentage = fields.Boolean('Is Discount (%)',default=False)
+    is_percentage = fields.Boolean('Is %',default=False)
     discount = fields.Float('Discount')
-    uni_discount = fields.Float('UNI Disc.')
+    uni_discount = fields.Float('Global')
 
     @api.depends('product_qty', 'price_unit', 'taxes_id','discount','uni_discount','is_percentage')
     def _compute_amount(self):
@@ -744,7 +744,7 @@ class AccountMove(models.Model):
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
-    is_percentage = fields.Boolean('Is Discount (%)',index=True,store=True)
+    is_percentage = fields.Boolean('Is %',index=True,store=True)
     discount = fields.Float('Discount',store=True)
     discount_value = fields.Float(string='Discount', digits='Discount', default=0.0,)
     is_sale = fields.Boolean('From sale',default=False)
@@ -1031,7 +1031,7 @@ class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
     discount_type = fields.Many2many('discount.type',string="Discount Type")
-    is_percentage = fields.Boolean('Is Discount (%)',index=True,store=True)
+    is_percentage = fields.Boolean('Is %',index=True,store=True)
     discount_value = fields.Float(string='Discount', digits='Discount', default=0.0)
     point_discount_value = fields.Float(string='Points Disc', digits='Discount', default=0.0)
 

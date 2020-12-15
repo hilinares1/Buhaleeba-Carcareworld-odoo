@@ -37,7 +37,7 @@ class PurchaseOrder(models.Model):
                                  "computed automatically when the purchase order is created.")
     interchanging_rfq_sequence = fields.Char('Sequence', copy=False)
     interchanging_po_sequence = fields.Char('Sequence', copy=False)
-    currency_value = fields.Float('Cuurency after rate',compute="_get_curreny_value")
+    currency_value = fields.Float('Currency After Rate',compute="_get_curreny_value")
 
     @api.depends('currency_rate')
     def _get_curreny_value(self):
@@ -661,7 +661,19 @@ class KSResConfigSettings(models.TransientModel):
     sister_company_receivable_account = fields.Many2one('account.account', string="Sister Company Receivable Account", related='company_id.sister_company_receivable_account', readonly=False)
     sister_company_payable_account = fields.Many2one('account.account', string="Sister Company Payable Account", related='company_id.sister_company_payable_account', readonly=False)
     
+class LandedCostLine(models.Model):
+    _inherit = 'stock.landed.cost.lines'
 
+    @api.onchange('product_id')
+    def onchange_product_id(self):
+        res = super(LandedCostLine,self).onchange_product_id()
+        if self.product_id:
+            if self.product_id.product_tmpl_id.property_account_expense_id.id:
+                self.account_id = self.product_id.product_tmpl_id.property_account_expense_id.id
+            else:
+                raise UserError('Please set the expense account in %s master'%(self.product_id.name))
+
+        return res
 
 
 
