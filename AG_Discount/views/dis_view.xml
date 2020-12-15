@@ -24,7 +24,7 @@
                     <field name="is_percentage" />
                 </xpath>
                 <xpath expr="//field[@name='amount_tax']" position="after">
-                    <field name="dicount_sum" />
+                    <field name="dicount_sum" readonly="1"/>
                 </xpath>
                 <xpath expr="//form/sheet/notebook/page[1]/group" position="after">
                     <div class="ks_container">
