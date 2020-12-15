@@ -1270,6 +1270,8 @@ class account_payment(models.Model):
         refund_method = (len(moves) > 1 or moves.type == 'entry') and 'cancel' or 'refund'
         default_values_list = []
         for move in moves:
+            # move.button_cancel()
+            move.button_draft()
             move.button_cancel()
             default_values_list.append(self._prepare_default_reversal(move))
 
