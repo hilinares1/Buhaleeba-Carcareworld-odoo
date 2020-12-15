@@ -11,7 +11,7 @@ class ProductTemplate(models.Model):
 class StockInventory(models.Model):
     _inherit = "stock.inventory"
 
-    rack_shelf_ids = fields.Many2many('stock.rack.shelf',string='Rack/Shelf ID', states={'draft': [('readonly', False)]})
+    # rack_shelf_ids = fields.Many2many('stock.rack.shelf',string='Rack/Shelf ID', states={'draft': [('readonly', False)]})
     owner_ids = fields.Many2many('res.partner',string='Owner', states={'draft': [('readonly', False)]})
 
     def action_start(self):
@@ -55,9 +55,9 @@ class StockInventory(models.Model):
             if len(self.owner_ids) == 1:
                 context['default_partner_id'] = self.owner_ids[0].id
 
-        if self.rack_shelf_ids:
-            if len(self.rack_shelf_ids) == 1:
-                context['default_rack_shelf_id'] = self.rack_shelf_ids[0].id
+        # if self.rack_shelf_ids:
+        #     if len(self.rack_shelf_ids) == 1:
+        #         context['default_rack_shelf_id'] = self.rack_shelf_ids[0].id
 
         action['context'] = context
         action['domain'] = domain
@@ -103,20 +103,19 @@ class StockInventory(models.Model):
             domain += ' AND sq.owner_id in %s'
             args += (tuple(self.owner_ids.ids),)
 
-        if self.rack_shelf_ids:
-            domain += 'AND sq.rack_shelf_id in %s'
-            args += (tuple(self.rack_shelf_ids.ids),)
+        # if self.rack_shelf_ids:
+        #     domain += 'AND sq.rack_shelf_id in %s'
+        #     args += (tuple(self.rack_shelf_ids.ids),)
 
         self.env['stock.quant'].flush(
-            ['company_id', 'product_id', 'quantity', 'location_id', 'lot_id', 'package_id', 'owner_id','rack_shelf_id'])
+            ['company_id', 'product_id', 'quantity', 'location_id', 'lot_id', 'package_id', 'owner_id'])
         self.env['product.product'].flush(['active'])
-        self.env.cr.execute("""SELECT sq.product_id, sum(sq.quantity) as product_qty, sq.location_id, sq.lot_id as prod_lot_id, sq.package_id, sq.owner_id as partner_id, 
-                sq.rack_shelf_id as rack_id
+        self.env.cr.execute("""SELECT sq.product_id, sum(sq.quantity) as product_qty, sq.location_id, sq.lot_id as prod_lot_id, sq.package_id, sq.owner_id as partner_id,
                FROM stock_quant sq
                LEFT JOIN product_product pp
                ON pp.id = sq.product_id
                WHERE %s
-               GROUP BY sq.product_id, sq.location_id, sq.lot_id, sq.package_id, sq.owner_id ,sq.rack_shelf_id """ % domain, args)
+               GROUP BY sq.product_id, sq.location_id, sq.lot_id, sq.package_id, sq.owner_id """ % domain, args)
 
         for product_data in self.env.cr.dictfetchall():
             product_data['company_id'] = self.company_id.id
@@ -134,10 +133,10 @@ class StockInventory(models.Model):
         return vals
 
 
-class InventoryLine(models.Model):
-    _inherit = "stock.inventory.line"
+# class InventoryLine(models.Model):
+#     _inherit = "stock.inventory.line"
 
-    rack_id = fields.Many2one('stock.rack.shelf',string='Rack/Shelf ID')
+#     rack_id = fields.Many2one('stock.rack.shelf',string='Rack/Shelf ID')
                                     # domain=lambda self: self._domain_rack_shelf_ids())
     #
     # @api.model
