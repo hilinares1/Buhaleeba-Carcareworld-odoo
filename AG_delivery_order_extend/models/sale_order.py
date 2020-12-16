@@ -26,8 +26,7 @@ class SaleOrder(models.Model):
 
         for do_pick in self.picking_ids:
             do_pick.write({'payment_method': self.payment_method,
-                           'store_id':self.store_id,
-                           'woo_status':self.woo_status})
+                           'store_id':self.store_id})
 
         return res
 
