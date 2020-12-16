@@ -448,49 +448,132 @@ class AccountMove(models.Model):
                                 and (rec.type == "out_invoice"
                                     or rec.type == "out_refund"):
                             # amount = lines.discount
-                            dict = {
-                                    'move_name': rec.name,
-                                    'name': ks_name,
-                                    'price_unit': amount,
-                                    'product_id': product_id.id,
-                                    'quantity': 1,
-                                    'debit': amount < 0.0 and -amount or 0.0,
-                                    'credit': amount > 0.0 and amount or 0.0,
-                                    'account_id': accounts,
-                                    'move_id': rec._origin,
-                                    'date': rec.date,
-                                    'exclude_from_invoice_tab': True,
-                                    'partner_id': terms_lines.partner_id.id,
-                                    'company_id': terms_lines.company_id.id,
-                                    'company_currency_id': terms_lines.company_currency_id.id,
-                                    }
-                            if rec.type == "out_invoice":
-                                dict.update({
-                                    'debit': amount > 0.0 and amount or 0.0,
-                                    'credit': amount < 0.0 and -amount or 0.0,
-                                })
+                            if points == True:
+                                dict = {
+                                        'move_name': rec.name,
+                                        'name': ks_name,
+                                        'price_unit': amount,
+                                        'product_id': product_id.id,
+                                        'quantity': 1,
+                                        'debit': amount < 0.0 and -amount or 0.0,
+                                        'credit': amount > 0.0 and amount or 0.0,
+                                        'account_id': accounts,
+                                        'move_id': rec._origin,
+                                        'date': rec.date,
+                                        'exclude_from_invoice_tab': True,
+                                        'partner_id': terms_lines.partner_id.id,
+                                        'company_id': terms_lines.company_id.id,
+                                        'company_currency_id': terms_lines.company_currency_id.id,
+                                        }
+                                if rec.type == "out_invoice":
+                                    dict.update({
+                                        'debit': amount > 0.0 and amount or 0.0,
+                                        'credit': amount < 0.0 and -amount or 0.0,
+                                    })
+                                else:
+                                    dict.update({
+                                        'debit': amount < 0.0 and -amount or 0.0,
+                                        'credit': amount > 0.0 and amount or 0.0,
+                                    })
+                                
+                                if in_draft_mode:
+                                    rec.line_ids += create_method(dict)
+                                    # raise UserError(amount)
+                                    # Updation of Invoice Line Id
+                                    product = 'Discount of %s'%(product_id.name)
+                                    duplicate_id = rec.invoice_line_ids.filtered(
+                                        lambda line: line.name and line.name.find(product) == 0)
+                                    rec.invoice_line_ids = rec.invoice_line_ids - duplicate_id
+                                else:
+                                    # raise UserError(amount)
+                                    # dict.update({
+                                    #     'price_unit': 0.0,
+                                    #     'debit': 0.0,
+                                    #     'credit': 0.0,
+                                    # })
+                                    rec.line_ids = [(0, 0, dict)]
+                                dictt = []
+                                dict1 = {
+                                        # 'move_name': self.name,
+                                        'name': "Redeem Points",
+                                        'price_unit': amount,
+                                        'product_id': product_id.id,
+                                        'quantity': 1,
+                                        'debit':amount,
+                                        'credit': 0.0,
+                                        'account_id': rec.points_crebit_account_id.id,
+                                        # 'move_id': self._origin,
+                                        # 'date': self.date,
+                                        'exclude_from_invoice_tab': True,
+                                        # 'partner_id': terms_lines.partner_id.id,
+                                        'company_id': terms_lines.company_id.id,
+                                        # 'company_currency_id': terms_lines.company_currency_id.id,
+                                        }
+                                dictt.append((0,0,dict1))
+                                dict2 = {
+                                        # 'move_name': self.name,
+                                        'name': "Redeem Points",
+                                        'price_unit': amount,
+                                        'product_id': product_id.id,
+                                        'quantity': 1,
+                                        'debit': 0.0,
+                                        'credit': amount,
+                                        'account_id': rec.points_debit_account_id.id,
+                                        # 'move_id': self._origin,
+                                        # 'date': self.date,
+                                        'exclude_from_invoice_tab': True,
+                                        # 'partner_id': terms_lines.partner_id.id,
+                                        'company_id': terms_lines.company_id.id,
+                                        'company_currency_id': terms_lines.company_currency_id.id,
+                                        }
+                                dictt.append((0,0,dict2))
+                                # res.update({'line_ids':dictt})
+                                rec.line_ids = dictt
+
                             else:
-                                dict.update({
-                                    'debit': amount < 0.0 and -amount or 0.0,
-                                    'credit': amount > 0.0 and amount or 0.0,
-                                })
-                            
-                            if in_draft_mode:
-                                rec.line_ids += create_method(dict)
-                                # raise UserError(amount)
-                                # Updation of Invoice Line Id
-                                product = 'Discount of %s'%(product_id.name)
-                                duplicate_id = rec.invoice_line_ids.filtered(
-                                    lambda line: line.name and line.name.find(product) == 0)
-                                rec.invoice_line_ids = rec.invoice_line_ids - duplicate_id
-                            else:
-                                # raise UserError(amount)
-                                # dict.update({
-                                #     'price_unit': 0.0,
-                                #     'debit': 0.0,
-                                #     'credit': 0.0,
-                                # })
-                                rec.line_ids = [(0, 0, dict)]
+                                dict = {
+                                        'move_name': rec.name,
+                                        'name': ks_name,
+                                        'price_unit': amount,
+                                        'product_id': product_id.id,
+                                        'quantity': 1,
+                                        'debit': amount < 0.0 and -amount or 0.0,
+                                        'credit': amount > 0.0 and amount or 0.0,
+                                        'account_id': accounts,
+                                        'move_id': rec._origin,
+                                        'date': rec.date,
+                                        'exclude_from_invoice_tab': True,
+                                        'partner_id': terms_lines.partner_id.id,
+                                        'company_id': terms_lines.company_id.id,
+                                        'company_currency_id': terms_lines.company_currency_id.id,
+                                        }
+                                if rec.type == "out_invoice":
+                                    dict.update({
+                                        'debit': amount > 0.0 and amount or 0.0,
+                                        'credit': amount < 0.0 and -amount or 0.0,
+                                    })
+                                else:
+                                    dict.update({
+                                        'debit': amount < 0.0 and -amount or 0.0,
+                                        'credit': amount > 0.0 and amount or 0.0,
+                                    })
+                                
+                                if in_draft_mode:
+                                    rec.line_ids += create_method(dict)
+                                    # raise UserError(amount)
+                                    # Updation of Invoice Line Id
+                                    product = 'Discount of %s'%(product_id.name)
+                                    duplicate_id = rec.invoice_line_ids.filtered(
+                                        lambda line: line.name and line.name.find(product) == 0)
+                                    rec.invoice_line_ids = rec.invoice_line_ids - duplicate_id
+                                else:
+                                    # raise UserError(amount)
+                                    # dict.update({
+                                    #     'price_unit': 0.0,
+                                    #     'debit': 0.0,
+                                    #     'credit': 0.0,
+                                    # })
+                                    rec.line_ids = [(0, 0, dict)]
                                 
 
                         

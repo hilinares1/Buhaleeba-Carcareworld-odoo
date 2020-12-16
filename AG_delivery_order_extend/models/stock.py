@@ -44,7 +44,7 @@ class Stock(models.Model):
         ('cancel-request', 'Cancelled'),
         ('not', 'Not sales picking'),
         ('cancelled', 'Cancelled')
-    ], string='Woo-commerce Status', readonly=True, index=True,store=True, copy=False, compute="_get_woo_status", tracking=True)
+    ], string='Woo-commerce Status', readonly=True,copy=False, compute="_get_woo_status")
     
 
     @api.depends('sale_id')
