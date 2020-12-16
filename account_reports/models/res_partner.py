@@ -20,3 +20,14 @@ class ResPartner(models.Model):
             move_msg = _('Expected pay date has been changed from %s to %s') % (old_date or _('any'), aml.expected_pay_date)
             aml.move_id.message_post(body=move_msg)
         return True
+
+
+    def open_partner_ledger(self):
+        return {
+            'type': 'ir.actions.client',
+            'name': _('Partner Ledger'),
+            'tag': 'account_report',
+            'options': {'partner_ids': [self.id]},
+            'ignore_session': 'both',
+            'context': "{'model':'account.partner.ledger'}"
+        }
