@@ -625,8 +625,8 @@ class SaleOrder(models.Model):
     def _prepare_invoice(self):
         res = super(SaleOrder, self)._prepare_invoice()
         for rec in self:
-            if rec.points_amt:
-                if self.channel_mapping_ids:
+            if self.channel_mapping_ids:
+                if rec.points_amt:
                     # raise UserError("BOOOOOOOO")
                     res.update({
                         'points_amt':rec.points_amt,
@@ -639,7 +639,9 @@ class SaleOrder(models.Model):
                 else:
                     # raise UserError("BLLLLLLLLLLLLLLL")
                     res.update({
-                        'points_amt':0})
+                        'points_crebit_account_id':self.channel_mapping_ids[0].channel_id.points_crebit_account_id.id,
+                        'points_debit_account_id':self.channel_mapping_ids[0].channel_id.points_debit_account_id.id,
+                        'points_amt':0,})
         return res
 
     # @api.onchange('picking_ids','state')
