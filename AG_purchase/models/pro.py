@@ -627,6 +627,7 @@ class SaleOrder(models.Model):
         for rec in self:
             if rec.points_amt:
                 if self.channel_mapping_ids:
+                    # raise UserError("BOOOOOOOO")
                     res.update({
                         'points_amt':rec.points_amt,
                         'points_product_id':self.channel_mapping_ids[0].channel_id.points_product_id.id,
@@ -636,6 +637,7 @@ class SaleOrder(models.Model):
                         'store_order_id':self.channel_mapping_ids[0].store_order_id,
                         })
                 else:
+                    # raise UserError("BLLLLLLLLLLLLLLL")
                     res.update({
                         'points_amt':0})
         return res

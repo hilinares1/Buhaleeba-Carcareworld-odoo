@@ -183,126 +183,129 @@ class StockInventory(models.Model):
             name = self.name + '-' + line.product_id.name
             dict = []
             if line.cost_difference != 0:
-                if line.difference_qty < 0 :
-                    amount = line.cost_difference * line.product_qty
-                    dict1 = {
-                            # 'move_name': self.name,
-                            'name': name,
-                            'price_unit': abs(line.cost_difference),
-                            'product_id': line.product_id.id,
-                            'quantity': abs(line.product_qty),
-                            'debit':0.0,
-                            'credit': abs(amount),
-                            # 'debit': self.cost_difference < 0.0 and -self.cost_difference or 0.0,
-                            # 'credit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
-                            'account_id': line.categ_id.property_stock_valuation_account_id.id,
-                            # 'move_id': self._origin,
-                            # 'date': self.date,
-                            # 'exclude_from_invoice_tab': True,
-                            # 'partner_id': terms_lines.partner_id.id,
-                            'company_id': self.company_id.id,
-                            # 'company_currency_id': self.company_currency_id.id,
-                            }
-                    dict.append((0,0,dict1))
-                    dict2 = {
-                            # 'move_name': self.name,
-                            'name': name,
-                            'price_unit': abs(line.cost_difference),
-                            'product_id': line.product_id.id,
-                            'quantity': abs(line.product_qty),
-                            'debit': abs(amount),
-                            'credit': 0.0,
-                            # 'debit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
-                            # 'credit': self.cost_difference < 0.0 and -self.cost_difference or 0.0 ,
-                            'account_id': line.categ_id.property_stock_account_output_categ_id.id,
-                            # 'move_id': self._origin,
-                            # 'date': self.date,
-                            # 'exclude_from_invoice_tab': True,
-                            # 'partner_id': terms_lines.partner_id.id,
-                            'company_id': self.company_id.id,
-                            # 'company_currency_id': self.company_currency_id.id,
-                            }
-                    dict.append((0,0,dict2))
-                if line.difference_qty > 0 :
-                    amount = line.cost_difference * line.product_qty
-                    dict1 = {
-                            # 'move_name': self.name,
-                            'name': name,
-                            'price_unit': abs(line.cost_difference),
-                            'product_id': line.product_id.id,
-                            'quantity': abs(line.product_qty),
-                            'debit':0.0,
-                            'credit': abs(amount),
-                            # 'debit': self.cost_difference < 0.0 and -self.cost_difference or 0.0,
-                            # 'credit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
-                            'account_id': line.categ_id.property_stock_account_input_categ_id.id,
-                            # 'move_id': self._origin,
-                            # 'date': self.date,
-                            # 'exclude_from_invoice_tab': True,
-                            # 'partner_id': terms_lines.partner_id.id,
-                            'company_id': self.company_id.id,
-                            # 'company_currency_id': self.company_currency_id.id,
-                            }
-                    dict.append((0,0,dict1))
-                    dict2 = {
-                            # 'move_name': self.name,
-                            'name': name,
-                            'price_unit': abs(line.cost_difference),
-                            'product_id': line.product_id.id,
-                            'quantity': abs(line.product_qty),
-                            'debit': abs(amount),
-                            'credit': 0.0,
-                            # 'debit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
-                            # 'credit': self.cost_difference < 0.0 and -self.cost_difference or 0.0 ,
-                            'account_id': line.categ_id.property_stock_valuation_account_id.id,
-                            # 'move_id': self._origin,
-                            # 'date': self.date,
-                            # 'exclude_from_invoice_tab': True,
-                            # 'partner_id': terms_lines.partner_id.id,
-                            'company_id': self.company_id.id,
-                            # 'company_currency_id': self.company_currency_id.id,
-                            }
-                    dict.append((0,0,dict2))
-                if line.difference_qty == 0 and line.cost_difference != 0:
-                    amount = line.cost_difference * line.product_qty
-                    dict1 = {
-                            # 'move_name': self.name,
-                            'name': name,
-                            'price_unit': abs(line.cost_difference),
-                            'product_id': line.product_id.id,
-                            'quantity': abs(line.product_qty),
-                            'debit':0.0,
-                            'credit': abs(amount),
-                            # 'debit': self.cost_difference < 0.0 and -self.cost_difference or 0.0,
-                            # 'credit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
-                            'account_id': line.categ_id.property_stock_valuation_account_id.id,
-                            # 'move_id': self._origin,
-                            # 'date': self.date,
-                            # 'exclude_from_invoice_tab': True,
-                            # 'partner_id': terms_lines.partner_id.id,
-                            'company_id': self.company_id.id,
-                            # 'company_currency_id': self.company_currency_id.id,
-                            }
-                    dict.append((0,0,dict1))
-                    dict2 = {
-                            # 'move_name': self.name,
-                            'name': name,
-                            'price_unit': abs(line.cost_difference),
-                            'product_id': line.product_id.id,
-                            'quantity': abs(line.product_qty),
-                            'debit': abs(amount),
-                            'credit': 0.0,
-                            # 'debit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
-                            # 'credit': self.cost_difference < 0.0 and -self.cost_difference or 0.0 ,
-                            'account_id': line.categ_id.property_stock_account_output_categ_id.id,
-                            # 'move_id': self._origin,
-                            # 'date': self.date,
-                            # 'exclude_from_invoice_tab': True,
-                            # 'partner_id': terms_lines.partner_id.id,
-                            'company_id': self.company_id.id,
-                            # 'company_currency_id': self.company_currency_id.id,
-                            }
-                    dict.append((0,0,dict2))
+                if line.categ_id.property_account_creditor_price_difference_categ:
+                    if line.difference_qty < 0 :
+                        amount = line.cost_difference * line.product_qty
+                        dict1 = {
+                                # 'move_name': self.name,
+                                'name': name,
+                                'price_unit': abs(line.cost_difference),
+                                'product_id': line.product_id.id,
+                                'quantity': abs(line.product_qty),
+                                'debit':0.0,
+                                'credit': abs(amount),
+                                # 'debit': self.cost_difference < 0.0 and -self.cost_difference or 0.0,
+                                # 'credit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                                'account_id': line.categ_id.property_stock_valuation_account_id.id,
+                                # 'move_id': self._origin,
+                                # 'date': self.date,
+                                # 'exclude_from_invoice_tab': True,
+                                # 'partner_id': terms_lines.partner_id.id,
+                                'company_id': self.company_id.id,
+                                # 'company_currency_id': self.company_currency_id.id,
+                                }
+                        dict.append((0,0,dict1))
+                        dict2 = {
+                                # 'move_name': self.name,
+                                'name': name,
+                                'price_unit': abs(line.cost_difference),
+                                'product_id': line.product_id.id,
+                                'quantity': abs(line.product_qty),
+                                'debit': abs(amount),
+                                'credit': 0.0,
+                                # 'debit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                                # 'credit': self.cost_difference < 0.0 and -self.cost_difference or 0.0 ,
+                                'account_id': line.categ_id.property_account_creditor_price_difference_categ.id,
+                                # 'move_id': self._origin,
+                                # 'date': self.date,
+                                # 'exclude_from_invoice_tab': True,
+                                # 'partner_id': terms_lines.partner_id.id,
+                                'company_id': self.company_id.id,
+                                # 'company_currency_id': self.company_currency_id.id,
+                                }
+                        dict.append((0,0,dict2))
+                    if line.difference_qty > 0 :
+                        amount = line.cost_difference * line.product_qty
+                        dict1 = {
+                                # 'move_name': self.name,
+                                'name': name,
+                                'price_unit': abs(line.cost_difference),
+                                'product_id': line.product_id.id,
+                                'quantity': abs(line.product_qty),
+                                'debit':0.0,
+                                'credit': abs(amount),
+                                # 'debit': self.cost_difference < 0.0 and -self.cost_difference or 0.0,
+                                # 'credit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                                'account_id': line.categ_id.property_account_creditor_price_difference_categ.id,
+                                # 'move_id': self._origin,
+                                # 'date': self.date,
+                                # 'exclude_from_invoice_tab': True,
+                                # 'partner_id': terms_lines.partner_id.id,
+                                'company_id': self.company_id.id,
+                                # 'company_currency_id': self.company_currency_id.id,
+                                }
+                        dict.append((0,0,dict1))
+                        dict2 = {
+                                # 'move_name': self.name,
+                                'name': name,
+                                'price_unit': abs(line.cost_difference),
+                                'product_id': line.product_id.id,
+                                'quantity': abs(line.product_qty),
+                                'debit': abs(amount),
+                                'credit': 0.0,
+                                # 'debit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                                # 'credit': self.cost_difference < 0.0 and -self.cost_difference or 0.0 ,
+                                'account_id': line.categ_id.property_stock_valuation_account_id.id,
+                                # 'move_id': self._origin,
+                                # 'date': self.date,
+                                # 'exclude_from_invoice_tab': True,
+                                # 'partner_id': terms_lines.partner_id.id,
+                                'company_id': self.company_id.id,
+                                # 'company_currency_id': self.company_currency_id.id,
+                                }
+                        dict.append((0,0,dict2))
+                    if line.difference_qty == 0 and line.cost_difference != 0:
+                        amount = line.cost_difference * line.product_qty
+                        dict1 = {
+                                # 'move_name': self.name,
+                                'name': name,
+                                'price_unit': abs(line.cost_difference),
+                                'product_id': line.product_id.id,
+                                'quantity': abs(line.product_qty),
+                                'debit':0.0,
+                                'credit': abs(amount),
+                                # 'debit': self.cost_difference < 0.0 and -self.cost_difference or 0.0,
+                                # 'credit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                                'account_id': line.categ_id.property_stock_valuation_account_id.id,
+                                # 'move_id': self._origin,
+                                # 'date': self.date,
+                                # 'exclude_from_invoice_tab': True,
+                                # 'partner_id': terms_lines.partner_id.id,
+                                'company_id': self.company_id.id,
+                                # 'company_currency_id': self.company_currency_id.id,
+                                }
+                        dict.append((0,0,dict1))
+                        dict2 = {
+                                # 'move_name': self.name,
+                                'name': name,
+                                'price_unit': abs(line.cost_difference),
+                                'product_id': line.product_id.id,
+                                'quantity': abs(line.product_qty),
+                                'debit': abs(amount),
+                                'credit': 0.0,
+                                # 'debit': self.cost_difference > 0.0 and self.cost_difference or 0.0,
+                                # 'credit': self.cost_difference < 0.0 and -self.cost_difference or 0.0 ,
+                                'account_id': line.categ_id.property_account_creditor_price_difference_categ.id,
+                                # 'move_id': self._origin,
+                                # 'date': self.date,
+                                # 'exclude_from_invoice_tab': True,
+                                # 'partner_id': terms_lines.partner_id.id,
+                                'company_id': self.company_id.id,
+                                # 'company_currency_id': self.company_currency_id.id,
+                                }
+                        dict.append((0,0,dict2))
+                else:
+                    raise UserError("Set the price differnce account in the product category %s"%(line.categ_id.name))
             # val.append((0,0,order_line))
             # moveid = False
             # for move in self.move_ids:

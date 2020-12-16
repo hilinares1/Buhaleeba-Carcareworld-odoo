@@ -254,6 +254,12 @@ class AccountMove(models.Model):
         for rec in self:
             i = [1,2]
             for lines in rec.invoice_line_ids:
+                if not lines.product_id.categ_id.discount_account:
+                    raise UserError("Please set the discount account in the category master %s"%(lines.product_id.categ_id.name))
+
+                if not lines.product_id.categ_id.points_discount_account:
+                    raise UserError("Please set the points discount account in the category master %s"%(lines.product_id.categ_id.name))
+
                 amount = abs(lines.discount - lines.point_discount_value)
                 product = 'Discount of %s'%(lines.product_id.name)
                 if lines.discount and not lines.point_discount_value:
@@ -397,6 +403,7 @@ class AccountMove(models.Model):
                         else:
                             ks_value = ''
                         ks_name = ks_name + ks_value
+                        accounts = product_id.categ_id.points_discount_account.id
                     else:
                         ks_name = "Discount "
                         if amount:
@@ -404,6 +411,7 @@ class AccountMove(models.Model):
                         else:
                             ks_value = ''
                         ks_name = ks_name + ks_value
+                        accounts = product_id.categ_id.discount_account.id
                     #           ("Invoice No: " + str(self.ids)
                     #            if self._origin.id
                     #            else (self.display_name))
@@ -447,7 +455,7 @@ class AccountMove(models.Model):
                                     'quantity': 1,
                                     'debit': amount < 0.0 and -amount or 0.0,
                                     'credit': amount > 0.0 and amount or 0.0,
-                                    'account_id': product_id.categ_id.discount_account.id,
+                                    'account_id': accounts,
                                     'move_id': rec._origin,
                                     'date': rec.date,
                                     'exclude_from_invoice_tab': True,
