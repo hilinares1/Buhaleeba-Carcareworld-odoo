@@ -41,7 +41,7 @@
                     <!--<field name="price_tax" invisible="""/>-->
                 </xpath>
                 <xpath expr="//group[1]" position="after">
-                    <group aattrs="{'invisible': [('type', '!=', 'entry')]}">
+                    <group attrs="{'invisible': [('type', '!=', 'entry')]}">
                         <group>
                             <field name="prepare" />
                         </group>
