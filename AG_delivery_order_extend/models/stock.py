@@ -41,9 +41,19 @@ class Stock(models.Model):
         ('refunded', 'Refunded'),
         ('failed', 'Failed'),
         ('completed', 'Completed'),
+        ('cancel-request', 'Cancelled'),
+        ('not', 'Not sales picking'),
         ('cancelled', 'Cancelled')
-    ], string='Woo-commerce Status', readonly=True, index=True, store=True, copy=False,
-        tracking=True)
+    ], string='Woo-commerce Status', readonly=True, index=True,store=True, copy=False, compute="_get_woo_status", tracking=True)
+    
+
+    @api.depends('sale_id')
+    def _get_woo_status(self):
+        for rec in self:
+            if rec.sale_id:
+                rec.woo_status = rec.sale_id.woo_status
+            else:
+                rec.woo_status = 'not'
 
     def custom_picking_delivered(self):
         if self.move_line_ids_without_package:
