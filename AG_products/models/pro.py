@@ -20,7 +20,7 @@
 #
 #############################################################################
 
-from odoo import api, fields, models
+from odoo import api, fields, models , _
 import odoo.addons.decimal_precision as dp
 from datetime import date
 
@@ -161,10 +161,48 @@ class ProductBrand(models.Model):
 class StockInventory(models.Model):
     _inherit = "stock.inventory"
 
+    # def action_validate(self):
+    #     res = super(StockInventory,self).action_validate()
+    #     self.create_journal()
+    #     return res
+
+    prefill_counted_quantity = fields.Selection(string='Counted Quantities',
+        help="Allows to start with prefill counted quantity for each lines or "
+        "with all counted quantity set to zero.", default='zero',
+        selection=[('counted', 'Default to stock on hand'), ('zero', 'Default to zero')])
+
     def action_validate(self):
-        res = super(StockInventory,self).action_validate()
+        if not self.exists():
+            return
+        self.ensure_one()
+        if not self.user_has_groups('stock.group_stock_manager'):
+            # raise UserError(_("Only a stock manager can validate an inventory adjustment."))
+            y = 1
+        if not self.user_has_groups('account.group_account_invoice'):
+            raise UserError(_("Only a accounts can validate an inventory adjustment."))
+        if self.state != 'confirm':
+            raise UserError(_(
+                "You can't validate the inventory '%s', maybe this inventory " +
+                "has been already validated or isn't ready.") % (self.name))
+        inventory_lines = self.line_ids.filtered(lambda l: l.product_id.tracking in ['lot', 'serial'] and not l.prod_lot_id and l.theoretical_qty != l.product_qty)
+        lines = self.line_ids.filtered(lambda l: float_compare(l.product_qty, 1, precision_rounding=l.product_uom_id.rounding) > 0 and l.product_id.tracking == 'serial' and l.prod_lot_id)
+        if inventory_lines and not lines:
+            wiz_lines = [(0, 0, {'product_id': product.id, 'tracking': product.tracking}) for product in inventory_lines.mapped('product_id')]
+            wiz = self.env['stock.track.confirmation'].create({'inventory_id': self.id, 'tracking_line_ids': wiz_lines})
+            return {
+                'name': _('Tracked Products in Inventory Adjustment'),
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'views': [(False, 'form')],
+                'res_model': 'stock.track.confirmation',
+                'target': 'new',
+                'res_id': wiz.id,
+            }
+        self._action_done()
+        self.line_ids._check_company()
+        self._check_company()
         self.create_journal()
-        return res
+        return True
 
     def create_journal(self):
         # for rec in self:
