@@ -37,7 +37,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="employee_id" attrs="{'readonly': [('state', 'not in', ['new'])]}"/>
+                            <field name="employee_id" options="{'no_create':True}" attrs="{'readonly': [('state', 'not in', ['new'])]}"/>
                             <!-- <field name="requisition_responsible_id" attrs="{'readonly': [('state', 'in', ['cancel'])]}"/> -->
                             <!-- <field name="analytic_id" attrs="{'readonly': [('state', 'in', ['cancel'])]}"/> -->
                             <!-- <field name="task_id" attrs="{'readonly': [('state', 'in', ['cancel'])]}" domain="[('project_id.analytic_account_id','=',analytic_id)]"/> -->
@@ -53,7 +53,7 @@
                         <page string="Requisitions Lines">
                             <field name="requisition_line_ids" widget="one2many_list" attrs="{'readonly': [('state', 'not in', ['new'])]}">
                                 <tree string="Requisitions Lines" editable="bottom">
-                                    <field name="product_id" domain="[('type','=','product')]" />
+                                    <field name="product_id" options="{'no_create':True}" domain="[('type','=','product'),('state','=','confirmed')]" />
                                     <field name="description" />
                                     <field name="qty" />
                                     <field name="available_qty" readonly="1"/>
