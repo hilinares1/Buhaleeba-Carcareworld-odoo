@@ -120,16 +120,20 @@
 
 
     </xpath>
+    <xpath expr="//div[@class='page']" position="after">
+        <span t-field="o.notes"/>
+    </xpath>
 
+      <xpath expr="//p[@t-field='o.notes']" position="replace">
 
+        </xpath>
 
    </template>
 
- 
+
 
 
 </odoo>
-
 
 
 
