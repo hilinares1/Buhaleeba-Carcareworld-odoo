@@ -24,22 +24,23 @@
              <div class="col-12">
                 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border:0px;">
                     <tr class="">
-                        <td class="" style="border: 1px solid #dfe6e9 !important;padding:5px 10px !important;border-collapse: separate;border-spacing: 1px;background-color:#E8E8E8; color:#000000;font-weight:bold;" width="50%" > To:
-
+                        <td class="" style="border: 1px solid #dfe6e9 !important;padding:5px 10px !important;border-collapse: separate;border-spacing: 1px;background-color:#E8E8E8; color:#000000;font-weight:bold;" width="50%" >
+                            <span t-if="o.type == 'out_invoice'">Ship To:</span>
+                            <span t-if="o.type == 'in_invoice'">Bill To:</span>
                         </td>
                     </tr>
                     <tr>
                         <td style="border: 1px solid #dfe6e9 !important;padding:5px 10px !important;border-collapse: separate;border-spacing: 1px; font-family: sans-serif; color:#000000;white-space: normal;height:100px;">
                             <div>
-                                <span t-field="o.partner_shipping_id.name"/><br></br>
-                                <span t-field="o.partner_shipping_id.street"/><br></br>
-                                <span t-field="o.partner_shipping_id.city"/><br></br>
-                                <span t-field="o.partner_shipping_id.country_id"/><br></br>
-                                <span t-field="o.partner_shipping_id.phone"/><br></br>
-                                <span t-field="o.partner_shipping_id.email"/><br></br>
-                                <div t-if="o.partner_shipping_id.vat" class="mt16">
+                                <span t-field="o.partner_id.name"/><br></br>
+                                <span t-field="o.partner_id.street"/><br></br>
+                                <span t-field="o.partner_id.city"/><br></br>
+                                <span t-field="o.partner_id.country_id"/><br></br>
+                                <span t-field="o.partner_id.phone"/><br></br>
+                                <span t-field="o.partner_id.email"/><br></br>
+                                <div t-if="o.partner_id.vat" class="mt16">
                                     <t t-if="o.company_id.country_id.vat_label" t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
-                                    <t t-else="">VAT</t>: <span t-field="o.partner_shipping_id.vat"/>
+                                    <t t-else="">VAT</t>: <span t-field="o.partner_id.vat"/>
                                 </div>
                                 <span t-if="o.invoice_payment_term_id">Payment Terms:<span t-field="o.invoice_payment_term_id"/></span><br></br>
 
@@ -50,16 +51,10 @@
 
                         <td style="border-right:0px;  padding:0px 5px 2px 70px;" width="50%">
                             <span style="font-family: sans-serif; font-weight:bold; color:#000000;white-space: normal;height:100px" > Reference No : </span> <span style="font-weight:bold;color:#000000;" t-if="o.name != '/'"  t-field="o.name"/><br/><br/>
-                            <span style="font-family: sans-serif;color:#000000; white-space: normal;height:100px" > Invoice Date : </span>  <span style="color:#000000;" t-field="o.invoice_date"/><br/>
-                            <span style="font-family: sans-serif; color:#000000;white-space: normal;height:100px" t-if="o.type == 'out_invoice'"> Due Date : </span> <span style="color:#000000;" t-if="o.type == 'out_invoice'" t-field="o.invoice_date_due"/> <br/>
-                            <span style="font-family: sans-serif;color:#000000; white-space: normal;height:100px" > Posting Date : </span>  <span style="color:#000000;" t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/><br/>
-                            <span t-if="o.invoice_origin" style="font-family: sans-serif; font-weight:bold; color:#000000;white-space: normal;height:100px" > Source :
-                                <span style="font-weight:bold;color:#000000;" t-if="o.type == 'out_invoice' and o.type == 'out_refund'" t-field="o.invoice_origin"/><br/>
-                                <span style="font-weight:bold;color:#000000;" t-if="o.type == 'in_invoice' and  o.type == 'in_refund'" t-field="o.ref"/><br/>
-
-                            </span>
-                            <span t-if="o.type == 'out_invoice'" style="font-family: sans-serif;color:#000000; white-space: normal;height:100px" > Sales Type: </span>  <span style="color:#000000;" t-esc="o.team_id.name"/><br/>
-
+                            <span style="font-family: sans-serif;color:#000000; white-space: normal;height:100px" > Invoice Date : </span>  <span style="color:#000000;" t-field="o.invoice_date"/><br/><br/>
+                            <span style="font-family: sans-serif; color:#000000;white-space: normal;height:100px" t-if="o.type == 'out_invoice'"> Due Date : </span> <span style="color:#000000;" t-if="o.type == 'out_invoice'" t-field="o.invoice_date_due"/> <br/><br/>
+                            <span t-if="o.type == 'in_invoice'" style="font-family: sans-serif;color:#000000; white-space: normal;height:100px" > Accounting Date : </span>  <span t-if="o.type == 'in_invoice'" style="color:#000000;" t-field="o.date"/><br/><br/>
+                            <span t-if="o.invoice_origin" style="font-family: sans-serif; font-weight:bold; color:#000000;white-space: normal;height:100px" > Source : </span> <span style="font-weight:bold;color:#000000;" t-field="o.invoice_origin"/><br/><br/>
                        </td>
                     </tr>
                 </table>
@@ -71,7 +66,29 @@
          </xpath>
 
          <xpath expr="//div[@id='informations']"  position="replace">
+             <div id="informations" class="row mt32 mb32">
+             <br></br>
+             <br></br>
+             <div class="col-auto mw-100 mb-2" t-if="o.invoice_origin" name="origin">
+                 <strong>Source:</strong>
+                 <p class="m-0" t-field="o.invoice_origin"/>
+             </div>
 
+             <div class="col-auto mw-100 mb-2" >
+                 <strong>Posting Date:</strong>
+                 <p class="m-0" t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/>
+             </div>
+
+             <div class="col-auto mw-100 mb-2" t-if="o.team_id.name and o.type == 'out_invoice'">
+                 <strong>Salesperson:</strong>
+                 <p class="m-0" t-if="o.type == 'out_invoice' and o.state == 'posted'"  t-esc="o.team_id.name"/>
+             </div>
+
+             <div class="col-auto mw-100 mb-2" t-if="o.type == 'out_refund'">
+                 <strong>Reason:</strong>
+                 <p class="m-0" t-esc="o.invoice_outstanding_credits_debits_widget.reason"/>
+             </div>
+             </div>
 
         </xpath>
 
@@ -248,9 +265,9 @@
                         <tr>
                             <td name="td_taxes_label" style="font-family: sans-serif;color:#000000;">VAT Amount</td>
                             <t t-foreach="o.amount_by_group" t-as="amount_by_group">
-                            <td class="text-right o_price_total" style="font-family: sans-serif; border-right: 1px solid black; color:#000000;background-color:#FFFFFF;">
-                                <span  t-esc="amount_by_group[3]"/>
-                            </td>
+                                <td class="text-right o_price_total" style="font-family: sans-serif;color:#000000;background-color:#FFFFFF;">
+                                    <span  class="text-nowrap" t-esc="amount_by_group[3]"/>
+                                </td>
                             </t>
                         </tr>
 
@@ -292,29 +309,6 @@
                     <!-- # Convert to Text, By core odoo -->
                     <span style="font-family: sans-serif;color:#000000;"><t t-esc="currency.amount_to_text(o.amount_total)"/></span>
 
-            </div>
-        </xpath>
-        <xpath expr="//div[@class='page']" position="after">
-            <div style="padding-top:150px;">
-            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border:0px;">
-                <tr class ="">
-                    <td style="border-right:0px; padding-left:25px;">
-                        <span style="font-family: sans-serif; color:#000000;font-weight:bold;">Created By :</span>
-                    </td>
-                    <td style="border-right:0px; padding-right:90px;">
-                        <span style="font-family: sans-serif;color:#000000;" t-esc="user_id.name"></span>
-                    </td>
-                    <td style="border-right:0px;padding-left:50px;">&#160;&#160;</td>
-                     <td style="border-right:0px; padding-left:30px;">
-                        <span style="font-family: sans-serif; color:#000000;font-weight:bold;">Created On :</span>
-                    </td>
-                    <td style="border-right:0px;padding-right:90px;">
-                        <span style="font-family: sans-serif;color:#000000;" t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"></span>
-                    </td>
-                </tr>
-
-
-            </table>
             </div>
         </xpath>
 
