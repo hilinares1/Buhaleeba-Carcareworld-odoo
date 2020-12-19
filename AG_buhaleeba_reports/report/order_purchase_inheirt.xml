@@ -208,7 +208,7 @@
                                 <td name="td_taxes_label"  style="font-family: sans-serif;color:#000000;">
                                  <span t-if="o.currency_id.name == 'EUR'">Taxable Values in EURO</span>
                                  <span t-if="o.currency_id.name == 'USD'">Taxable Values in USD</span>
-                                 <span t-if="o.currency_id.name == 'AED'">Taxable Values in AED</span>
+
                                 </td>
 
                                 <td class="text-right" style="font-family: sans-serif;color:#000000;">
@@ -236,17 +236,17 @@
                                 <td name="td_taxes_label" style="font-family: sans-serif;color:#000000;">
                                  <span t-if="o.currency_id.name == 'EUR'">VAT Charge in EURO</span>
                                  <span t-if="o.currency_id.name == 'USD'">VAT Charge in USD</span>
-                                 <span t-if="o.currency_id.name == 'AED'">VAT Charge  in AED</span>
+
                                 </td>
                                 <td class="text-right" style="font-family: sans-serif;color:#000000;">
                                     <span t-field="o.amount_tax"/>
                                 </td>
                             </tr>
                             <tr class="border-black o_total">
-                                <td name="td_amount_total_label" style="background-color:#E8E8E8; ">
+                                <td name="td_amount_total_label" style="background-color:#E8E8E8;color:#000000; ">
                                  <span t-if="o.currency_id.name == 'EUR'"><strong style="color:#000000;">Total in EURO</strong></span>
                                  <span t-if="o.currency_id.name == 'USD'"><strong style="color:#000000;">Total in USD</strong></span>
-                                 <span t-if="o.currency_id.name == 'AED'">Total in AED</span>
+
                                 </td>
                                 <td class="text-right" style="background-color:#E8E8E8; color:#000000;">
                                     <span t-field="o.amount_total"
@@ -266,7 +266,7 @@
             <div t-if="o.partner_id.classification == 'local vendor' ">
                 <div id="total" class="row justify-content-end">
 
-                     <div class="col-6">
+                     <div class="col-6" t-if="o.notes">
                         <table>
                             <tr>
                                 <td style="background-color:#E8E8E8; color:#000000;font-family: sans-serif;font-weight:bold;">Terms And Conditions:</td>
@@ -328,9 +328,9 @@
                                 </td>
                             </tr>
                             <tr class="o_total">
-                                <td name="td_amount_total_label" style="background-color:#E8E8E8; "><strong style="color:#000000;">Total in AED</strong></td>
+                                <td name="td_amount_total_label" style="background-color:#E8E8E8; color:#000000;font-family: sans-serif; font-weight:bold;">Total in AED</td>
                                 <td class="text-right" style="background-color:#E8E8E8; color:#000000;">
-                                    <span t-field="o.amount_total"
+                                    <span style="color:#000000;" t-field="o.amount_total"
                                         t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                 </td>
                             </tr>
