@@ -21,6 +21,7 @@
                     <field name="store_order_id"  invisible="1"/>
                     <field name="res_model" invisible="1"/>
                     <field name="res_id" invisible="1"/>
+                    <field name="stock_adjustment_id" invisible="1"/>
                 </xpath>
                 <xpath expr="//field[@name='currency_id']" position="before">
                     <field name="points_amt" readonly="1" invisible="1"/>
@@ -38,6 +39,16 @@
                 <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='tax_ids']" position="replace">
                     <field name="tax_ids" string="VAT" widget="many2many_tags" domain="[('type_tax_use', '=?', parent.invoice_filter_type_domain), ('company_id', '=', parent.company_id)]" context="{'append_type_to_tax_name': not parent.invoice_filter_type_domain}" options="{'no_create': True}" optional="show"/>
                     <!--<field name="price_tax" invisible="""/>-->
+                </xpath>
+                <xpath expr="//group[1]" position="after">
+                    <group attrs="{'invisible': [('type', '!=', 'entry')]}">
+                        <group>
+                            <field name="prepare" />
+                        </group>
+                        <group>
+                            <field name="approved"/>
+                        </group>
+                    </group>       
                 </xpath>
                 
             </field>

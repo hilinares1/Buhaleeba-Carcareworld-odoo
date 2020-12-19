@@ -9,7 +9,7 @@ class SaleOrder(models.Model):
     _description = "Wocommerce fields addition"
 
     payment_method = fields.Char('Payment Method', help='Payment Method Name')
-    store_id = fields.Char('Woocommerce Store ID', help='Store ID from woocommerce')
+    store_id = fields.Char('Woocommerce ID', help='Store ID from woocommerce')
     receive_state = fields.Text('Delivery status', compute="ready_state")
     # Don't remove this code, added same code on Automated Action to get store ID upon creation of sale order
     # @api.model_create_multi
@@ -26,8 +26,7 @@ class SaleOrder(models.Model):
 
         for do_pick in self.picking_ids:
             do_pick.write({'payment_method': self.payment_method,
-                           'store_id':self.store_id,
-                           'woo_status':self.woo_status})
+                           'store_id':self.store_id})
 
         return res
 

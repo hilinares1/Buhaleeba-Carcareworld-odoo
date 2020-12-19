@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import api, fields, models, SUPERUSER_ID, _
+from odoo.exceptions import except_orm, ValidationError ,UserError
 
 class Stock(models.Model):
     _inherit = 'stock.picking'
@@ -23,7 +24,7 @@ class Stock(models.Model):
              " * Ready: The transfer is ready to be processed.\n(a) The shipping policy is \"As soon as possible\": at least one product has been reserved.\n(b) The shipping policy is \"When all products are ready\": all product have been reserved.\n"
              " * Done: The transfer has been processed.\n"
              " * Cancelled: The transfer has been cancelled.")
-    store_id = fields.Char('Woocommerce Store Id',readonly=True)
+    store_id = fields.Char('Woocommerce Id',readonly=True)
     payment_method = fields.Char('Payment Method',readonly=True)
 
     #Code from Bincy commit on 28th Nov added status on delivery
@@ -40,11 +41,25 @@ class Stock(models.Model):
         ('refunded', 'Refunded'),
         ('failed', 'Failed'),
         ('completed', 'Completed'),
+        ('cancel-request', 'Cancelled'),
+        ('not', 'Not sales picking'),
         ('cancelled', 'Cancelled')
-    ], string='Woo-commerce Status', readonly=True, index=True, store=True, copy=False,
-        tracking=True)
+    ], string='Woo-commerce Status', readonly=True,copy=False, compute="_get_woo_status")
+    
+
+    @api.depends('sale_id')
+    def _get_woo_status(self):
+        for rec in self:
+            if rec.sale_id:
+                rec.woo_status = rec.sale_id.woo_status
+            else:
+                rec.woo_status = 'not'
 
     def custom_picking_delivered(self):
+        if self.move_line_ids_without_package:
+            for move in self.move_line_ids_without_package:
+                if move.lot_id.name != move.issued_lot:
+                    raise UserError('The issued lot and assigned lot from system not same for this product %s'%(move.product_id.name))
         self.state = 'assigned'
 
     def custom_picking_complete(self):

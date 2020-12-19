@@ -139,6 +139,10 @@ class AccountMove(models.Model):
     channel_id = fields.Many2one('multi.channel.sale',string="channel")
     store_order_id = fields.Char('Order_id')
     is_link_sended = fields.Integer('Is Link Sended',default=0)
+    stock_adjustment_id = fields.Many2one('stock.inventory',string="Stock Adjustment ID")
+    prepare = fields.Char('Prepared by')
+    approved = fields.Char('Approved by')
+
 
 
     def write(self,vals):
@@ -220,46 +224,88 @@ class AccountMove(models.Model):
                     rec.share_link = rec.share_link.replace('mail/view', 'my/invoices/%s'%(rec.res_id))
                     # raise UserError(rec.share_link)
 
-    def action_post(self):
-        res = super(AccountMove, self).action_post()
-        if self.points_amt:
-            dict = []
-            dict1 = {
-                    # 'move_name': self.name,
-                    'name': "Earned Point",
-                    'price_unit': self.points_amt,
-                    'product_id': self.points_product_id.id,
-                    'quantity': 1,
-                    'debit':0.0,
-                    'credit': self.points_amt,
-                    'account_id': self.points_crebit_account_id.id,
-                    # 'move_id': self._origin,
-                    # 'date': self.date,
-                    'exclude_from_invoice_tab': True,
-                    # 'partner_id': terms_lines.partner_id.id,
-                    'company_id': self.company_id.id,
-                    # 'company_currency_id': terms_lines.company_currency_id.id,
-                    }
-            dict.append((0,0,dict1))
-            dict2 = {
-                    # 'move_name': self.name,
-                    'name': "Earned Point",
-                    'price_unit': self.points_amt,
-                    'product_id': self.points_product_id.id,
-                    'quantity': 1,
-                    'debit': self.points_amt,
-                    'credit': 0.0,
-                    'account_id': self.points_debit_account_id.id,
-                    # 'move_id': self._origin,
-                    # 'date': self.date,
-                    'exclude_from_invoice_tab': True,
-                    # 'partner_id': terms_lines.partner_id.id,
-                    'company_id': self.company_id.id,
-                    'company_currency_id': self.company_currency_id.id,
-                    }
-            dict.append((0,0,dict2))
-            self.update({'line_ids':dict})
-        return res
+    # @api.onchange('points_amt')
+    # def onchange_points_amt:
+    #     for rec in self:
+    #         if rec.points_amt:
+    #             dict = []
+    #             dict1 = {
+    #                     # 'move_name': self.name,
+    #                     'name': "Earned Point",
+    #                     'price_unit': rec.points_amt,
+    #                     'product_id': rec.points_product_id.id,
+    #                     'quantity': 1,
+    #                     'debit':0.0,
+    #                     'credit': rec.points_amt,
+    #                     'account_id': rec.points_crebit_account_id.id,
+    #                     # 'move_id': self._origin,
+    #                     # 'date': self.date,
+    #                     'exclude_from_invoice_tab': True,
+    #                     # 'partner_id': terms_lines.partner_id.id,
+    #                     'company_id': rec.company_id.id,
+    #                     # 'company_currency_id': terms_lines.company_currency_id.id,
+    #                     }
+    #             dict.append((0,0,dict1))
+    #             dict2 = {
+    #                     # 'move_name': self.name,
+    #                     'name': "Earned Point",
+    #                     'price_unit': rec.points_amt,
+    #                     'product_id': rec.points_product_id.id,
+    #                     'quantity': 1,
+    #                     'debit': rec.points_amt,
+    #                     'credit': 0.0,
+    #                     'account_id': rec.points_debit_account_id.id,
+    #                     # 'move_id': self._origin,
+    #                     # 'date': self.date,
+    #                     'exclude_from_invoice_tab': True,
+    #                     # 'partner_id': terms_lines.partner_id.id,
+    #                     'company_id': rec.company_id.id,
+    #                     'company_currency_id': rec.company_currency_id.id,
+    #                     }
+    #             dict.append((0,0,dict2))
+    #             self.update({'line_ids':dict})
+
+
+    # def action_post(self):
+    #     res = super(AccountMove, self).action_post()
+    #     if self.points_amt:
+    #         dict = []
+    #         dict1 = {
+    #                 # 'move_name': self.name,
+    #                 'name': "Earned Point",
+    #                 'price_unit': self.points_amt,
+    #                 'product_id': self.points_product_id.id,
+    #                 'quantity': 1,
+    #                 'debit':0.0,
+    #                 'credit': self.points_amt,
+    #                 'account_id': self.points_crebit_account_id.id,
+    #                 # 'move_id': self._origin,
+    #                 # 'date': self.date,
+    #                 'exclude_from_invoice_tab': True,
+    #                 # 'partner_id': terms_lines.partner_id.id,
+    #                 'company_id': self.company_id.id,
+    #                 # 'company_currency_id': terms_lines.company_currency_id.id,
+    #                 }
+    #         dict.append((0,0,dict1))
+    #         dict2 = {
+    #                 # 'move_name': self.name,
+    #                 'name': "Earned Point",
+    #                 'price_unit': self.points_amt,
+    #                 'product_id': self.points_product_id.id,
+    #                 'quantity': 1,
+    #                 'debit': self.points_amt,
+    #                 'credit': 0.0,
+    #                 'account_id': self.points_debit_account_id.id,
+    #                 # 'move_id': self._origin,
+    #                 # 'date': self.date,
+    #                 'exclude_from_invoice_tab': True,
+    #                 # 'partner_id': terms_lines.partner_id.id,
+    #                 'company_id': self.company_id.id,
+    #                 'company_currency_id': self.company_currency_id.id,
+    #                 }
+    #         dict.append((0,0,dict2))
+    #         self.update({'line_ids':dict})
+    #     return res
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -274,6 +320,46 @@ class AccountMove(models.Model):
                 res._currency_change()
             else:
                 res.currency_rate = res.currency_id.rate
+            user = self.env['res.users'].search([('id','=',self.env.user.id)])
+            # raise UserError(user.name)
+            res.prepare = user.name
+            if res.points_amt:
+                dict = []
+                dict1 = {
+                        # 'move_name': self.name,
+                        'name': "Earned Point",
+                        'price_unit': res.points_amt,
+                        'product_id': res.points_product_id.id,
+                        'quantity': 1,
+                        'debit':0.0,
+                        'credit': res.points_amt,
+                        'account_id': res.points_crebit_account_id.id,
+                        # 'move_id': self._origin,
+                        # 'date': self.date,
+                        'exclude_from_invoice_tab': True,
+                        # 'partner_id': terms_lines.partner_id.id,
+                        'company_id': res.company_id.id,
+                        # 'company_currency_id': terms_lines.company_currency_id.id,
+                        }
+                dict.append((0,0,dict1))
+                dict2 = {
+                        # 'move_name': self.name,
+                        'name': "Earned Point",
+                        'price_unit': res.points_amt,
+                        'product_id': res.points_product_id.id,
+                        'quantity': 1,
+                        'debit': res.points_amt,
+                        'credit': 0.0,
+                        'account_id': res.points_debit_account_id.id,
+                        # 'move_id': self._origin,
+                        # 'date': self.date,
+                        'exclude_from_invoice_tab': True,
+                        # 'partner_id': terms_lines.partner_id.id,
+                        'company_id': res.company_id.id,
+                        'company_currency_id': res.company_currency_id.id,
+                        }
+                dict.append((0,0,dict2))
+                res.update({'line_ids':dict})
         return reses
 
     def send_to_approve(self):
@@ -282,6 +368,9 @@ class AccountMove(models.Model):
 
     def action_approve(self):
         for rec in self:
+            user = self.env['res.users'].search([('id','=',self.env.user.id)])
+            # raise UserError(user.name)
+            rec.approved = user.name
             rec.action_post()
             # rec.write({'state':'draft'})
     

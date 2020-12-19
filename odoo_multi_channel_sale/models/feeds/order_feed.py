@@ -26,11 +26,13 @@ OrderFields = [
 	'points_amt',
 	'pickup_store_details',
 	'states_ship',
+	'states_shiping',
 	'confirmation_date',
 	'line_ids',
 	'line_name',
 	'line_price_unit',
 	'line_discount',
+	'line_discount_points',
 	'line_discount_type',
 	'line_product_id',
 	'line_product_default_code',
@@ -93,6 +95,7 @@ class OrderFeed(models.Model):
 	points_amt = fields.Float('Points')
 	pickup_store_details = fields.Text('Pickup store Details')
 	states_ship = fields.Boolean('status')
+	states_shiping = fields.Boolean('status')
 
 	same_shipping_billing = fields.Boolean(
 		string  = 'Shipping Address Same As Billing',
@@ -159,6 +162,7 @@ class OrderFeed(models.Model):
 		line_name = vals.pop('line_name')
 		line_price_unit = vals.pop('line_price_unit')
 		line_discount = vals.pop('line_discount')
+		line_discount_points = vals.pop('line_discount_points')
 		line_discount_type = vals.pop('line_discount_type')
 		dis_type = []
 		for type in line_discount_type:
@@ -167,6 +171,8 @@ class OrderFeed(models.Model):
 			line_price_unit = parse_float(line_price_unit)
 		if line_discount:
 			line_discount = parse_float(line_discount)
+		if line_discount_points:
+			line_discount_points = parse_float(line_discount_points)
 		line_product_id = vals.pop('line_product_id')
 		line_variant_ids = vals.pop('line_variant_ids')
 		line_product_uom_qty = vals.pop('line_product_uom_qty')
@@ -202,6 +208,9 @@ class OrderFeed(models.Model):
 					line_discount = line_id.line_discount
 					if line_discount:
 						line_discount = parse_float(line_discount)
+					line_discount_points = line_id.line_discount_points
+					if line_discount_points:
+						line_discount_points = parse_float(line_discount_points)
 					dis_type = []
 					line_discount_type = line_id.line_discount_type
 					for type in line_discount_type:
@@ -233,6 +242,7 @@ class OrderFeed(models.Model):
 							name=line_id.line_name,
 							price_unit=line_price_unit,
 							discount_value=line_discount,
+							point_discount_value=line_discount_points,
 							discount_type=[(6, None, dis_type)],
 							product_id=product_id.id,
 							customer_lead=product_id.sale_delay,
@@ -458,7 +468,12 @@ class OrderFeed(models.Model):
 		else:		
 			# raise UserWarning("22222")
 			vals['shipping_id'] = channel_id.shipping_id.id
+			
 			vals['shipping_full'] = vals.pop('shipping_full')
+		# statess = vals.pop('order_state')
+		# payment_method = vals.pop('payment_method_title')
+		if vals.pop('states_shiping') == True:
+			vals['partner_invoice_id'] = channel_id.shipping_id.id
 
 
 		if match and match.order_name:

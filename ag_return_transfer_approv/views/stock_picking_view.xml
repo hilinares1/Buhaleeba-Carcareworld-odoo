@@ -7,8 +7,8 @@
         <field name="arch" type="xml">
            <xpath expr="//field[@name='origin']/.." position="inside">
                 <field name="custom_return_reason" attrs="{'invisible': [('custom_is_returned_picking', '=', False)], 'readonly': [('state', 'in', ['done', 'cancel'])]}"/>
-                <field name="custom_picking_approve" readonly="1" attrs="{'invisible': [('custom_is_returned_picking', '=', False)]}"/>
-                <field name="custom_picking_reject" readonly="1" attrs="{'invisible': [('custom_is_returned_picking', '=', False)]}"/>
+                <field name="custom_picking_approve" readonly="1" invisible="1"/>
+                <field name="custom_picking_reject" readonly="1" invisible="1"/>
                 <field name="custom_is_returned_picking" invisible="1"/>
             </xpath>
             <xpath expr="//button[@name='button_validate']" position="after">

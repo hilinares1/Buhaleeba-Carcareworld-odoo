@@ -26,7 +26,7 @@ class StockMoveLine(models.Model):
     )#SMA13
     custom_source_rack_shelf_id = fields.Many2one(
         'stock.rack.shelf',
-        string='Source Rack / Shelf',domain=lambda self: self.get_shelf()
+        string='Source Rack / Shelf',search="get_shelf"
     )#SMA13
 
     def get_shelf(self):
@@ -37,6 +37,16 @@ class StockMoveLine(models.Model):
                 rac.append(racks.rack_shelf_id.id)
             
             return [('id','in',rac)]
+
+    @api.onchange('lot_id')
+    def onchange_lot_id(self):
+        for rec in self:
+            rack = self.env['stock.quant'].search([('product_id','=',rec.product_id.id),('lot_id','=',rec.lot_id.id)])
+            if rack:
+                rec.rack_shelf_id = rack[0].rack_shelf_id.id
+            else:
+                rec.rack_shelf_id = False
+
 
 
     def _action_done(self):
@@ -105,8 +115,8 @@ class StockMoveLine(models.Model):
         for ml in self - ml_to_delete:
             if ml.product_id.type == 'product':
 
-                if ml.picking_id.picking_type_code == 'incoming' and not (ml.rack_shelf_id or ml.custom_source_rack_shelf_id):
-                    raise UserError('Kindly assign Rack/Shelf to product %s' % (ml.product_id.name))
+                # if ml.picking_id.picking_type_code == 'incoming' and not (ml.rack_shelf_id or ml.custom_source_rack_shelf_id):
+                #     raise UserError('Kindly assign Rack/Shelf to product %s' % (ml.product_id.name))
 
                 rounding = ml.product_uom_id.rounding
 
@@ -159,9 +169,9 @@ class StockPicking(models.Model):
 
     def button_validate(self):
 
-        for move in self.move_line_ids:#SMA13
-            if move.picking_id.picking_type_code == 'incoming' and not(move.rack_shelf_id or move.custom_source_rack_shelf_id) :
-                raise UserError('Kindly assign Rack/Shelf to product %s' % (move.product_id.name))
+        # for move in self.move_line_ids:#SMA13
+        #     if move.picking_id.picking_type_code == 'incoming' and not(move.rack_shelf_id or move.custom_source_rack_shelf_id) :
+        #         raise UserError('Kindly assign Rack/Shelf to product %s' % (move.product_id.name))
 
         return super().button_validate()
 

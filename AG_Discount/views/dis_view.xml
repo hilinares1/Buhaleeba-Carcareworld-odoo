@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+
+        <record id="product_category_inherits_form_dis" model="ir.ui.view">
+            <field name="name">product.category.inherits.form.dis</field>
+            <field name="model">product.category</field>
+            <field name="inherit_id" ref="product.product_category_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='property_account_expense_categ_id']" position="after">
+                    <field name="discount_account" required="1" />
+                    <field name="points_discount_account" required="1"/>
+                </xpath>
+            </field>
+        </record>
         <record id="purchase_order_inherits_form_dis" model="ir.ui.view">
             <field name="name">purchase.order.inherits.form.dis</field>
             <field name="model">purchase.order</field>
@@ -8,7 +20,11 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='order_line']/tree//field[@name='taxes_id']" position="before">
                     <field name="discount" />
+                    <field name="uni_discount" />
                     <field name="is_percentage" />
+                </xpath>
+                <xpath expr="//field[@name='amount_tax']" position="after">
+                    <field name="dicount_sum" readonly="1"/>
                 </xpath>
                 <xpath expr="//form/sheet/notebook/page[1]/group" position="after">
                     <div class="ks_container">
@@ -26,10 +42,14 @@
             <field name="model">account.move</field>
             <field name="inherit_id" ref="account.view_move_form"/>
             <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='discount']" position="replace">
+
+            </xpath>
                 <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='tax_ids']" position="before">
                     <field name="discount_value" invisible="1"/>
+                    <field name="point_discount_value" invisible="1"/>
                     <field name="discount" />
-                    <field name="is_percentage" force_save="1"/>
+                    <field name="is_percentage" force_save="1" />
                     <field name="is_sale" invisible="1" />
                 </xpath>
                 <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='price_unit']" position="replace">
@@ -41,6 +61,7 @@
                 <xpath expr="//field[@name='line_ids']/tree//field[@name='account_id']" position="before">
                     <field name="is_percentage" invisible="1" />
                     <field name="discount_value" invisible="1" />
+                    <field name="point_discount_value" invisible="1" />
                     <field name="is_sale" invisible="1" />
                 </xpath>
                 <xpath expr="//field[@name='amount_by_group']" position="after">
@@ -120,6 +141,7 @@
                 <xpath expr="//div[@name='discount']" position="replace" />
                 <xpath expr="//field[@name='order_line']/tree//field[@name='tax_id']" position="before">
                     <field name="discount_value" />
+                    <field name="point_discount_value" />
                     <field name="discount_type" widget="many2many_tags"/>
                     <field name="is_percentage" invisible="1"/>
                 </xpath>

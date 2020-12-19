@@ -37,7 +37,7 @@ class PurchaseOrder(models.Model):
                                  "computed automatically when the purchase order is created.")
     interchanging_rfq_sequence = fields.Char('Sequence', copy=False)
     interchanging_po_sequence = fields.Char('Sequence', copy=False)
-    currency_value = fields.Float('Cuurency after rate',compute="_get_curreny_value")
+    currency_value = fields.Float('Currency After Rate',compute="_get_curreny_value")
 
     @api.depends('currency_rate')
     def _get_curreny_value(self):
@@ -287,13 +287,14 @@ class StockInventory(models.Model):
         # rec = self.env['account.lock.date'].search([('id','=',1)])
         # raise UserError(self.date_order)
         orderdate = "%s" %(self.date)
-        if dateutil.parser.parse(orderdate).date() <= self.company_id.fiscalyear_lock_date:
-            lock_date = self.company_id.fiscalyear_lock_date
-            if self.user_has_groups('account.group_account_manager'):
-                message = _("You cannot Validate this Inventory Adjustment prior to and inclusive of the lock date %s.") % format_date(self.env, lock_date)
-            else:
-                message = _("You cannot Validate this Inventory Adjustment prior to and inclusive of the lock date %s. Check the company settings or ask someone with the 'Adviser' role") % format_date(self.env, lock_date)
-            raise UserError(message)
+        if self.company_id.fiscalyear_lock_date:
+            if dateutil.parser.parse(orderdate).date() <= self.company_id.fiscalyear_lock_date:
+                lock_date = self.company_id.fiscalyear_lock_date
+                if self.user_has_groups('account.group_account_manager'):
+                    message = _("You cannot Validate this Inventory Adjustment prior to and inclusive of the lock date %s.") % format_date(self.env, lock_date)
+                else:
+                    message = _("You cannot Validate this Inventory Adjustment prior to and inclusive of the lock date %s. Check the company settings or ask someone with the 'Adviser' role") % format_date(self.env, lock_date)
+                raise UserError(message)
         return res
 
 class StockPicking(models.Model):
@@ -321,6 +322,7 @@ class StockPicking(models.Model):
             if rec.sale_id:
                 rec.pickup_store_details = rec.sale_id.pickup_store_details
                 rec.store_id = rec.sale_id.store_id
+                rec.payment_method = rec.sale_id.payment_method
             else:
                 rec.pickup_store_details = ""
 
@@ -530,6 +532,31 @@ class SaleOrder(models.Model):
     inv_count = fields.Float('Count',compute="_land_count")
     vender_flag = fields.Integer('vendor flag',default=0)
 
+   
+    def email_after_confirm(self):
+        for rec in self:
+            # rec.submit_leadd = True
+            channel_all_employees = self.env.ref('AG_purchase.channel_all_confirmed_orders').read()[0]
+            template_new_employee = self.env.ref('AG_purchase.email_template_data_to_approve_confirmed_orders').read()[0]
+            # raise ValidationError(_(template_new_employee))
+            if template_new_employee:
+                # MailTemplate = self.env['mail.template']
+                body_html = template_new_employee['body_html']
+                subject = template_new_employee['subject']
+                # raise ValidationError(_('%s %s ') % (body_html,subject))
+                ids = channel_all_employees['id']
+                channel_id = self.env['mail.channel'].search([('id', '=', ids)])
+                message = """ Hello Inventory team
+                            This order [%s] is confirmed from the sales team 
+                            
+                            Thanks"""%(rec.name)
+                channel_id.message_post(body=message, subject='Confirmed Sale Order',subtype='mail.mt_comment')
+            
+    def action_confirm(self):
+        res = super(SaleOrder,self).action_confirm()
+        self.email_after_confirm()
+        return res
+
     def _land_count(self):
         for each in self:
             land = self.env['account.move'].search([('so_link','=',self.id)])
@@ -598,8 +625,9 @@ class SaleOrder(models.Model):
     def _prepare_invoice(self):
         res = super(SaleOrder, self)._prepare_invoice()
         for rec in self:
-            if rec.points_amt:
-                if self.channel_mapping_ids:
+            if self.channel_mapping_ids:
+                if rec.points_amt:
+                    # raise UserError("BOOOOOOOO")
                     res.update({
                         'points_amt':rec.points_amt,
                         'points_product_id':self.channel_mapping_ids[0].channel_id.points_product_id.id,
@@ -609,8 +637,11 @@ class SaleOrder(models.Model):
                         'store_order_id':self.channel_mapping_ids[0].store_order_id,
                         })
                 else:
+                    # raise UserError("BLLLLLLLLLLLLLLL")
                     res.update({
-                        'points_amt':0})
+                        'points_crebit_account_id':self.channel_mapping_ids[0].channel_id.points_crebit_account_id.id,
+                        'points_debit_account_id':self.channel_mapping_ids[0].channel_id.points_debit_account_id.id,
+                        'points_amt':0,})
         return res
 
     # @api.onchange('picking_ids','state')
@@ -634,7 +665,19 @@ class KSResConfigSettings(models.TransientModel):
     sister_company_receivable_account = fields.Many2one('account.account', string="Sister Company Receivable Account", related='company_id.sister_company_receivable_account', readonly=False)
     sister_company_payable_account = fields.Many2one('account.account', string="Sister Company Payable Account", related='company_id.sister_company_payable_account', readonly=False)
     
+class LandedCostLine(models.Model):
+    _inherit = 'stock.landed.cost.lines'
 
+    @api.onchange('product_id')
+    def onchange_product_id(self):
+        res = super(LandedCostLine,self).onchange_product_id()
+        if self.product_id:
+            if self.product_id.product_tmpl_id.property_account_expense_id.id:
+                self.account_id = self.product_id.product_tmpl_id.property_account_expense_id.id
+            else:
+                raise UserError('Please set the expense account in %s master'%(self.product_id.name))
+
+        return res
 
 
 

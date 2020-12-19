@@ -30,8 +30,27 @@ class account_payment(models.Model):
     effective_date = fields.Date('Effective Date',
                                  help='Effective date of PDC', copy=False,
                                  default=False)
-    state = fields.Selection([('draft', 'Draft'), ('posted', 'Validated'),('release', 'Released'),('reverse', 'Reversed'), ('sent', 'Sent'), ('reconciled', 'Reconciled'), ('cancelled', 'Cancelled')], readonly=True, default='draft', copy=False, string="Status")
+    state = fields.Selection([('draft', 'Draft'), ('posted', 'Validated'),('release', 'Released'),('approve', 'Reverse Approval'),('reverse', 'Reversed'), ('sent', 'Sent'), ('reconciled', 'Reconciled'), ('cancelled', 'Cancelled')], readonly=True, default='draft', copy=False, string="Status")
     currency_rate = fields.Float('Rate')
+    check_pay = fields.Integer('Check',default=0)
+
+
+
+    @api.model
+    def check_the_balance(self):
+        # match = self.search([('state', '=', 'open'), ('type', 'in', ['out_invoice', 'out_refund'])])
+        if self.payment_type == "outbound" :
+            query = """select sum(balance) as balance from account_move_line where account_id=%s"""%(self.journal_id.default_debit_account_id.id)
+            self.env.cr.execute(query)
+            match = self.env.cr.dictfetchall()
+            balance = 0.0
+            for res in match:
+                if res['balance']:
+                    balance = res['balance']
+                    if float(balance) < self.amount:
+                        raise UserError("There is no enough balance to proceed with this payment !!!")
+            
+        # return True
 
     @api.onchange('currency_id')
     def _currency_change(self):
@@ -92,38 +111,51 @@ class account_payment(models.Model):
 
     @api.onchange('partner_id', 'currency_id')
     def onchange_partner_id(self):
-        if self.partner_id and self.payment_type != 'transfer':
-            vals = {}
-            line = [(6, 0, [])]
-            invoice_ids = []
-            if self.payment_type == 'outbound' and self.partner_type == 'supplier':
-                invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
-                                                                  ('state', '=','posted'),
-                                                                  ('type','=', 'in_invoice'),('amount_residual','!=',0.0),
-                                                                  ('currency_id', '=', self.currency_id.id)])
-            if self.payment_type == 'inbound' and self.partner_type == 'supplier':
-                invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
-                                                                  ('state', '=','posted'),
-                                                                  ('type','=', 'in_refund'),('amount_residual','!=',0.0),
-                                                                  ('currency_id', '=', self.currency_id.id)])
-            if self.payment_type == 'inbound' and self.partner_type == 'customer':
-                invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
-                                                                  ('state', '=','posted'),
-                                                                  ('type','=', 'out_invoice'),('amount_residual','!=',0.0),
-                                                                  ('currency_id', '=', self.currency_id.id)])
-            if self.payment_type == 'outbound' and self.partner_type == 'customer':
-                invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
-                                                                  ('state', '=','posted'),
-                                                                  ('type','=', 'out_refund'),('amount_residual','!=',0.0),
-                                                                  ('currency_id', '=', self.currency_id.id)])
+        if not self.invoice_ids or self.check_pay == 1:
+            if self.partner_id and self.payment_type != 'transfer':
+                vals = {}
+                line = [(6, 0, [])]
+                invoice_ids = []
+                if self.payment_type == 'outbound' and self.partner_type == 'supplier':
+                    invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
+                                                                    ('state', '=','posted'),
+                                                                    ('type','=', 'in_invoice'),('amount_residual','!=',0.0),
+                                                                    ('currency_id', '=', self.currency_id.id)])
+                if self.payment_type == 'inbound' and self.partner_type == 'supplier':
+                    invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
+                                                                    ('state', '=','posted'),
+                                                                    ('type','=', 'in_refund'),('amount_residual','!=',0.0),
+                                                                    ('currency_id', '=', self.currency_id.id)])
+                if self.payment_type == 'inbound' and self.partner_type == 'customer':
+                    invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
+                                                                    ('state', '=','posted'),
+                                                                    ('type','=', 'out_invoice'),('amount_residual','!=',0.0),
+                                                                    ('currency_id', '=', self.currency_id.id)])
+                if self.payment_type == 'outbound' and self.partner_type == 'customer':
+                    invoice_ids = self.env['account.move'].search([('partner_id', 'in', [self.partner_id.id]),
+                                                                    ('state', '=','posted'),
+                                                                    ('type','=', 'out_refund'),('amount_residual','!=',0.0),
+                                                                    ('currency_id', '=', self.currency_id.id)])
 
-            for inv in invoice_ids[::-1]:
-                vals = {
-                       'invoice_id': inv.id,
-                       }
-                line.append((0, 0, vals))
-            self.invoice_lines = line
-            self.onchnage_amount() 
+                for inv in invoice_ids[::-1]:
+                    vals = {
+                        'invoice_id': inv.id,
+                        }
+                    line.append((0, 0, vals))
+                self.invoice_lines = line
+                self.onchnage_amount() 
+                self.check_pay = 1
+        # else:
+            # self.check_pay = 1
+        #     # line = [(6, 0, [])]
+        #     for inv in self.invoice_ids:
+        #         vals = {
+        #             'invoice_id': inv.id,
+        #             }
+        #         line.append((0, 0, vals))
+        #         self.invoice_lines = line
+        #         self.onchnage_amount() 
+
         
     @api.onchange('payment_type')
     def _onchange_payment_type(self):
@@ -855,11 +887,14 @@ class account_payment(models.Model):
         AccountMove = self.env['account.move'].with_context(default_type='entry')
         for rec in self:
 
+
             if rec.state != 'draft':
                 raise UserError(_("Only a draft payment can be posted."))
 
             if any(inv.state != 'posted' for inv in rec.invoice_ids):
                 raise ValidationError(_("The payment cannot be processed because the invoice is not open!"))
+
+            self.check_the_balance()
 
             # keep the name in case of a payment reset to draft
             if not rec.name:
@@ -1175,6 +1210,59 @@ class account_payment(models.Model):
             'invoice_user_id': move.invoice_user_id.id,
         }
 
+    # def reverse_moves(self):
+    #     moves = self.env['account.move'].browse(self.env.context['active_ids']) if self.env.context.get('active_model') == 'account.move' else self.move_id
+
+    #     # Create default values.
+    #     default_values_list = []
+    #     for move in moves:
+    #         default_values_list.append(self._prepare_default_reversal(move))
+
+    #     batches = [
+    #         [self.env['account.move'], [], True],   # Moves to be cancelled by the reverses.
+    #         [self.env['account.move'], [], False],  # Others.
+    #     ]
+    #     for move, default_vals in zip(moves, default_values_list):
+    #         is_auto_post = bool(default_vals.get('auto_post'))
+    #         is_cancel_needed = not is_auto_post and self.refund_method in ('cancel', 'modify')
+    #         batch_index = 0 if is_cancel_needed else 1
+    #         batches[batch_index][0] |= move
+    #         batches[batch_index][1].append(default_vals)
+
+    #     # Handle reverse method.
+    #     moves_to_redirect = self.env['account.move']
+    #     for moves, default_values_list, is_cancel_needed in batches:
+    #         new_moves = moves._reverse_moves(default_values_list, cancel=is_cancel_needed)
+
+    #         if self.refund_method == 'modify':
+    #             moves_vals_list = []
+    #             for move in moves.with_context(include_business_fields=True):
+    #                 moves_vals_list.append(move.copy_data({'date': self.date or move.date})[0])
+    #             new_moves = self.env['account.move'].create(moves_vals_list)
+
+    #         moves_to_redirect |= new_moves
+
+    #     # Create action.
+    #     action = {
+    #         'name': _('Reverse Moves'),
+    #         'type': 'ir.actions.act_window',
+    #         'res_model': 'account.move',
+    #     }
+    #     if len(moves_to_redirect) == 1:
+    #         action.update({
+    #             'view_mode': 'form',
+    #             'res_id': moves_to_redirect.id,
+    #         })
+    #     else:
+    #         action.update({
+    #             'view_mode': 'tree,form',
+    #             'domain': [('id', 'in', moves_to_redirect.ids)],
+    #         })
+    #     return action
+
+    def reversal_approve(self):
+        self.write({'state': 'approve'})
+
     def reverse_moves(self):
         # moves = self.env['account.move'].browse(self.env.context['active_ids']) if self.env.context.get('active_model') == 'account.move' else self.move_id
         moves = self.mapped('move_line_ids.move_id')
@@ -1182,6 +1270,9 @@ class account_payment(models.Model):
         refund_method = (len(moves) > 1 or moves.type == 'entry') and 'cancel' or 'refund'
         default_values_list = []
         for move in moves:
+            # move.button_cancel()
+            move.button_draft()
+            move.button_cancel()
             default_values_list.append(self._prepare_default_reversal(move))
 
         batches = [
@@ -1198,6 +1289,7 @@ class account_payment(models.Model):
         # Handle reverse method.
         moves_to_redirect = self.env['account.move']
         for moves, default_values_list, is_cancel_needed in batches:
+            # raise UserError('test')
             new_moves = moves._reverse_moves(default_values_list, cancel=is_cancel_needed, PID=self.id)
 
             if refund_method == 'modify':
@@ -1209,7 +1301,11 @@ class account_payment(models.Model):
                     for rec in res.line_ids:
                         rec.write({'payment_id':self.id})
 
+            
+
             moves_to_redirect |= new_moves
+
+        
 
         self.write({'state': 'reverse'})
 

@@ -26,7 +26,7 @@
                 <xpath expr="//div[@class='oe_title']" position="after">
                     <div name="options_customers">
                         <div>
-                            <field name="partner_type" widget="radio"/>
+                            <field name="partner_type" invisible="1" widget="radio"/>
                             <!-- <label for="partner_type"/> -->
                         </div>
                         <!-- <div>
@@ -53,12 +53,27 @@
                     <button name="button_operation_approve" type="object" states="second approve" string="Approve Order" class="oe_highlight" groups="purchase.group_purchase_manager"/>
 
                 </xpath>
+
+                <xpath expr="//button[@name='action_view_invoice'][1]" position="replace">
+                    <button name="action_view_invoice" groups="account.group_account_invoice" string="Create Bill" type="object" class="oe_highlight" context="{'create_bill':True}" attrs="{'invisible': ['|', ('state', 'not in', ('purchase', 'done')), ('invoice_status', 'in', ('no', 'invoiced'))]}"/>
+
+                </xpath>
+                <xpath expr="//button[@name='action_view_invoice'][2]" position="replace">
+                    <button name="action_view_invoice" groups="account.group_account_invoice" string="Create Bill" type="object" context="{'create_bill':True}" attrs="{'invisible': ['|', '|', ('state', 'not in', ('purchase', 'done')), ('invoice_status', 'not in', ('no', 'invoiced')), ('order_line', '=', [])]}"/>
+
+                </xpath>
                 
                 <xpath expr="//field[@name='partner_id']" position="attributes">
                     <attribute name="domain">[('is_confirm','=',True)]</attribute>
                     <attribute name="options">{'no_create':True}</attribute>
                 </xpath>
+                <xpath expr="//field[@name='currency_id']" position="attributes">
+                    <attribute name="options">{'no_create':True}</attribute>
+                </xpath>
                 <xpath expr="//field[@name='order_line']/tree//field[@name='product_id']" position="attributes">
+                    <attribute name="options">{'no_create':True}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree//field[@name='product_uom']" position="attributes">
                     <attribute name="options">{'no_create':True}</attribute>
                 </xpath>
                 <xpath expr="//field[@name='taxes_id']" position="replace">
@@ -74,6 +89,15 @@
                 </xpath>
                
             </field>
+        </record>
+
+        <record id="purchase.action_purchase_order_report_all" model="ir.actions.act_window">
+            <field name="name">Purchase Analysis</field>
+            <field name="res_model">purchase.report</field>
+            <field name="view_mode">pivot,graph</field>
+            <field name="view_id"></field>  <!-- force empty -->
+            <field name="help">Purchase Analysis allows you to easily check and analyse your company purchase history and performance. From this menu you can track your negotiation performance, the delivery performance of your vendors, etc.</field>
+            <field name="target">current</field>
         </record>
 
         <record id="stock_picking_inherits_form" model="ir.ui.view">
@@ -152,6 +176,29 @@
                         </div>
                     </button>
                 </button>
+
+                <xpath expr="//button[@name='%(sale.action_view_sale_advance_payment_inv)d'][1]" position="attributes"> 
+                    <attribute name="groups">account.group_account_invoice</attribute>
+                    
+                </xpath>
+
+                <xpath expr="//button[@name='%(sale.action_view_sale_advance_payment_inv)d'][2]" position="attributes"> 
+                    <attribute name="groups">account.group_account_invoice</attribute>
+                    
+                </xpath>
+                <xpath expr="//button[@name='action_open_delivery_wizard'][1]" position="attributes"> 
+                    <attribute name="invisible">1</attribute>
+                    
+                </xpath>
+                <xpath expr="//button[@name='action_open_delivery_wizard'][2]" position="attributes"> 
+                    <attribute name="invisible">1</attribute>
+                    
+                </xpath>
+                <xpath expr="//button[@name='action_open_delivery_wizard'][3]" position="attributes"> 
+                    <attribute name="invisible">1</attribute>
+                    
+                </xpath>
+
                 <xpath expr="//button[@name='action_cancel']" position="after"> 
                     <button name="create_vendor_bill" string="Create Shipping Vendor Bill" invisible="1" type="object" states="sale"/>
                 </xpath>
@@ -169,6 +216,8 @@
                 </xpath>
             </field>
         </record>
+
+
         <record id="account_move_inherits_form" model="ir.ui.view">
             <field name="name">account.move.inh.form</field>
             <field name="model">account.move</field>
@@ -231,6 +280,157 @@
             </field>
         </record>
 
+        <!-- <delete id="crm.crm_menu_config" model="ir.ui.menu"/>
+        <delete id="purchase.menu_purchase_config" model="ir.ui.menu"/>
+        <delete id="sale.menu_sale_config" model="ir.ui.menu"/>
+        <delete id="stock.menu_stock_config_settings" model="ir.ui.menu"/>
+        <delete id="account.menu_finance_configuration" model="ir.ui.menu"/>
+        <delete id="contacts.res_partner_menu_config" model="ir.ui.menu"/>
+
+        <menuitem
+            id="crm_menu_config"
+            name="Configuration"
+            parent="crm.crm_menu_root"
+            sequence="35" groups="base.group_erp_manager"/>
+
+        <menuitem
+            id="menu_crm_config_lead"
+            name="Pipeline"
+            parent="crm_menu_config"
+            sequence="15"
+            groups="sales_team.group_sale_manager"/>
+
+        <menuitem
+            id="menu_crm_config_opportunity"
+            name="Opportunities"
+            parent="crm_menu_config"
+            sequence="1"
+            groups="sales_team.group_sale_manager"/>
+
+        <menuitem id="crm_config_settings_menu"
+            name="Settings"
+            parent="crm_menu_config"
+            action="crm_config_settings_action"
+            groups="base.group_system"
+            sequence="0"/>
+
+        <menuitem id="crm_team_config"
+            name="Sales Teams"
+            parent="crm_menu_config"
+            action="sales_team.sales_team_config_action"
+            sequence="5"/>
+
+        <menuitem id="crm_team_menu_config_activity_types"
+            name="Activity Types"
+            parent="crm_menu_config"
+            action="sales_team.mail_activity_type_action_config_sales"
+            sequence="10"/>
+
+        <menuitem
+        id="crm_menu_lead_generation"
+        name="Lead Generation"
+        parent="crm_menu_config"
+        sequence="20"/>
+
+        <menuitem id="crm_menu_resellers" name="Resellers" parent="crm_menu_config" sequence="16"/>
+
+
+        <menuitem id="menu_purchase_config" name="Configuration" parent="purchase.menu_purchase_root" 
+        sequence="101" groups="base.group_erp_manager"/>
+
+        <menuitem
+           action="product.product_supplierinfo_type_action" id="purchase.menu_product_pricelist_action2_purchase"
+           parent="menu_purchase_config" sequence="1"/>
+
+        <menuitem
+            id="purchase.menu_product_in_config_purchase" name="Products"
+            parent="menu_purchase_config" sequence="30" groups="base.group_no_one"/>
+
+        <menuitem id="purchase.menu_purchase_general_settings" name="Settings" parent="menu_purchase_config"
+        sequence="0" action="action_purchase_configuration" groups="base.group_system"/>
+
+        <menuitem
+        id="purchase_requisition.menu_purchase_requisition_type"
+        sequence="2"
+        parent="menu_purchase_config"
+        action="tender_type_action"/>
+
+        <menuitem id="menu_sale_config"
+            name="Configuration"
+            parent="sale.sale_menu_root"
+            sequence="45"
+            groups="base.group_erp_manager"/>
+
+        <menuitem id="sale.sale_menu_config_activity_type"
+        action="mail_activity_type_action_config_sale"
+        parent="menu_sale_config"
+        groups="base.group_no_one"/>
+
+        <menuitem id="sale.menu_sale_general_settings"
+        name="Settings"
+        parent="menu_sale_config"
+        sequence="0"
+        action="action_sale_config_settings"
+        groups="base.group_system"/>
+
+        <menuitem id="sale.sales_team_config"
+            name="Sales Teams"
+            parent="menu_sale_config"
+            action="sales_team.sales_team_config_action"
+            sequence="2"/>
+
+        <menuitem id="sale.menu_sales_config"
+            parent="menu_sale_config"
+            sequence="3"
+            name="Sales Orders"/>
+
+        <menuitem id="sale.prod_config_main" name="Products" parent="menu_sale_config" sequence="5"/>
+
+
+        <menuitem id="stock.menu_stock_config_settings" name="Configuration" parent="stock.menu_stock_root"
+            sequence="45" groups="base.group_erp_manager"/>
+
+        <menuitem id="account.menu_finance_configuration" name="Configuration" parent="account.menu_finance" 
+        sequence="45"  groups="base.group_erp_manager"/>
+
+        <menuitem id="contacts.res_partner_menu_config"
+        name="Configuration"
+        parent="contacts.menu_contacts"
+        groups="base.group_erp_manager"
+        
+        sequence="45"/> -->
+
+         <record model="ir.ui.menu" id="sale.menu_sale_config">
+            <!-- <field name="name">Configuration</field> -->
+            <field eval="[(6,0,[ref('base.group_erp_manager')])]" name="groups_id"/>
+        </record>
+
+        <record model="ir.ui.menu" id="purchase.menu_purchase_config">
+            <!-- <field name="name">Configuration</field> -->
+            <field eval="[(6,0,[ref('base.group_erp_manager')])]" name="groups_id"/>
+        </record>
+
+        <record model="ir.ui.menu" id="crm.crm_menu_config">
+            <!-- <field name="name">Configuration</field> -->
+            <field eval="[(6,0,[ref('base.group_erp_manager')])]" name="groups_id"/>
+        </record>
+
+        <record model="ir.ui.menu" id="stock.menu_stock_config_settings">
+            <!-- <field name="name">Configuration</field> -->
+            <field eval="[(6,0,[ref('base.group_erp_manager')])]" name="groups_id"/>
+        </record>
+
+        <record model="ir.ui.menu" id="account.menu_finance_configuration">
+            <!-- <field name="name">Configuration</field> -->
+            <field eval="[(6,0,[ref('base.group_erp_manager')])]" name="groups_id"/>
+        </record>
+
+        <record model="ir.ui.menu" id="contacts.res_partner_menu_config">
+            <!-- <field name="name">Configuration</field> -->
+            <field eval="[(6,0,[ref('base.group_erp_manager')])]" name="groups_id"/>
+        </record>
+
+        
 
     </data>
 </odoo>
