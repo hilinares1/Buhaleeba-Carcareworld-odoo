@@ -53,6 +53,12 @@
                     <button name="button_operation_approve" type="object" states="second approve" string="Approve Order" class="oe_highlight" groups="purchase.group_purchase_manager"/>
 
                 </xpath>
+                <xpath expr="//button[@name='button_confirm'][1]" position="attributes">
+                    <attribute name="groups">purchase.group_purchase_manager</attribute>
+                </xpath>
+                <xpath expr="//button[@name='button_confirm'][2]" position="attributes">
+                    <attribute name="groups">purchase.group_purchase_manager</attribute>
+                </xpath>
 
                 <xpath expr="//button[@name='action_view_invoice'][1]" position="replace">
                     <button name="action_view_invoice" groups="account.group_account_invoice" string="Create Bill" type="object" class="oe_highlight" context="{'create_bill':True}" attrs="{'invisible': ['|', ('state', 'not in', ('purchase', 'done')), ('invoice_status', 'in', ('no', 'invoiced'))]}"/>
@@ -429,6 +435,9 @@
             <!-- <field name="name">Configuration</field> -->
             <field eval="[(6,0,[ref('base.group_erp_manager')])]" name="groups_id"/>
         </record>
+
+        <menuitem id="stock.menu_warehouse_report" name="Reporting" sequence="99" 
+        parent="stock.menu_stock_root" groups="stock.group_stock_manager,stock.group_stock_user"/>
 
         
 
