@@ -11,7 +11,7 @@
                     <div class="oe_structure"/>
                         <div>
                             <h3 class="text-center mb32">
-                                <strong>Journal Voucher</strong>
+                                <strong><p t-field="o.journal_id.voucher_name"/></strong>
                             </h3>
                         </div>
                     <br/>
