@@ -26,6 +26,7 @@
     'data': [
             'report/report_journal_entries.xml',
             'report/report_journal_entries_view.xml',
+            'journal.xml',
     ],
     'installable': True,
     'auto_install': False,
