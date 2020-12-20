@@ -65,14 +65,14 @@
         <xpath expr="//div[@class='page'] "  position="before">
         <br/><br/>
         </xpath>
-         <xpath expr="//div[@class='page'] /h2"  position="replace">
+         <xpath expr="//div[@class='page'] /h2[1]"  position="replace">
 
         </xpath>
 
          <xpath expr="//div[@class='page'] /h2[1]"  position="replace">
 
         </xpath>
-         <xpath expr="//div[@class='page'] /h2[2]"  position="replace">
+         <xpath expr="//div[@class='page'] /h2[1]"  position="replace">
 
         </xpath>
 
