@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_landed_cost_generator_manager,landed.cost.generator,model_landed_cost_generator,base.group_user,1,0,1,0
+"access_stock_landed_cost","stock.landed.cost","model_stock_landed_cost","stock.group_stock_user",1,1,1,1
+"access_stock_landed_cost_lines","stock.landed.cost.lines","model_stock_landed_cost_lines","stock.group_stock_user",1,1,1,1
