@@ -359,7 +359,10 @@ class StockPicking(models.Model):
                     if rec.classification == 'local vendor':
                         rec.is_approve = 0
                     else:
-                        rec.is_approve = 1
+                        if rec.land_count == 0:
+                            rec.is_approve = 0
+                        else:
+                            rec.is_approve = 1
     
     @api.depends('is_approve')
     def _get_status(self):
