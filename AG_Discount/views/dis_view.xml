@@ -20,7 +20,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='order_line']/tree//field[@name='taxes_id']" position="before">
                     <field name="discount" />
-                    <field name="uni_discount" />
+                    <field name="uni_discount" readonly="1"/>
                     <field name="is_percentage" />
                 </xpath>
                 <xpath expr="//field[@name='amount_tax']" position="after">
