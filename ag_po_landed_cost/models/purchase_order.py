@@ -51,7 +51,7 @@ class StockPicking(models.Model):
                             pro = {
                                 'product_id':prod,
                                 'price_unit':cost,
-                                'split_method':'equal',
+                                'split_method':'by_current_cost_price',
                                 'account_id':account
                             }
                             product.append((0,0,pro))
