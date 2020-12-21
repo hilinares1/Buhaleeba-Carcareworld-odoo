@@ -45,16 +45,18 @@ class PurchaseOrder(models.Model):
             # discount = rec.total_discount / length
             GT = 0.0
             for line in rec.order_line:
-                GT += line.product_qty * line.price_unit
+                if not line.is_landed_costs_line:
+                    GT += line.product_qty * line.price_unit
             for line in rec.order_line:
                 # if line.is_percentage == True:
                 #     line.discount = (line.product_qty * line.price_unit * rec.total_discount) / GT
                 #     line.is_percentage = False
                 # else:
-                if GT == 0.0:
-                    line.uni_discount = line.uni_discount + ((line.product_qty * line.price_unit * rec.total_discount) / 1)
-                else:
-                    line.uni_discount = line.uni_discount + ((line.product_qty * line.price_unit * rec.total_discount) / GT)
+                if not line.is_landed_costs_line:
+                    if GT == 0.0:
+                        line.uni_discount = ((line.product_qty * line.price_unit * rec.total_discount) / 1)
+                    else:
+                        line.uni_discount = ((line.product_qty * line.price_unit * rec.total_discount) / GT)
                 # line.is_percentage = False
             self.get_total_discount()
 
