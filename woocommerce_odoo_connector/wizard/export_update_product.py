@@ -185,7 +185,7 @@ class UpdateWoocommerceProducts(models.TransientModel):
 			# values = value_list.append(attr_name.name)
             attribute_dict = {
 							"name"		: "brand",
-							"id"		: 3,
+							"id"		: 1,
 							"visible": True,
 							"variation": False,
 							# "options": [

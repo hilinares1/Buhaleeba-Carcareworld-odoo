@@ -19,6 +19,7 @@ class ExportWoocommerceProducts(models.TransientModel):
         temp_ids = [prod_env.browse(
             active_id).product_tmpl_id.id for active_id in active_ids]
         channel_id = self.channel_id.id
+        
         return self.env['export.templates'].create({
             "channel_id": channel_id,
             "operation": "export" if self.operation == "export" else "update",
@@ -33,6 +34,7 @@ class ExportWoocommerceTemplates(models.TransientModel):
 
     def action_woocommerce_export_template(self):
         return self.export_button()
+        
 
     def woocommerce_export_now(self, record):
         channel = self._context.get('channel_id')
@@ -213,7 +215,7 @@ class ExportWoocommerceTemplates(models.TransientModel):
 			# values = value_list.append(attr_name.name)
             attribute_dict = {
 							"name"		: "brand",
-							"id"		: 3,
+							"id"		: 1,
 							"visible": True,
 							"variation": False,
 							# "options": [
