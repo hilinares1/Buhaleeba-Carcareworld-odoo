@@ -25,15 +25,18 @@ class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
 
     total_discount = fields.Float('Discount')
-    dicount_sum = fields.Float('Total Discount',computed='get_total_discount')
+    dicount_sum = fields.Float('Total Discount',compute='get_total_discount',store=True,readonly=True)
 
-    @api.onchange('order_line')
+    @api.onchange('order_line','total_discount')
+    @api.depends('order_line','total_discount')
     def get_total_discount(self):
+        
         for rec in self:
             discount = 0.0
-            for line in rec.order_line:
-                discount += (line.product_qty * line.price_unit) - line.price_subtotal
-            rec.dicount_sum = discount
+            if rec.order_line:
+                for line in rec.order_line:
+                    discount =  discount + ((line.product_qty * line.price_unit) - line.price_subtotal)
+                rec.dicount_sum = discount
 
 
     def compute_discount(self):
@@ -54,7 +57,6 @@ class PurchaseOrder(models.Model):
                     line.uni_discount = line.uni_discount + ((line.product_qty * line.price_unit * rec.total_discount) / GT)
                 # line.is_percentage = False
             self.get_total_discount()
-
 
 
 
